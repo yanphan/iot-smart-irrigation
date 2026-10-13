@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "author": "Nhóm 11",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": -100, "left": 150, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay1", "top": 150, "left": -150, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay2", "top": 200, "left": -150, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay3", "top": 250, "left": -150, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay4", "top": 300, "left": -150, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -50, "left": -150, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot2", "top": 0, "left": -150, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot3", "top": 50, "left": -150, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    
+    ["dht1:VCC", "esp:3V3", "red", []],
+    ["dht1:GND", "esp:GND.1", "black", []],
+    ["dht1:SDA", "esp:4", "green", []],
+    
+    ["pot1:VCC", "esp:3V3", "red", []],
+    ["pot1:GND", "esp:GND.1", "black", []],
+    ["pot1:SIG", "esp:36", "green", []],
+    
+    ["pot2:VCC", "esp:3V3", "red", []],
+    ["pot2:GND", "esp:GND.1", "black", []],
+    ["pot2:SIG", "esp:39", "green", []],
+    
+    ["pot3:VCC", "esp:3V3", "red", []],
+    ["pot3:GND", "esp:GND.1", "black", []],
+    ["pot3:SIG", "esp:34", "green", []],
+    
+    ["relay1:VCC", "esp:5V", "red", []],
+    ["relay1:GND", "esp:GND.2", "black", []],
+    ["relay1:IN", "esp:27", "green", []],
+    
+    ["relay2:VCC", "esp:5V", "red", []],
+    ["relay2:GND", "esp:GND.2", "black", []],
+    ["relay2:IN", "esp:26", "green", []],
+    
+    ["relay3:VCC", "esp:5V", "red", []],
+    ["relay3:GND", "esp:GND.2", "black", []],
+    ["relay3:IN", "esp:25", "green", []],
+    
+    ["relay4:VCC", "esp:5V", "red", []],
+    ["relay4:GND", "esp:GND.2", "black", []],
+    ["relay4:IN", "esp:33", "green", []]
+  ]
+}
