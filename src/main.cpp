@@ -8,9 +8,12 @@
 // ============================================================
 
 #include "config.h"
+#include "decide.h"
 #include "mqtt_client.h"
 #include "pump_relay.h"
 #include "soil_sensor.h"
+#include "state_machine.h"
+#include "test_decide.h"
 #include "weather.h"
 #include <Arduino.h>
 #include <DHT.h>
@@ -22,20 +25,21 @@ DHT dht(PIN_DHT, DHT_TYPE);
 TaskHandle_t taskControlHandle = NULL;
 TaskHandle_t taskNetworkHandle = NULL;
 
-// // Bien toan cuc chia se giua hai Core
+// Bien toan cuc chia se giua hai Core
 static volatile int latestMoisture[NUM_ZONES] = {50, 50, 50};
 static volatile int latestRawADC[NUM_ZONES] = {2048, 2048, 2048};
 static volatile float latestTemp = 28.0f;
 static volatile float latestHum = 65.0f;
 
-// Bien trang thai dieu phoi tu dong (FSM)
+// Bien trang thai dieu phoi
 static unsigned long soakWaitUntil = 0;
-static int lastIrrigatedZone = 0;
+static int currentActiveZone = 0;
 static unsigned long pulseStartTime = 0;
 static bool sensorFaultActive = false;
+static bool pumpFaultActive = false;
 
 // ============================================================
-// Task Dieu khien & Cam bien (Core 1)
+// Task Dieu khien & Cam bien (Core 1) - Tich hop Ham thuan decide()
 // ============================================================
 void taskControlCode(void *pvParameters) {
   Serial.printf("[TASK][CONTROL] Dang chay tren Core %d\r\n", xPortGetCoreID());
@@ -71,40 +75,24 @@ void taskControlCode(void *pvParameters) {
     String fault = getSimFaultCode();
     if (fault == "D1_SOIL_FAIL") {
       sensorFaultActive = true;
+      pumpFaultActive = false;
       Serial.println(
           "[FAULT][INJECT] Kich hoat loi D1_SOIL_FAIL (Hong cam bien dat)!\r\n");
     } else if (fault == "D2_PUMP_JAM") {
-      sensorFaultActive = true;
+      sensorFaultActive = false;
+      pumpFaultActive = true;
       Serial.println(
           "[FAULT][INJECT] Kich hoat loi D2_PUMP_JAM (Ket van / Hong bom)!\r\n");
     } else if (fault == "CLEAR_FAULT" || fault == "RESET") {
       sensorFaultActive = false;
+      pumpFaultActive = false;
       clearSimFaultCode();
       Serial.println(
           "[FAULT][RESET] Da phuc hoi he thong ve trang thai binh thuong!\r\n");
       publishAlert("SYSTEM_NORMAL", 0, "He thong da duoc phuc hoi binh thuong");
     }
 
-    // 4. BAI TOAN 3: Kiem tra an toan cam bien (D1 - SENSOR_RANGE)
-    if (sensorFaultActive || latestRawADC[0] <= 20 || latestRawADC[0] >= 4085 ||
-        latestRawADC[1] <= 20 || latestRawADC[1] >= 4085 ||
-        latestRawADC[2] <= 20 || latestRawADC[2] >= 4085) {
-      pumpRelay->allOff();
-      for (int z = 1; z <= NUM_ZONES; z++) {
-        publishPumpState(z, false, 0);
-      }
-      Serial.println("[SAFETY] Phat hien loi cam bien hoac tiem loi D1/D2 -> "
-                     "KICH HOAT TRANG THAI AN TOAN!");
-      publishSystemState(
-          "S99_SAFE", "ERROR",
-          "Loi cam bien hoac ket van (D1/D2) - Ngat bom an toan");
-      publishAlert("SENSOR_RANGE", 0,
-                   "Phat hien ADC bat thuong hoac loi cam bien D1/D2!");
-      vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL));
-      continue;
-    }
-
-    // 5. BAI TOAN 3: Kiem tra bao ve qua tai bom (D5 - PUMP_TIMEOUT)
+    // 4. Kiem tra bao ve qua tai bom (D5 - PUMP_TIMEOUT watchdog)
     for (int z = 1; z <= NUM_ZONES; z++) {
       if (pumpRelay->isOn(z)) {
         unsigned long runTime = pumpRelay->getRunTime(z);
@@ -116,53 +104,123 @@ void taskControlCode(void *pvParameters) {
           publishAlert("PUMP_TIMEOUT", z,
                        "Bom chay qua thoi gian toi da, tu dong ngat an toan");
           publishPumpState(z, false, runTime);
+          if (currentActiveZone == z) {
+            currentActiveZone = 0;
+          }
         }
       }
     }
 
-    // 6. XU LY CHUYEN DOI CHE DO (AUTO / MANUAL) & LENH THU CONG
-    static bool lastManualMode = false;
+    // 5. CHUAN BI DU LIEU DAU VAO (DecideInput) CHO HAM THUAN decide()
+    DecideInput in;
+    for (int z = 0; z < NUM_ZONES; z++) {
+      in.moisture[z] = latestMoisture[z];
+      in.rawADC[z] = latestRawADC[z];
+    }
+
+    in.thresholdDry[0] = getThresholdDryZ1();
+    in.thresholdWet[0] = getThresholdWetZ1();
+    in.thresholdFlood[0] = Z1_THRESHOLD_FLOOD;
+
+    in.thresholdDry[1] = Z2_THRESHOLD_DRY;
+    in.thresholdWet[1] = Z2_THRESHOLD_WET;
+    in.thresholdFlood[1] = Z2_THRESHOLD_FLOOD;
+
+    in.thresholdDry[2] = Z3_THRESHOLD_DRY;
+    in.thresholdWet[2] = Z3_THRESHOLD_WET;
+    in.thresholdFlood[2] = Z3_THRESHOLD_FLOOD;
+
+    in.thresholdEmergency = THRESHOLD_EMERGENCY;
+
+    // Thong tin thoi tiet
+    bool weatherValid =
+        (weatherService != nullptr && weatherService->isDataValid());
+    in.weatherValid = weatherValid;
+    if (weatherValid) {
+      ForecastData fc = weatherService->getForecast();
+      in.maxProb = fc.maxProb;
+      in.effPrecip = fc.effPrecip;
+      in.heavyRain = fc.heavyRain;
+      in.hourlyRain0 = fc.hourlyRain[0];
+      Serial.printf("[OPEN-METEO][TRAM KHI TUONG] Nhiet do: %.1fC | Do am: "
+                    "%.1f%% | P_max: %d%% | P_eff: %.2fmm\r\n",
+                    fc.temp, fc.humidity, fc.maxProb, fc.effPrecip);
+    } else {
+      in.maxProb = 0;
+      in.effPrecip = 0.0f;
+      in.heavyRain = false;
+      in.hourlyRain0 = 0.0f;
+      Serial.println("[OPEN-METEO][TRAM KHI TUONG] Dang cho cap nhat tu "
+                     "Open-Meteo REST API...");
+    }
+
+    // Che do dieu khien & Lenh thu cong
     bool curManualMode = isManualModeRequested();
-    if (curManualMode != lastManualMode) {
-      lastManualMode = curManualMode;
-      // Khi chuyen doi che do, ngat toan bo bom dang chay de dam bao an toan
+    in.manualMode = curManualMode;
+    ManualCommand cmdManual = getPendingManualCommand();
+    if (cmdManual.isPending) {
+      in.manualZone = cmdManual.zone;
+      in.manualPumpOn = cmdManual.pumpOn;
+      clearPendingManualCommand();
+    } else {
+      in.manualZone = 0;
+      in.manualPumpOn = false;
+    }
+
+    // Su co phan cung
+    in.sensorFault = sensorFaultActive;
+    in.pumpFault = pumpFaultActive;
+
+    // FSM State & Timers
+    in.currentState = S1_MONITOR;
+    in.isSoakWaiting = (millis() < soakWaitUntil);
+    in.currentlyIrrigatingZone = currentActiveZone;
+    in.currentPulseDurationMs =
+        (currentActiveZone > 0) ? (millis() - pulseStartTime) : 0;
+    in.maxPulseDurationMs = 20000; // 20s moi xung trong mo phong
+
+    // 6. GOI HAM THUAN decide() DE DUA RA QUYET DINH
+    DecideCommand cmd = decide(in);
+
+    // 7. THUC THI LENH DIEU KHIEN (Actuation)
+    if (cmd.action == ACTION_ALL_OFF) {
       pumpRelay->allOff();
       for (int z = 1; z <= NUM_ZONES; z++) {
         publishPumpState(z, false, 0);
       }
-      if (curManualMode) {
-        Serial.println("[MODE] Da chuyen sang MANUAL -> Ngat tat ca bom dang chay!\r\n");
-        publishSystemState("S6_MANUAL", "MANUAL", "Che do dieu khien thu cong");
-      } else {
-        Serial.println("[MODE] Da chuyen sang AUTO -> San sang dieu khien tu dong!\r\n");
-        publishSystemState("S1_MONITOR", "AUTO", "Dang giam sat on dinh");
+      currentActiveZone = 0;
+    } else if (cmd.action == ACTION_PUMP_ON) {
+      // Tat cac van khac, chi mo targetZone
+      for (int z = 1; z <= NUM_ZONES; z++) {
+        if (z != cmd.targetZone && pumpRelay->isOn(z)) {
+          pumpRelay->turnOff(z);
+          publishPumpState(z, false, pumpRelay->getRunTime(z));
+        }
       }
+      if (!pumpRelay->isOn(cmd.targetZone)) {
+        pumpRelay->turnOn(cmd.targetZone);
+        publishPumpState(cmd.targetZone, true, 0);
+        pulseStartTime = millis();
+        currentActiveZone = cmd.targetZone;
+      }
+    } else if (cmd.action == ACTION_PUMP_OFF) {
+      if (cmd.targetZone > 0) {
+        unsigned long rt = pumpRelay->getRunTime(cmd.targetZone);
+        pumpRelay->turnOff(cmd.targetZone);
+        publishPumpState(cmd.targetZone, false, rt);
+        if (currentActiveZone == cmd.targetZone) {
+          currentActiveZone = 0;
+        }
+      }
+      if (cmd.triggerSoakWait) {
+        soakWaitUntil = millis() + cmd.soakDurationMs;
+      }
+    } else if (cmd.action == ACTION_HOLD) {
+      // Giu nguyen trang thai xung tuoi dang chay
     }
 
+    // 8. D7: TTL Protection trong MANUAL - Bom chay qua 10 phut tu ngat
     if (curManualMode) {
-      ManualCommand cmd = getPendingManualCommand();
-      if (cmd.isPending) {
-        Serial.printf(
-            "[CONTROL][MANUAL] Thuc thi lenh thu cong: Zone %d -> %s\r\n",
-            cmd.zone, cmd.pumpOn ? "BAT" : "TAT");
-        if (cmd.zone == 0) {
-          pumpRelay->allOff();
-          for (int z = 1; z <= NUM_ZONES; z++) {
-            publishPumpState(z, false, 0);
-          }
-        } else if (cmd.zone >= 1 && cmd.zone <= NUM_ZONES) {
-          if (cmd.pumpOn) {
-            pumpRelay->turnOn(cmd.zone);
-          } else {
-            pumpRelay->turnOff(cmd.zone);
-          }
-          publishPumpState(cmd.zone, cmd.pumpOn,
-                           pumpRelay->getRunTime(cmd.zone));
-        }
-        clearPendingManualCommand();
-      }
-
-      // D7: TTL Protection trong MANUAL - Bom chay qua 10 phut tu ngat
       for (int z = 1; z <= NUM_ZONES; z++) {
         if (pumpRelay->isOn(z) && pumpRelay->getRunTime(z) >= 600000UL) {
           pumpRelay->turnOff(z);
@@ -172,212 +230,18 @@ void taskControlCode(void *pvParameters) {
               z);
         }
       }
-
-      publishSystemState("S6_MANUAL", "MANUAL", "Che do dieu khien thu cong");
-      vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL));
-      continue;
     }
 
-    // ============================================================
-    // 7. CHE DO AUTO - GIAI QUYET 3 BAI TOAN COT LOI
-    // ============================================================
+    // 9. XUAT LOG VA PUBLISH TRANG THAI LEN MQTT
+    Serial.printf("[DECIDE] Trang thai: %s | Lenh: %d | Zone: %d | Ly do: %s\r\n",
+                  stateToCode(cmd.nextState), cmd.action, cmd.targetZone,
+                  cmd.reason);
 
-    // 7.1 BAI TOAN 1: Kiem tra trang thai nghi ngam SOAK_WAIT (S9)
-    if (millis() < soakWaitUntil) {
-      pumpRelay->allOff();
-      for (int z = 1; z <= NUM_ZONES; z++) {
-        publishPumpState(z, false, 0);
-      }
-      unsigned long remSec = (soakWaitUntil - millis()) / 1000UL + 1;
-      char soakBuf[80];
-      snprintf(soakBuf, sizeof(soakBuf),
-               "Nghi ngam dat SOAK_WAIT (%lu giay) sau khi tuoi Z%d", remSec,
-               lastIrrigatedZone);
-      Serial.printf("[AUTO][SOAK_WAIT] %s\r\n", soakBuf);
-      publishSystemState("S9_SOAK_WAIT", "AUTO", soakBuf);
-      vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL));
-      continue;
-    } else if (soakWaitUntil > 0) {
-      Serial.println("[AUTO][SOAK_WAIT] Hoan thanh thoi gian nghi ngam! Doc "
-                     "lai cam bien cac vung thap.");
-      soakWaitUntil = 0;
-    }
+    publishSystemState(stateToCode(cmd.nextState),
+                       curManualMode ? "MANUAL" : "AUTO", cmd.reason);
 
-    // 7.2 BAI TOAN 1: Kiem tra ngap ung Zone 3 (Vung trung)
-    bool z3Flooded = (latestMoisture[2] >= Z3_THRESHOLD_FLOOD);
-    if (z3Flooded) {
-      if (pumpRelay->isOn(3)) {
-        pumpRelay->turnOff(3);
-        publishPumpState(3, false, pumpRelay->getRunTime(3));
-      }
-      Serial.printf("[SAFETY] Zone 3 do am %d%% >= %d%% -> NGUY CO NGAP UNG! "
-                    "Khoa van Z3.\r\n",
-                    latestMoisture[2], Z3_THRESHOLD_FLOOD);
-      publishAlert("FLOOD_WARNING", 3,
-                   "Vung 3 ngap ung do am >= 80%! Khoa van Z3");
-    }
-
-    // 7.3 BAI TOAN 2: Du bao thoi tiet & Luat hoan tuoi (Bang quyet dinh 8
-    // buoc)
-    ForecastData fc;
-    bool weatherValid =
-        (weatherService != nullptr && weatherService->isDataValid());
-    if (weatherValid) {
-      fc = weatherService->getForecast();
-      Serial.printf("[OPEN-METEO][TRAM KHI TUONG] Nhiet do: %.1fC | Do am: "
-                    "%.1f%% | P_max: %d%% | P_eff: %.2fmm\r\n",
-                    fc.temp, fc.humidity, fc.maxProb, fc.effPrecip);
-    } else {
-      Serial.println("[OPEN-METEO][TRAM KHI TUONG] Dang cho cap nhat tu "
-                     "Open-Meteo REST API...");
-    }
-
-    // Kiem tra do am khan cap (< 25%): Bat buoc tuoi cuu cay
-    bool emergencyDry =
-        (latestMoisture[0] < THRESHOLD_EMERGENCY ||
-         latestMoisture[1] < THRESHOLD_EMERGENCY ||
-         (latestMoisture[2] < THRESHOLD_EMERGENCY && !z3Flooded));
-
-    bool rainDelayActive = false;
-    bool z3LockDueToHeavyRain = false;
-
-    if (weatherValid) {
-      // Buoc 6: Du bao mua lon >= 10mm/h trong 3 gio toi -> Khoa tuoi Zone 3
-      // chong ung thung lung
-      if (fc.heavyRain) {
-        z3LockDueToHeavyRain = true;
-        Serial.println("[WEATHER] Du bao mua lon (>= 10mm/h) -> Khoa van Zone "
-                       "3 de don nuoc tran!");
-      }
-
-      // Buoc 1: Neu dat kho khan cap (< 25%), bat buoc tuoi cuu cay
-      if (emergencyDry && !(fc.heavyRain && fc.hourlyRain[0] >= 10.0f)) {
-        Serial.println("[DECIDE] Phat hien vung dat < 25% (KHAN CAP) -> Bat "
-                       "buoc tuoi, bo qua hoan mua!");
-        rainDelayActive = false;
-      }
-      // Buoc 4: P_max >= 70% va P_eff >= 5.0mm -> HOAN TUOI (RAIN_DELAY)
-      else if (fc.maxProb >= 70 && fc.effPrecip >= 5.0f) {
-        rainDelayActive = true;
-      }
-      // Buoc 5: P_max >= 70% nhung P_eff < 5.0mm (Mua phuun) -> VAN TUOI
-      else if (fc.maxProb >= 70 && fc.effPrecip < 5.0f) {
-        Serial.printf("[DECIDE] Mua phuun (P_max=%d%%, P_eff=%.2fmm < 5mm) -> "
-                      "Van cho phep tuoi\r\n",
-                      fc.maxProb, fc.effPrecip);
-        rainDelayActive = false;
-      }
-      // Buoc 3: 50% <= P_max < 70% -> Hoan kiem tra lai
-      else if (fc.maxProb >= 50 && fc.maxProb < 70) {
-        rainDelayActive = true;
-      }
-      // Buoc 2: P_max < 50% -> Nang rao, tuoi theo do am dat
-      else {
-        rainDelayActive = false;
-      }
-    }
-
-    // Xu ly khi dang hoan tuoi (S3_RAIN_DELAY)
-    if (rainDelayActive) {
-      pumpRelay->allOff();
-      for (int z = 1; z <= NUM_ZONES; z++) {
-        publishPumpState(z, false, 0);
-      }
-      Serial.printf("[AUTO] S3_RAIN_DELAY: Du bao mua (P_max=%d%%, "
-                    "P_eff=%.2fmm) -> HOAN TUOI TIET KIEM NUOC!\r\n",
-                    fc.maxProb, fc.effPrecip);
-      publishSystemState("S3_RAIN_DELAY", "AUTO",
-                         "Hoan tuoi: Du bao co mua lon sap den");
-      publishAlert("RAIN_DELAY", 0,
-                   "Du bao co mua lon, he thong tu dong hoan tuoi");
-      vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL));
-      continue;
-    }
-
-    // 7.4 BAI TOAN 1: Dieu phoi tuoi tuan tu tu cao xuong thap (Z1 -> Z2 -> Z3)
-    int dryZ1 = getThresholdDryZ1();
-    int wetZ1 = getThresholdWetZ1();
-
-    bool z1NeedsIrrig = (latestMoisture[0] < dryZ1);
-    bool z2NeedsIrrig = (latestMoisture[1] < Z2_THRESHOLD_DRY);
-    bool z3NeedsIrrig = (latestMoisture[2] < Z3_THRESHOLD_DRY && !z3Flooded &&
-                         !z3LockDueToHeavyRain);
-
-    int targetZone = 0;
-    // Luat uu tien: Z1 truoc, roi den Z2, roi den Z3
-    if (z1NeedsIrrig) {
-      targetZone = 1;
-    } else if (z2NeedsIrrig) {
-      targetZone = 2;
-    } else if (z3NeedsIrrig) {
-      targetZone = 3;
-    }
-
-    if (targetZone > 0) {
-      // Dam bao chi mo 1 van duy nhat cho targetZone, tat cac van khac
-      for (int z = 1; z <= NUM_ZONES; z++) {
-        if (z != targetZone && pumpRelay->isOn(z)) {
-          pumpRelay->turnOff(z);
-          publishPumpState(z, false, pumpRelay->getRunTime(z));
-        }
-      }
-
-      if (!pumpRelay->isOn(targetZone)) {
-        Serial.printf("[AUTO] Zone %d do am thap (%d%%) -> BAT BOM TUOI (Thu "
-                      "tu: Cao -> Thap)\r\n",
-                      targetZone, latestMoisture[targetZone - 1]);
-        pumpRelay->turnOn(targetZone);
-        publishPumpState(targetZone, true, 0);
-        publishAlert("AUTO_IRRIG", targetZone,
-                     "Do am dat thap, tu dong bat bom theo thu tu dia hinh");
-        pulseStartTime = millis();
-        lastIrrigatedZone = targetZone;
-      }
-
-      // Kiem tra hoan thanh nhip tuoi: dat nguong du am hoac chay du 20 giay
-      // (mo phong)
-      int targetWet = (targetZone == 1) ? wetZ1
-                                        : (targetZone == 3 ? Z3_THRESHOLD_WET
-                                                           : Z2_THRESHOLD_WET);
-      unsigned long currentRun = millis() - pulseStartTime;
-
-      if (latestMoisture[targetZone - 1] >= targetWet ||
-          currentRun >= 20000UL) {
-        Serial.printf("[AUTO] Zone %d da tuoi xong (%d%% / da chay %lu ms) -> "
-                      "TAT BOM\r\n",
-                      targetZone, latestMoisture[targetZone - 1], currentRun);
-        unsigned long rt = pumpRelay->getRunTime(targetZone);
-        pumpRelay->turnOff(targetZone);
-        publishPumpState(targetZone, false, rt);
-
-        // Neu tuoi vung Z1 hoac Z2: Kich hoat SOAK_WAIT (15 giay) cho nuoc ngam
-        // xuong
-        if (targetZone < 3) {
-          soakWaitUntil = millis() + 15000UL;
-          Serial.printf("[AUTO] Vung Z%d tuoi xong -> Chuyen sang S9_SOAK_WAIT "
-                        "(15s) cho nuoc tham xuong!\r\n",
-                        targetZone);
-          publishSystemState(
-              "S9_SOAK_WAIT", "AUTO",
-              "Nghi ngam SOAK_WAIT cho nuoc chay xuong vung duoi");
-        }
-      } else {
-        char reasonBuf[64];
-        snprintf(reasonBuf, sizeof(reasonBuf),
-                 "Dang tu dong tuoi Zone %d (Uu tien tu cao xuong thap)",
-                 targetZone);
-        publishSystemState("S4_IRRIGATING", "AUTO", reasonBuf);
-      }
-    } else {
-      // Tat ca cac vung deu du am
-      for (int z = 1; z <= NUM_ZONES; z++) {
-        if (pumpRelay->isOn(z)) {
-          pumpRelay->turnOff(z);
-          publishPumpState(z, false, pumpRelay->getRunTime(z));
-        }
-      }
-      publishSystemState("S1_MONITOR", "AUTO",
-                         "Giam sat on dinh, cac vung dat deu du am");
+    if (cmd.alertCode != nullptr) {
+      publishAlert(cmd.alertCode, cmd.targetZone, cmd.reason);
     }
 
     // Cho den chu ky doc cam bien tiep theo (5000ms trong config.h)
@@ -441,6 +305,9 @@ void setup() {
   Serial.println("==================================================");
   Serial.println("  Smart Irrigation G11 - Che do: MODE_SIM (Wokwi) ");
   Serial.println("==================================================");
+
+  // KHOI CHAY UNIT TEST CUA TV3 NGAY KHI KHOI DONG
+  runAllDecideTests();
 
   // BUOC 1: Khoi tao Relay AN TOAN (Active LOW: HIGH truoc khi OUTPUT)
   pumpRelay->begin();
