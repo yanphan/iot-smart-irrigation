@@ -1,0 +1,10 @@
+{
+    "clangd.arguments": [
+        "--query-driver=**xtensa-esp32-elf-*",
+        "--background-index",
+        "--header-insertion=never"
+    ],
+    "files.associations": {
+        "c_cpp_properties.json": "jsonc"
+    }
+}

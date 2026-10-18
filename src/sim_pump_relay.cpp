@@ -1,11 +1,11 @@
 // ============================================================
-// sim_pump_relay.cpp — Triển khai điều khiển relay bơm (Chế độ SIM)
+// sim_pump_relay.cpp - Trien khai dieu khien relay bom (Che do SIM)
 // ============================================================
-// Điều khiển relay mô phỏng trên Wokwi
-// Tuân thủ quy tắc Active LOW:
-//   - digitalWrite(pin, LOW)  = BẬT relay (bơm chạy)
-//   - digitalWrite(pin, HIGH) = TẮT relay (bơm dừng)
-// Quy tắc an toàn: HIGH TRƯỚC pinMode → relay TẮT khi ESP32 reset
+// Dieu khien relay mo phong tren Wokwi
+// Tuan thu quy tac Active LOW:
+//   - digitalWrite(pin, LOW)  = BAT relay (bom chay)
+//   - digitalWrite(pin, HIGH) = TAT relay (bom dung)
+// Quy tac an toan: HIGH TRUOC pinMode -> relay TAT khi ESP32 reset
 // ============================================================
 
 #include "config.h"
@@ -16,110 +16,83 @@
 
 class SimPumpRelay : public PumpRelay {
 private:
-    // Mảng chân GPIO relay cho các vùng (index 0=Z1, 1=Z2, 2=Z3, 3=AUX)
+    // Mang chan GPIO relay cho cac vung (index 0=Z1, 1=Z2, 2=Z3, 3=AUX)
     const int relayPins[4] = {PIN_RELAY_Z1, PIN_RELAY_Z2, PIN_RELAY_Z3, PIN_RELAY_AUX};
 
-    // Trạng thái ON/OFF cho từng relay
+    // Trang thai ON/OFF cho tung relay
     bool relayState[4] = {false, false, false, false};
 
-    // Thời điểm bật relay (millis) — dùng để đếm thời gian bơm
+    // Thoi diem bat relay (millis) - dung de dem thoi gian bom
     unsigned long startTime[4] = {0, 0, 0, 0};
 
-    // Lấy index từ zone number (1-based → 0-based)
+    // Lay index tu zone number (1-based -> 0-based)
     int getIndex(int zone) {
         if (zone >= 1 && zone <= 4) {
             return zone - 1;
         }
-        Serial.printf("[RELAY][ERROR] Zone %d không hợp lệ! (1-4)\n", zone);
+        Serial.printf("[RELAY][ERROR] Zone %d khong hop le! (1-4)\r\n", zone);
         return -1;
     }
 
 public:
-    // ============================================================
-    // begin() — Khởi tạo AN TOÀN relay
-    // ============================================================
-    // QUY TẮC BẤT DI BẤT DỊCH:
-    //   digitalWrite(pin, HIGH)  ← TẮT relay TRƯỚC
-    //   pinMode(pin, OUTPUT)     ← Sau đó mới set OUTPUT
-    // Lý do: Khi ESP32 khởi động, nếu set OUTPUT trước thì chân
-    //        có thể ở mức LOW tạm thời → relay BẬT → bơm chạy bất ngờ!
-    // ============================================================
     void begin() override {
-        Serial.println("[RELAY][SIM] Khởi tạo relay bơm (Active LOW)");
+        Serial.println("[RELAY][SIM] Khoi tao relay bom (Active LOW)");
 
         for (int i = 0; i < 4; i++) {
-            // BƯỚC 1: Ghi HIGH (TẮT relay) TRƯỚC
+            // BUOC 1: Ghi HIGH (TAT relay) TRUOC
             digitalWrite(relayPins[i], HIGH);
-            // BƯỚC 2: Sau đó mới set chế độ OUTPUT
+            // BUOC 2: Sau do moi set che do OUTPUT
             pinMode(relayPins[i], OUTPUT);
 
             relayState[i] = false;
             startTime[i] = 0;
 
-            Serial.printf("[RELAY][SIM] Relay %d (GPIO%d): Khởi tạo → TẮT ✓\n",
+            Serial.printf("[RELAY][SIM] Relay %d (GPIO%d): Khoi tao -> TAT\r\n",
                           i + 1, relayPins[i]);
         }
 
-        Serial.println("[RELAY][SIM] Tất cả relay đã khởi tạo an toàn ✓");
+        Serial.println("[RELAY][SIM] Tat ca relay da khoi tao an toan");
     }
 
-    // ============================================================
-    // turnOn() — Bật bơm cho vùng zone
-    // ============================================================
-    // Active LOW: digitalWrite(pin, LOW) = BẬT relay
-    // ============================================================
     void turnOn(int zone) override {
         int idx = getIndex(zone);
         if (idx == -1) return;
 
         if (!relayState[idx]) {
-            digitalWrite(relayPins[idx], LOW);   // Active LOW → BẬT
+            digitalWrite(relayPins[idx], LOW);   // Active LOW -> BAT
             relayState[idx] = true;
-            startTime[idx] = millis();           // Bắt đầu đếm thời gian bơm
+            startTime[idx] = millis();           // Bat dau dem thoi gian bom
 
-            Serial.printf("[RELAY][SIM] Zone %d (GPIO%d): BẬT ▶ (t=0ms)\n",
+            Serial.printf("[RELAY][SIM] Zone %d (GPIO%d): BAT (t=0ms)\r\n",
                           zone, relayPins[idx]);
         } else {
-            Serial.printf("[RELAY][SIM] Zone %d: Đã đang BẬT, bỏ qua.\n", zone);
+            Serial.printf("[RELAY][SIM] Zone %d: Da dang BAT, bo qua.\r\n", zone);
         }
     }
 
-    // ============================================================
-    // turnOff() — Tắt bơm cho vùng zone
-    // ============================================================
-    // Active LOW: digitalWrite(pin, HIGH) = TẮT relay
-    // ============================================================
     void turnOff(int zone) override {
         int idx = getIndex(zone);
         if (idx == -1) return;
 
         if (relayState[idx]) {
             unsigned long runtime = millis() - startTime[idx];
-            digitalWrite(relayPins[idx], HIGH);  // Active LOW → TẮT
+            digitalWrite(relayPins[idx], HIGH);  // Active LOW -> TAT
             relayState[idx] = false;
             startTime[idx] = 0;
 
-            Serial.printf("[RELAY][SIM] Zone %d (GPIO%d): TẮT ■ (đã chạy %lums)\n",
+            Serial.printf("[RELAY][SIM] Zone %d (GPIO%d): TAT (da chay %lums)\r\n",
                           zone, relayPins[idx], runtime);
         } else {
-            Serial.printf("[RELAY][SIM] Zone %d: Đã đang TẮT, bỏ qua.\n", zone);
+            Serial.printf("[RELAY][SIM] Zone %d: Da dang TAT, bo qua.\r\n", zone);
         }
     }
 
-    // ============================================================
-    // isOn() — Kiểm tra relay đang bật hay tắt
-    // ============================================================
     bool isOn(int zone) override {
         int idx = getIndex(zone);
         if (idx == -1) return false;
         return relayState[idx];
     }
 
-    // ============================================================
-    // getRunTime() — Lấy thời gian đã chạy (ms)
-    // ============================================================
-    // TV3 dùng để so sánh với PUMP_MAX_DURATION (chống cháy bơm)
-    // ============================================================
     unsigned long getRunTime(int zone) override {
         int idx = getIndex(zone);
         if (idx == -1) return 0;
@@ -127,33 +100,30 @@ public:
         if (relayState[idx]) {
             return millis() - startTime[idx];
         }
-        return 0;  // Relay đang tắt → thời gian = 0
+        return 0;  // Relay dang tat -> thoi gian = 0
     }
 
-    // ============================================================
-    // allOff() — Tắt toàn bộ relay (Emergency Stop)
-    // ============================================================
     void allOff() override {
-        Serial.println("[RELAY][SIM] ⚠ EMERGENCY STOP — Tắt toàn bộ relay!");
+        Serial.println("[RELAY][SIM] EMERGENCY STOP - Tat toan bo relay!");
 
         for (int i = 0; i < 4; i++) {
             if (relayState[i]) {
                 unsigned long runtime = millis() - startTime[i];
-                digitalWrite(relayPins[i], HIGH);  // TẮT
+                digitalWrite(relayPins[i], HIGH);  // TAT
                 relayState[i] = false;
                 startTime[i] = 0;
 
-                Serial.printf("[RELAY][SIM] Relay %d: TẮT ■ (đã chạy %lums)\n",
+                Serial.printf("[RELAY][SIM] Relay %d: TAT (da chay %lums)\r\n",
                               i + 1, runtime);
             }
         }
 
-        Serial.println("[RELAY][SIM] Tất cả relay đã TẮT ✓");
+        Serial.println("[RELAY][SIM] Tat ca relay da TAT");
     }
 };
 
 // ============================================================
-// GLOBAL INSTANCE — Để các file khác sử dụng
+// GLOBAL INSTANCE - De cac file khac su dung
 // ============================================================
 SimPumpRelay simPumpRelay;
 PumpRelay* pumpRelay = &simPumpRelay;

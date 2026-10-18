@@ -1,0 +1,1286 @@
+[
+    {
+        "id": "ui_base_config",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#059669",
+                "baseColor": "#059669",
+                "baseFont": "-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,sans-serif",
+                "edited": true
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#059669",
+                    "value": "#059669",
+                    "edited": true
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#064e3b",
+                    "edited": true
+                },
+                "page-backgroundColor": {
+                    "value": "#f1f5f9",
+                    "edited": true
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": true
+                },
+                "group-textColor": {
+                    "value": "#0f172a",
+                    "edited": true
+                },
+                "group-borderColor": {
+                    "value": "#e2e8f0",
+                    "edited": true
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": true
+                },
+                "widget-textColor": {
+                    "value": "#1e293b",
+                    "edited": true
+                },
+                "widget-backgroundColor": {
+                    "value": "#0284c7",
+                    "edited": true
+                },
+                "widget-borderColor": {
+                    "value": "#cbd5e1",
+                    "edited": true
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "teal",
+                "accents": "light-blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Nông Nghiệp Thông Minh G11",
+            "hideToolbar": "false",
+            "allowSwipe": "true",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY HH:mm:ss",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 8,
+                "gy": 8,
+                "cx": 6,
+                "cy": 6,
+                "px": 4,
+                "py": 4
+            }
+        }
+    },
+    {
+        "id": "tab_dashboard_main",
+        "type": "ui_tab",
+        "name": "Giám Sát & Điều Hành",
+        "icon": "",
+        "order": 1
+    },
+    {
+        "id": "tab_dashboard_lab",
+        "type": "ui_tab",
+        "name": "Mô Phỏng & Kiểm Thử",
+        "icon": "",
+        "order": 2
+    },
+    {
+        "id": "flow_smart_farm",
+        "type": "tab",
+        "label": "Smart Irrigation G11",
+        "disabled": false,
+        "info": "He thong tuoi tieu thong minh da phan vung G11"
+    },
+    {
+        "id": "mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "EMQX Public Broker",
+        "broker": "broker.emqx.io",
+        "port": "1883",
+        "clientid": "nodered_g11_farm",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "grp_header",
+        "type": "ui_group",
+        "name": "1. TỔNG QUAN NÔNG TRẠI & HỆ THỐNG",
+        "tab": "tab_dashboard_main",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "grp_weather_env",
+        "type": "ui_group",
+        "name": "2. DỰ BÁO THỜI TIẾT (OPEN-METEO) & KHÍ HẬU",
+        "tab": "tab_dashboard_main",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "grp_farm_map",
+        "type": "ui_group",
+        "name": "3. BẢN ĐỒ MẶT CẮT & ĐIỀU KHIỂN BƠM 3 VÙNG",
+        "tab": "tab_dashboard_main",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "grp_analytics",
+        "type": "ui_group",
+        "name": "4. DIỄN BIẾN ĐỘ ẨM & CẢNH BÁO AN TOÀN",
+        "tab": "tab_dashboard_main",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "grp_sim_weather",
+        "type": "ui_group",
+        "name": "TIÊM KỊCH BẢN THỜI TIẾT (W0 - W5)",
+        "tab": "tab_dashboard_lab",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "grp_sim_faults",
+        "type": "ui_group",
+        "name": "TIÊM SỰ CỐ GIẢ LẬP (D1 - D7)",
+        "tab": "tab_dashboard_lab",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "global_farm_style",
+        "type": "ui_template",
+        "z": "flow_smart_farm",
+        "group": "grp_header",
+        "name": "Global Farm CSS",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "\n<style>\n/* Reset and Container Styling */\nbody, md-content {\n  background-color: #f1f5f9 !important;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif !important;\n}\n\n/* Card container: No internal scrollbars */\n.nr-dashboard-theme md-card {\n  background: #ffffff !important;\n  border-radius: 10px !important;\n  border: 1px solid #e2e8f0 !important;\n  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;\n  overflow: hidden !important;\n}\n\n.nr-dashboard-cardtitle {\n  font-size: 13px !important;\n  font-weight: 700 !important;\n  color: #047857 !important;\n  letter-spacing: 0.5px !important;\n  padding: 8px 12px !important;\n  border-bottom: 1px solid #f1f5f9 !important;\n}\n\n/* Pipe water flow animation */\n@keyframes flowDash {\n  to { stroke-dashoffset: -20; }\n}\n.pipe-flow {\n  stroke-dasharray: 6, 4;\n  animation: flowDash 0.8s linear infinite;\n}\n\n@keyframes pulseGlow {\n  0% { transform: scale(1); opacity: 1; }\n  50% { transform: scale(1.08); opacity: 0.85; }\n  100% { transform: scale(1); opacity: 1; }\n}\n.sprinkler-active {\n  animation: pulseGlow 1.2s ease-in-out infinite;\n}\n</style>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "global",
+        "x": 180,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "card_header_banner",
+        "type": "ui_template",
+        "z": "flow_smart_farm",
+        "group": "grp_header",
+        "name": "Header & KPI Overview",
+        "order": 2,
+        "width": 6,
+        "height": 4,
+        "format": "\n<div style=\"height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:8px 10px; box-sizing:border-box; overflow:hidden;\">\n <!-- Project Title Banner -->\n <div style=\"display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;\">\n  <span style=\"font-size:22px;\"></span>\n  <div>\n   <div style=\"font-size:14px; font-weight:800; color:#065f46; letter-spacing:0.2px;\">\n    HỆ THỐNG TƯỚI TIÊU THÔNG MINH G11\n   </div>\n   <div style=\"font-size:11px; color:#64748b; margin-top:1px;\">\n    Tối ưu hóa nước tưới đa phân vùng theo độ ẩm đất & dự báo thời tiết Open-Meteo\n   </div>\n  </div>\n </div>\n\n <!-- 3 KPIs in horizontal row -->\n <div style=\"display:flex; gap:8px; margin-top:8px;\">\n  <!-- KPI 1: ESP32 Network -->\n  <div style=\"flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; text-align:center;\">\n   <div style=\"font-size:10px; font-weight:700; color:#64748b;\">KẾT NỐI ESP32</div>\n   <div style=\"display:flex; align-items:center; justify-content:center; gap:5px; margin-top:4px;\">\n    <span style=\"display:inline-block; width:8px; height:8px; border-radius:50%; background:{{msg.online ? '#10b981' : '#ef4444'}};\"></span>\n    <span style=\"font-size:11px; font-weight:700; color:{{msg.online ? '#047857' : '#b91c1c'}};\">{{msg.online ? 'ONLINE' : 'OFFLINE'}}</span>\n   </div>\n  </div>\n\n  <!-- KPI 2: FSM Machine State -->\n  <div style=\"flex:1.4; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; text-align:center;\">\n   <div style=\"font-size:10px; font-weight:700; color:#64748b;\">TRẠNG THÁI (FSM)</div>\n   <div style=\"font-size:12px; font-weight:800; color:{{msg.stateColor || '#0284c7'}}; margin-top:2px;\">\n    {{msg.stateText || 'S1_MONITOR'}}\n   </div>\n   <div style=\"font-size:9px; color:#64748b;\">Chế độ: <b>{{msg.modeText || 'AUTO'}}</b></div>\n  </div>\n\n  <!-- KPI 3: Master Pump State -->\n  <div style=\"flex:1.2; background:{{msg.pumpActive ? '#ecfdf5' : '#f8fafc'}}; border:1px solid {{msg.pumpActive ? '#a7f3d0' : '#e2e8f0'}}; border-radius:8px; padding:6px 8px; text-align:center;\">\n   <div style=\"font-size:10px; font-weight:700; color:{{msg.pumpActive ? '#065f46' : '#64748b'}};\">MÁY BƠM TỔNG</div>\n   <div style=\"font-size:11px; font-weight:800; color:{{msg.pumpActive ? '#059669' : '#64748b'}}; margin-top:4px;\">\n    {{msg.pumpActive ? ' ĐANG BƠM' : 'TẤT CẢ TẮT'}}\n   </div>\n  </div>\n </div>\n</div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 600,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "card_weather_forecast",
+        "type": "ui_template",
+        "z": "flow_smart_farm",
+        "group": "grp_weather_env",
+        "name": "Dự Báo & Khí Hậu Widget",
+        "order": 2,
+        "width": 6,
+        "height": 4,
+        "format": "\n<div style=\"height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:6px 8px; box-sizing:border-box; overflow:hidden;\">\n  <!-- Header: Live Open-Meteo REST API -->\n  <div style=\"display:flex; justify-content:space-between; align-items:center;\">\n    <div style=\"display:flex; flex-direction:column;\">\n      <span style=\"font-size:11px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.3px;\">DU BAO THOI TIET 3 GIO TOI</span>\n      <span style=\"font-size:11px; color:#0284c7; font-weight:700; margin-top:1px;\">\n        [KHU VUC] {{msg.location || 'Cau Dat - Da Lat (Lam Dong)'}}\n      </span>\n    </div>\n    <span style=\"font-size:9px; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; padding:2px 7px; border-radius:10px; font-weight:800; letter-spacing:0.3px;\">\n      LIVE REST API\n    </span>\n  </div>\n\n  <!-- 4 KPI Blocks -->\n  <div style=\"display:flex; gap:6px; margin:2px 0;\">\n    <!-- 1. Xac suat mua -->\n    <div style=\"flex:1.05; background:linear-gradient(135deg, #0284c7, #0369a1); border-radius:7px; padding:5px 6px; color:white; text-align:center;\">\n      <div style=\"font-size:9px; opacity:0.9; font-weight:700;\">XAC SUAT MUA</div>\n      <div style=\"font-size:17px; font-weight:900; margin-top:1px;\">{{msg.max_prob || 0}}%</div>\n      <div style=\"font-size:8px; opacity:0.85;\">P_max 3h toi</div>\n    </div>\n\n    <!-- 2. Luong mua hieu dung -->\n    <div style=\"flex:1.05; background:linear-gradient(135deg, #0284c7, #0369a1); border-radius:7px; padding:5px 6px; color:white; text-align:center;\">\n      <div style=\"font-size:9px; opacity:0.9; font-weight:700;\">MUA HIEU DUNG</div>\n      <div style=\"font-size:17px; font-weight:900; margin-top:1px;\">{{msg.eff_precip || 0}} <span style=\"font-size:10px;\">mm</span></div>\n      <div style=\"font-size:8px; opacity:0.85;\">P_eff (he so k)</div>\n    </div>\n\n    <!-- 3. Nhiet do khi hau -->\n    <div style=\"flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; padding:5px 4px; text-align:center;\">\n      <div style=\"font-size:9px; font-weight:700; color:#64748b;\">NHIET DO KHI HAU</div>\n      <div style=\"font-size:16px; font-weight:900; color:#ea580c; margin-top:1px;\">{{msg.weather_temp || 20.2}}°C</div>\n      <div style=\"font-size:8px; color:#059669; font-weight:700; margin-top:1px;\">Tram Open-Meteo</div>\n      <div style=\"font-size:7.5px; color:#94a3b8; margin-top:1px;\">DHT22: {{msg.dht_temp || 24.0}}°C</div>\n    </div>\n\n    <!-- 4. Do am khong khi -->\n    <div style=\"flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; padding:5px 4px; text-align:center;\">\n      <div style=\"font-size:9px; font-weight:700; color:#64748b;\">DO AM KHONG KHI</div>\n      <div style=\"font-size:16px; font-weight:900; color:#0284c7; margin-top:1px;\">{{msg.weather_hum || 98}}%</div>\n      <div style=\"font-size:8px; color:#059669; font-weight:700; margin-top:1px;\">Tram Open-Meteo</div>\n      <div style=\"font-size:7.5px; color:#94a3b8; margin-top:1px;\">DHT22: {{msg.dht_hum || 40}}%</div>\n    </div>\n  </div>\n\n  <!-- Smart Decision Status Banner -->\n  <div style=\"background:{{msg.rainDelay ? '#fef2f2' : (msg.isSoakWait ? '#fffbeb' : '#f0fdf4')}}; border:1px solid {{msg.rainDelay ? '#fecaca' : (msg.isSoakWait ? '#fde68a' : '#bbf7d0')}}; border-radius:7px; padding:4px 8px;\">\n    <div style=\"font-size:10.5px; font-weight:800; color:{{msg.rainDelay ? '#b91c1c' : (msg.isSoakWait ? '#b45309' : '#15803d')}};\">\n      {{msg.rainDelay ? '[HOAN TUOI] DU BAO CO MUA LON HIEU DUNG' : (msg.isSoakWait ? '[SOAK_WAIT] DANG NGHI NGAM CHO NUOC THAM' : '[TUOI TU DONG] NANG RAO - DU DIEU KIEN')}}\n    </div>\n    <div style=\"font-size:9.5px; color:#475569; margin-top:1px; line-height:1.2;\">\n      {{msg.rainDelay ? 'Xac suat mua >= 70% va P_eff >= 5mm. Tam dung bom tuoi de don luong mua tu nhien, chong ngap ung.' : (msg.isSoakWait ? 'Nuoc tuoi tu vung cao dang ngam xuong vung trung. Tam ngat bom de do lai do am truoc khi quyet dinh.' : 'Thoi tiet nang rao, khong co mua dang ke. He thong tu dong kich hoat tuoi tuan tu Z1 -> Z2 -> Z3 khi dat kho.')}}\n    </div>\n  </div>\n</div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 600,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "card_farm_map",
+        "type": "ui_template",
+        "z": "flow_smart_farm",
+        "group": "grp_farm_map",
+        "name": "Bản Đồ Nông Trại 3 Vùng",
+        "order": 1,
+        "width": 6,
+        "height": 5,
+        "format": "\n<div style=\"width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:4px 6px; box-sizing:border-box; overflow:hidden;\">\n <!-- SOAK_WAIT notification banner inside map if active -->\n <div ng-if=\"msg.isSoakWait\" style=\"background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:3px 8px; text-align:center; font-size:10px; font-weight:700; color:#b45309;\">\n   DANG NGHI NGAM SOAK_WAIT: Nuoc tu vung cao (Z1) dang ngam dan xuong vung trung (Z3)\n </div>\n\n <!-- SVG Interactive Farm Map -->\n <div style=\"flex:1; width:100%; min-height:160px;\">\n  <svg viewBox=\"0 0 500 170\" style=\"width:100%; height:100%; overflow:visible;\">\n   <defs>\n    <linearGradient id=\"gradZ1\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n     <stop offset=\"0%\" stop-color=\"{{msg.z1_color || '#d1fae5'}}\" stop-opacity=\"0.85\"/>\n     <stop offset=\"100%\" stop-color=\"{{msg.z1_color || '#d1fae5'}}\" stop-opacity=\"0.3\"/>\n    </linearGradient>\n    <linearGradient id=\"gradZ2\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n     <stop offset=\"0%\" stop-color=\"{{msg.z2_color || '#d1fae5'}}\" stop-opacity=\"0.85\"/>\n     <stop offset=\"100%\" stop-color=\"{{msg.z2_color || '#d1fae5'}}\" stop-opacity=\"0.3\"/>\n    </linearGradient>\n    <linearGradient id=\"gradZ3\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n     <stop offset=\"0%\" stop-color=\"{{msg.z3_color || '#d1fae5'}}\" stop-opacity=\"0.85\"/>\n     <stop offset=\"100%\" stop-color=\"{{msg.z3_color || '#d1fae5'}}\" stop-opacity=\"0.3\"/>\n    </linearGradient>\n   </defs>\n\n   <!-- Central Pump Station on the left -->\n   <rect x=\"10\" y=\"85\" width=\"46\" height=\"55\" rx=\"6\" fill=\"#1e293b\"/>\n   <text x=\"33\" y=\"108\" font-size=\"8\" font-weight=\"bold\" fill=\"#ffffff\" text-anchor=\"middle\">TRAM BOM</text>\n   <circle cx=\"33\" cy=\"122\" r=\"5\" fill=\"{{msg.anyPump ? '#10b981' : '#64748b'}}\"/>\n\n   <!-- Water Distribution Pipes with animated flow -->\n   <path d=\"M 56 100 L 95 100 L 95 40 L 120 40\" fill=\"none\" stroke=\"{{msg.p1 ? '#0284c7' : '#cbd5e1'}}\" stroke-width=\"{{msg.p1 ? '3' : '2'}}\" class=\"{{msg.p1 ? 'pipe-flow' : ''}}\"/>\n   <path d=\"M 56 112 L 235 112 L 235 68 L 250 68\" fill=\"none\" stroke=\"{{msg.p2 ? '#0284c7' : '#cbd5e1'}}\" stroke-width=\"{{msg.p2 ? '3' : '2'}}\" class=\"{{msg.p2 ? 'pipe-flow' : ''}}\"/>\n   <path d=\"M 56 124 L 360 124 L 360 96 L 375 96\" fill=\"none\" stroke=\"{{msg.p3 ? '#0284c7' : '#cbd5e1'}}\" stroke-width=\"{{msg.p3 ? '3' : '2'}}\" class=\"{{msg.p3 ? 'pipe-flow' : ''}}\"/>\n\n   <!-- ZONE 1: VUNG CAO (DINH DOC) -->\n   <g>\n    <polygon points=\"110,32 220,46 220,160 110,160\" fill=\"url(#gradZ1)\" stroke=\"{{msg.z1_border || '#059669'}}\" stroke-width=\"2\"/>\n    <text x=\"165\" y=\"52\" font-size=\"10\" font-weight=\"bold\" fill=\"#0f172a\" text-anchor=\"middle\">Z1: VUNG CAO</text>\n    <text x=\"165\" y=\"64\" font-size=\"8\" fill=\"#475569\" text-anchor=\"middle\">Dat doc - Thoat nuoc</text>\n    <text x=\"165\" y=\"90\" font-size=\"19\" font-weight=\"900\" fill=\"{{msg.z1_txt || '#047857'}}\" text-anchor=\"middle\">{{msg.z1_val || 0}}%</text>\n    <rect x=\"130\" y=\"98\" width=\"70\" height=\"13\" rx=\"4\" fill=\"{{msg.z1_badge_bg || '#d1fae5'}}\"/>\n    <text x=\"165\" y=\"108\" font-size=\"8\" font-weight=\"bold\" fill=\"{{msg.z1_badge_txt || '#065f46'}}\" text-anchor=\"middle\">{{msg.z1_status || 'DU AM'}}</text>\n    <circle cx=\"165\" cy=\"130\" r=\"4\" fill=\"{{msg.p1 ? '#0284c7' : '#94a3b8'}}\"/>\n    <text x=\"165\" y=\"142\" font-size=\"8\" font-weight=\"bold\" fill=\"{{msg.p1 ? '#0284c7' : '#94a3b8'}}\" text-anchor=\"middle\">{{msg.p1 ? 'DANG TUOI' : 'Bom tat'}}</text>\n   </g>\n\n   <!-- ZONE 2: VUNG GIUA (SUON DOI) -->\n   <g>\n    <polygon points=\"235,60 345,72 345,160 235,160\" fill=\"url(#gradZ2)\" stroke=\"{{msg.z2_border || '#059669'}}\" stroke-width=\"2\"/>\n    <text x=\"290\" y=\"80\" font-size=\"10\" font-weight=\"bold\" fill=\"#0f172a\" text-anchor=\"middle\">Z2: VUNG GIUA</text>\n    <text x=\"290\" y=\"92\" font-size=\"8\" fill=\"#475569\" text-anchor=\"middle\">Dat thit - Bang phang</text>\n    <text x=\"290\" y=\"114\" font-size=\"19\" font-weight=\"900\" fill=\"{{msg.z2_txt || '#047857'}}\" text-anchor=\"middle\">{{msg.z2_val || 0}}%</text>\n    <rect x=\"255\" y=\"122\" width=\"70\" height=\"13\" rx=\"4\" fill=\"{{msg.z2_badge_bg || '#d1fae5'}}\"/>\n    <text x=\"290\" y=\"132\" font-size=\"8\" font-weight=\"bold\" fill=\"{{msg.z2_badge_txt || '#065f46'}}\" text-anchor=\"middle\">{{msg.z2_status || 'DU AM'}}</text>\n    <circle cx=\"290\" cy=\"144\" r=\"4\" fill=\"{{msg.p2 ? '#0284c7' : '#94a3b8'}}\"/>\n    <text x=\"290\" y=\"154\" font-size=\"8\" font-weight=\"bold\" fill=\"{{msg.p2 ? '#0284c7' : '#94a3b8'}}\" text-anchor=\"middle\">{{msg.p2 ? 'DANG TUOI' : 'Bom tat'}}</text>\n   </g>\n\n   <!-- ZONE 3: VUNG TRUNG (THUNG LUNG) -->\n   <g>\n    <polygon points=\"360,88 470,96 470,160 360,160\" fill=\"url(#gradZ3)\" stroke=\"{{msg.z3_border || '#059669'}}\" stroke-width=\"2\"/>\n    <text x=\"415\" y=\"104\" font-size=\"10\" font-weight=\"bold\" fill=\"#0f172a\" text-anchor=\"middle\">Z3: VUNG TRUNG</text>\n    <text x=\"415\" y=\"114\" font-size=\"8\" fill=\"#475569\" text-anchor=\"middle\">Dat set - Thung lung</text>\n    <text x=\"415\" y=\"132\" font-size=\"19\" font-weight=\"900\" fill=\"{{msg.z3_txt || '#047857'}}\" text-anchor=\"middle\">{{msg.z3_val || 0}}%</text>\n    <rect x=\"380\" y=\"138\" width=\"70\" height=\"13\" rx=\"4\" fill=\"{{msg.z3_badge_bg || '#d1fae5'}}\"/>\n    <text x=\"415\" y=\"148\" font-size=\"8\" font-weight=\"bold\" fill=\"{{msg.z3_badge_txt || '#065f46'}}\" text-anchor=\"middle\">{{msg.z3_status || 'DU AM'}}</text>\n   </g>\n  </svg>\n </div>\n\n <!-- Legend Text with exact thesis thresholds -->\n <div style=\"display:flex; justify-content:space-between; background:#ffffff; border-radius:6px; padding:4px 8px; border:1px solid #e2e8f0; font-size:10px; color:#475569;\">\n  <div><b>Z1 (Cao):</b> Kho: 40% &bull; Du: 60%</div>\n  <div><b>Z2 (Giua):</b> Kho: 40% &bull; Du: 60%</div>\n  <div><b>Z3 (Trung):</b> Kho: 35% &bull; Du: 55% &bull; <span style=\"color:#7c3aed; font-weight:700;\">Ngap &ge; 80%</span></div>\n </div>\n</div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 600,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "switch_mode",
+        "type": "ui_switch",
+        "z": "flow_smart_farm",
+        "name": "Switch Mode",
+        "label": "CHẾ ĐỘ TƯỚI: AUTO (TỰ ĐỘNG) / MANUAL (THỦ CÔNG)",
+        "group": "grp_farm_map",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "passthru": true,
+        "topic": "mode",
+        "onvalue": "{\"mode\":\"MANUAL\"}",
+        "onvalueType": "json",
+        "offvalue": "{\"mode\":\"AUTO\"}",
+        "offvalueType": "json",
+        "x": 160,
+        "y": 320,
+        "wires": [
+            [
+                "pub_mode",
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "btn_pump_z1",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Bơm Z1",
+        "group": "grp_farm_map",
+        "order": 3,
+        "width": 2,
+        "height": 1,
+        "label": "BAT/TAT TUOI Z1",
+        "color": "#ffffff",
+        "bgcolor": "#059669",
+        "payload": "toggle_1",
+        "payloadType": "str",
+        "x": 140,
+        "y": 380,
+        "wires": [
+            [
+                "fn_toggle_pump"
+            ]
+        ]
+    },
+    {
+        "id": "btn_pump_z2",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Bơm Z2",
+        "group": "grp_farm_map",
+        "order": 4,
+        "width": 2,
+        "height": 1,
+        "label": "BAT/TAT TUOI Z2",
+        "color": "#ffffff",
+        "bgcolor": "#059669",
+        "payload": "toggle_2",
+        "payloadType": "str",
+        "x": 140,
+        "y": 420,
+        "wires": [
+            [
+                "fn_toggle_pump"
+            ]
+        ]
+    },
+    {
+        "id": "btn_pump_z3",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Bơm Z3",
+        "group": "grp_farm_map",
+        "order": 5,
+        "width": 2,
+        "height": 1,
+        "label": "BAT/TAT TUOI Z3",
+        "color": "#ffffff",
+        "bgcolor": "#059669",
+        "payload": "toggle_3",
+        "payloadType": "str",
+        "x": 140,
+        "y": 460,
+        "wires": [
+            [
+                "fn_toggle_pump"
+            ]
+        ]
+    },
+    {
+        "id": "btn_stop_all",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Dừng Khẩn Cấp",
+        "group": "grp_farm_map",
+        "order": 6,
+        "width": 6,
+        "height": 1,
+        "label": "DUNG KHAN CAP / TAT TAT CA BOM",
+        "color": "#ffffff",
+        "bgcolor": "#dc2626",
+        "payload": "{\"zone\":0,\"action\":\"OFF\"}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 500,
+        "wires": [
+            [
+                "pub_pump",
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "slider_dry_z1",
+        "type": "ui_slider",
+        "z": "flow_smart_farm",
+        "name": "Ngưỡng khô Z1",
+        "label": "Ngưỡng khô Z1 (Bật tưới tự động):",
+        "group": "grp_farm_map",
+        "order": 7,
+        "width": 6,
+        "height": 1,
+        "passthru": true,
+        "outs": "end",
+        "topic": "dry_z1",
+        "min": 20,
+        "max": 55,
+        "step": 1,
+        "x": 160,
+        "y": 560,
+        "wires": [
+            [
+                "fn_threshold"
+            ]
+        ]
+    },
+    {
+        "id": "chart_soil_history",
+        "type": "ui_chart",
+        "z": "flow_smart_farm",
+        "name": "Chart Độ Ẩm",
+        "group": "grp_analytics",
+        "order": 1,
+        "width": 6,
+        "height": 4,
+        "label": "Độ ẩm 3 vùng (% theo thời gian)",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "Đang nhận dữ liệu cảm biến thời gian thực...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "100",
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "colors": [
+            "#0284c7",
+            "#f59e0b",
+            "#10b981"
+        ],
+        "outputs": 1,
+        "x": 580,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "card_smart_alert",
+        "type": "ui_template",
+        "z": "flow_smart_farm",
+        "group": "grp_analytics",
+        "name": "Alert Notification Card",
+        "order": 2,
+        "width": 6,
+        "height": 2,
+        "format": "\n<div style=\"height:100%; display:flex; align-items:center; gap:10px; background:{{msg.isAlert ? '#fef2f2' : '#f0fdf4'}}; border:1px solid {{msg.isAlert ? '#f87171' : '#86efac'}}; border-radius:8px; padding:8px 12px; box-sizing:border-box;\">\n <div style=\"font-size:22px;\">{{msg.isAlert ? '' : ''}}</div>\n <div style=\"flex:1;\">\n  <div style=\"font-size:12px; font-weight:800; color:{{msg.isAlert ? '#b91c1c' : '#15803d'}};\">\n   {{msg.alertTitle || 'HỆ THỐNG AN TOÀN - ĐỘ ẨM ĐẠT CHUẨN'}}\n  </div>\n  <div style=\"font-size:11px; color:#475569; margin-top:2px; line-height:1.3;\">\n   {{msg.alertDetail || 'Không có vùng đất nào bị khô hoặc có nguy cơ ngập úng.'}}\n  </div>\n </div>\n</div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 580,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "btn_w0",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W0 Nắng",
+        "group": "grp_sim_weather",
+        "order": 1,
+        "width": 3,
+        "height": 1,
+        "label": "W0: Nang rao (0mm)",
+        "color": "#1e293b",
+        "bgcolor": "#fef08a",
+        "payload": "{\"hourly\":{\"precipitation_probability\":[5,5,5,5,5,5],\"precipitation\":[0,0,0,0,0,0],\"temperature_2m\":[32,32,31,30,30,29]}}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 700,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ],
+        "topic": "W0"
+    },
+    {
+        "id": "btn_w1",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W1 Mưa Rào",
+        "group": "grp_sim_weather",
+        "order": 2,
+        "width": 3,
+        "height": 1,
+        "label": "W1: Mua rao (8mm)",
+        "color": "#ffffff",
+        "bgcolor": "#0284c7",
+        "payload": "{\"hourly\":{\"precipitation_probability\":[85,85,85,70,40,20],\"precipitation\":[0,8,2,0,0,0],\"temperature_2m\":[32,31,29,28,28,28]}}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 740,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ],
+        "topic": "W1"
+    },
+    {
+        "id": "btn_w2",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W2 Mưa Phùn",
+        "group": "grp_sim_weather",
+        "order": 3,
+        "width": 3,
+        "height": 1,
+        "label": "W2: Mua phun (1mm)",
+        "color": "#ffffff",
+        "bgcolor": "#0ea5e9",
+        "payload": "{\"hourly\":{\"precipitation_probability\":[75,75,75,75,75,75],\"precipitation\":[1,1,1,1,1,1],\"temperature_2m\":[30,29,28,28,27,27]}}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 780,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ],
+        "topic": "W2"
+    },
+    {
+        "id": "btn_w3",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W3 Mưa Lớn",
+        "group": "grp_sim_weather",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "label": "W3: Mua lon (15mm/h)",
+        "color": "#ffffff",
+        "bgcolor": "#1e3a8a",
+        "payload": "{\"hourly\":{\"precipitation_probability\":[90,90,80,60,40,20],\"precipitation\":[15,10,2,0,0,0],\"temperature_2m\":[28,27,26,26,25,25]}}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 820,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ],
+        "topic": "W3"
+    },
+    {
+        "id": "btn_w5",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W5 Dự Báo Sai",
+        "group": "grp_sim_weather",
+        "order": 5,
+        "width": 6,
+        "height": 1,
+        "label": "W5: Du bao sai (Het mua)",
+        "color": "#ffffff",
+        "bgcolor": "#7c3aed",
+        "payload": "{\"hourly\":{\"precipitation_probability\":[85,85,85,70,40,20],\"precipitation\":[0,8,2,0,0,0],\"temperature_2m\":[32,31,29,28,28,28]}}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 860,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ],
+        "topic": "W5"
+    },
+    {
+        "id": "btn_fault_d1",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "D1 Sensor Fault",
+        "group": "grp_sim_faults",
+        "order": 1,
+        "width": 3,
+        "height": 1,
+        "label": "D1: Hong Cam Bien Dat",
+        "color": "#ffffff",
+        "bgcolor": "#dc2626",
+        "payload": "{\"fault\": \"D1_SOIL_FAIL\"}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 920,
+        "wires": [
+            [
+                "pub_fault"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "btn_fault_d2",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "D2 Relay Jam",
+        "group": "grp_sim_faults",
+        "order": 2,
+        "width": 3,
+        "height": 1,
+        "label": "D2: Ket Van / Hong Bom",
+        "color": "#ffffff",
+        "bgcolor": "#dc2626",
+        "payload": "{\"fault\": \"D2_PUMP_JAM\"}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 960,
+        "wires": [
+            [
+                "pub_fault"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "fn_farm_state",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Farm State Coordinator",
+        "func": "let state = global.get('farm_state') || context.get('farm_state') || {\n  online: true,\n  stateText: 'S1_MONITOR',\n  modeText: 'AUTO',\n  reasonText: 'Dang giam sat on dinh',\n  stateColor: '#0284c7',\n  pumpActive: false,\n  p1: false, p2: false, p3: false,\n  z1_val: 50, z2_val: 50, z3_val: 50,\n  weather_temp: 20.2, weather_hum: 98,\n  dht_temp: 24.0, dht_hum: 40.0,\n  max_prob: 36, eff_precip: 0.0, rainDelay: false,\n  location: 'Cau Dat - Da Lat (Lam Dong)',\n  isAlert: false, alertTitle: 'HE THONG AN TOAN', alertDetail: 'Cac vung dat dat do am chuan',\n  weatherSource: 'LIVE OPEN-METEO'\n};\n\nconst topic = msg.topic || '';\n\n// A. Xu ly chuyen doi che do (AUTO / MANUAL)\nif (msg.mode !== undefined) {\n  state.modeText = msg.mode;\n  if (state.modeText === 'MANUAL') {\n    state.stateText = 'S6_MANUAL';\n    state.stateColor = '#d97706';\n    state.reasonText = 'Che do dieu khien thu cong';\n    state.p1 = false; state.p2 = false; state.p3 = false; state.pumpActive = false;\n  } else {\n    state.stateText = 'S1_MONITOR';\n    state.stateColor = '#0284c7';\n    state.reasonText = 'Che do tu dong (AUTO)';\n  }\n} else if (msg.payload && msg.payload.mode !== undefined) {\n  state.modeText = msg.payload.mode;\n  if (state.modeText === 'MANUAL') {\n    state.stateText = 'S6_MANUAL';\n    state.stateColor = '#d97706';\n    state.reasonText = 'Che do dieu khien thu cong';\n    state.p1 = false; state.p2 = false; state.p3 = false; state.pumpActive = false;\n  } else {\n    state.stateText = 'S1_MONITOR';\n    state.stateColor = '#0284c7';\n    state.reasonText = 'Che do tu dong (AUTO)';\n  }\n}\n\n// B. Xu ly Reset hoac Tiem su co\nif (msg.payload && (msg.payload.fault === 'CLEAR_FAULT' || msg.payload.fault === 'RESET')) {\n  state.isAlert = false;\n  state.alertTitle = 'HE THONG DA PHUC HOI';\n  state.alertDetail = 'Da xoa toan bo loi mo phong. He thong tro ve trang thai giam sat binh thuong.';\n  state.stateText = (state.modeText === 'MANUAL') ? 'S6_MANUAL' : 'S1_MONITOR';\n  state.stateColor = (state.modeText === 'MANUAL') ? '#d97706' : '#0284c7';\n} else if (msg.payload && msg.payload.fault === 'D1_SOIL_FAIL') {\n  state.isAlert = true;\n  state.alertTitle = 'CANH BAO: HONG CAM BIEN DAT (D1)';\n  state.alertDetail = 'Phat hien dut day / hong cam bien (SENSOR_RANGE). Chuyen trang thai S99_SAFE ngat bom.';\n  state.stateText = 'S99_SAFE';\n  state.stateColor = '#dc2626';\n  state.p1 = false; state.p2 = false; state.p3 = false; state.pumpActive = false;\n} else if (msg.payload && msg.payload.fault === 'D2_PUMP_JAM') {\n  state.isAlert = true;\n  state.alertTitle = 'CANH BAO: KET VAN / HONG BOM (D2)';\n  state.alertDetail = 'Phat hien ket van co hoc hoac hong ro-le bom. Ngat toan bo bom dam bao an toan S99_SAFE.';\n  state.stateText = 'S99_SAFE';\n  state.stateColor = '#dc2626';\n  state.p1 = false; state.p2 = false; state.p3 = false; state.pumpActive = false;\n}\n\n// C. Xu ly Tat tat ca bom (Emergency Stop / Mode Switch)\nif (msg.payload && (msg.payload.zone === 0 || msg.payload.all === true) && (msg.payload.action === 'OFF' || msg.payload.cmd === 'OFF')) {\n  state.p1 = false; state.p2 = false; state.p3 = false; state.pumpActive = false;\n}\n\n// D. Xu ly du lieu Topic MQTT\n// 1. Do am Z1, Z2, Z3\nif (topic.includes('z1/soil') || (msg.payload && msg.payload.zone === 1 && msg.payload.moisture !== undefined)) {\n  const v = msg.payload.moisture !== undefined ? msg.payload.moisture : Number(msg.payload);\n  state.z1_val = Math.max(0, Math.min(100, Math.round(v)));\n} else if (topic.includes('z2/soil') || (msg.payload && msg.payload.zone === 2 && msg.payload.moisture !== undefined)) {\n  const v = msg.payload.moisture !== undefined ? msg.payload.moisture : Number(msg.payload);\n  state.z2_val = Math.max(0, Math.min(100, Math.round(v)));\n} else if (topic.includes('z3/soil') || (msg.payload && msg.payload.zone === 3 && msg.payload.moisture !== undefined)) {\n  const v = msg.payload.moisture !== undefined ? msg.payload.moisture : Number(msg.payload);\n  state.z3_val = Math.max(0, Math.min(100, Math.round(v)));\n}\n// 2. DHT22 vi khi hau tai cho\nelse if (topic.includes('env')) {\n  if (msg.payload.temperature !== undefined) state.dht_temp = Number(msg.payload.temperature);\n  if (msg.payload.humidity !== undefined) state.dht_hum = Number(msg.payload.humidity);\n}\n// 3. Du bao thoi tiet\nelse if (topic.includes('weather')) {\n  if (msg.payload.max_prob !== undefined) state.max_prob = msg.payload.max_prob;\n  if (msg.payload.eff_precip !== undefined) state.eff_precip = msg.payload.eff_precip;\n  if (msg.payload.weather_temp !== undefined) state.weather_temp = Number(msg.payload.weather_temp);\n  else if (msg.payload.temp !== undefined) state.weather_temp = Number(msg.payload.temp);\n  else if (msg.payload.temperature !== undefined) state.weather_temp = Number(msg.payload.temperature);\n  \n  if (msg.payload.weather_hum !== undefined) state.weather_hum = Number(msg.payload.weather_hum);\n  else if (msg.payload.hum !== undefined) state.weather_hum = Number(msg.payload.hum);\n  else if (msg.payload.humidity !== undefined) state.weather_hum = Number(msg.payload.humidity);\n  \n  if (msg.payload.location) state.location = msg.payload.location;\n  state.rainDelay = (state.max_prob >= 70 && state.eff_precip >= 5.0) || msg.payload.heavy_rain === true;\n  state.weatherSource = msg.payload.source || 'LIVE OPEN-METEO';\n}\n// 4. FSM State\nelse if (topic.includes('state')) {\n  state.stateText = msg.payload.state || 'S1_MONITOR';\n  state.modeText = msg.payload.mode || state.modeText;\n  state.reasonText = msg.payload.reason || 'Dang giam sat on dinh';\n  if (state.stateText.includes('RAIN') || state.stateText.includes('S3')) state.stateColor = '#2563eb';\n  else if (state.stateText.includes('IRRIG') || state.stateText.includes('S4') || state.stateText.includes('S2')) state.stateColor = '#059669';\n  else if (state.stateText.includes('SOAK') || state.stateText.includes('S9')) state.stateColor = '#d97706';\n  else if (state.stateText.includes('SAFE') || state.stateText.includes('ERROR')) state.stateColor = '#dc2626';\n  else if (state.stateText.includes('MANUAL') || state.stateText.includes('S6')) state.stateColor = '#d97706';\n  else state.stateColor = '#0284c7';\n}\n// 5. Bom\nelse if (topic.includes('pump')) {\n  const z = msg.payload.zone || 1;\n  const on = (msg.payload.status === 'ON' || msg.payload.action === 'ON' || msg.payload.on === true);\n  if (z === 1) state.p1 = on;\n  else if (z === 2) state.p2 = on;\n  else if (z === 3) state.p3 = on;\n  state.pumpActive = (state.p1 || state.p2 || state.p3);\n}\n// 6. Online/Offline\nelse if (topic.includes('status')) {\n  state.online = (msg.payload === 'online');\n}\n// 7. Alert\nelse if (topic.includes('alert')) {\n  state.isAlert = true;\n  state.alertTitle = 'CANH BAO: ' + (msg.payload.alert || 'SU CO VUNG ' + (msg.payload.zone || ''));\n  state.alertDetail = msg.payload.detail || 'Phat hien trang thai bat thuong';\n}\n\nfunction evalZone(val, dry, wet, flood) {\n  if (flood && val >= flood) {\n    return { color: '#7c3aed', border: '#6d28d9', txt: '#6d28d9', badge_bg: '#ede9fe', badge_txt: '#5b21b6', status: 'NGAP UNG (>=80%)' };\n  }\n  if (val < dry) {\n    return { color: '#ef4444', border: '#b91c1c', txt: '#b91c1c', badge_bg: '#fee2e2', badge_txt: '#991b1b', status: 'KHO - CAN TUOI' };\n  }\n  if (val <= wet) {\n    return { color: '#10b981', border: '#047857', txt: '#047857', badge_bg: '#d1fae5', badge_txt: '#065f46', status: 'DU AM LY TUONG' };\n  }\n  return { color: '#0284c7', border: '#0369a1', txt: '#0369a1', badge_bg: '#e0f2fe', badge_txt: '#075985', status: 'AM CAO' };\n}\n\nconst e1 = evalZone(state.z1_val, 40, 60, null);\nconst e2 = evalZone(state.z2_val, 40, 60, null);\nconst e3 = evalZone(state.z3_val, 35, 55, 80);\n\nstate.z1_color = e1.color; state.z1_border = e1.border; state.z1_txt = e1.txt; state.z1_badge_bg = e1.badge_bg; state.z1_badge_txt = e1.badge_txt; state.z1_status = e1.status;\nstate.z2_color = e2.color; state.z2_border = e2.border; state.z2_txt = e2.txt; state.z2_badge_bg = e2.badge_bg; state.z2_badge_txt = e2.badge_txt; state.z2_status = e2.status;\nstate.z3_color = e3.color; state.z3_border = e3.border; state.z3_txt = e3.txt; state.z3_badge_bg = e3.badge_bg; state.z3_badge_txt = e3.badge_txt; state.z3_status = e3.status;\nstate.anyPump = state.pumpActive;\nstate.isSoakWait = state.stateText.includes('SOAK') || state.stateText.includes('S9');\n\nif (state.z3_val >= 80) {\n  state.isAlert = true;\n  state.alertTitle = 'CANH BAO: VUNG 3 (TRUNG) BI NGAP UNG!';\n  state.alertDetail = 'Do am ' + state.z3_val + '% >= 80%. Da khoa van Z3 de chong ngap thung lung.';\n} else if (state.isSoakWait) {\n  state.isAlert = false;\n  state.alertTitle = 'TRANG THAI: DANG NGHI NGAM (SOAK_WAIT)';\n  state.alertDetail = 'Nuoc tu vung cao dang ngam dan xuong tang re va vung trung. Tam ngat bom de tranh chay tran xoi mon.';\n} else if (state.z1_val < 40 || state.z2_val < 40 || state.z3_val < 35) {\n  state.isAlert = true;\n  const dryZones = [];\n  if (state.z1_val < 40) dryZones.push('Zone 1: Vung cao (' + state.z1_val + '%)');\n  if (state.z2_val < 40) dryZones.push('Zone 2: Vung giua (' + state.z2_val + '%)');\n  if (state.z3_val < 35) dryZones.push('Zone 3: Vung trung (' + state.z3_val + '%)');\n  state.alertTitle = 'CANH BAO DAT KHO: ' + dryZones.join(' | ');\n  state.alertDetail = state.rainDelay ? 'Dang hoan tuoi vi sap co mua lon hieu dung (P_eff >= 5mm).' : 'He thong tu dong kich hoat tuoi tuan tu tu cao xuong thap (Z1 -> Z2 -> Z3).';\n} else if (state.rainDelay) {\n  state.isAlert = false;\n  state.alertTitle = 'THONG BAO: DANG HOAN TUOI TU DONG';\n  state.alertDetail = 'Du bao co mua lon (P_max ' + state.max_prob + '%, P_eff ' + state.eff_precip + 'mm). Tam dung bom de tiet kiem nuoc.';\n} else {\n  state.isAlert = false;\n  state.alertTitle = 'HE THONG AN TOAN - DO AM DAT CHUAN';\n  state.alertDetail = 'Ca 3 vung dat deu dang o trang thai du am ly tuong. Bom dang tat.';\n}\n\ncontext.set('farm_state', state);\nglobal.set('farm_state', state);\nmsg.payload = state;\nObject.assign(msg, state);\nreturn msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 140,
+        "wires": [
+            [
+                "card_header_banner",
+                "card_farm_map",
+                "card_weather_forecast",
+                "card_smart_alert"
+            ]
+        ]
+    },
+    {
+        "id": "fn_chart_z1",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Chart Z1",
+        "func": "msg.topic = 'Z1 (Vùng Cao)'; msg.payload = Number(msg.payload.moisture !== undefined ? msg.payload.moisture : msg.payload); return msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 280,
+        "wires": [
+            [
+                "chart_soil_history"
+            ]
+        ]
+    },
+    {
+        "id": "fn_chart_z2",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Chart Z2",
+        "func": "msg.topic = 'Z2 (Vùng Giữa)'; msg.payload = Number(msg.payload.moisture !== undefined ? msg.payload.moisture : msg.payload); return msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "chart_soil_history"
+            ]
+        ]
+    },
+    {
+        "id": "fn_chart_z3",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Chart Z3",
+        "func": "msg.topic = 'Z3 (Vùng Trũng)'; msg.payload = Number(msg.payload.moisture !== undefined ? msg.payload.moisture : msg.payload); return msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "chart_soil_history"
+            ]
+        ]
+    },
+    {
+        "id": "sub_z1",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/z1/soil",
+        "topic": "g11/irrig/z1/soil",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 80,
+        "wires": [
+            [
+                "fn_farm_state",
+                "fn_chart_z1"
+            ]
+        ]
+    },
+    {
+        "id": "sub_z2",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/z2/soil",
+        "topic": "g11/irrig/z2/soil",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 120,
+        "wires": [
+            [
+                "fn_farm_state",
+                "fn_chart_z2"
+            ]
+        ]
+    },
+    {
+        "id": "sub_z3",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/z3/soil",
+        "topic": "g11/irrig/z3/soil",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 160,
+        "wires": [
+            [
+                "fn_farm_state",
+                "fn_chart_z3"
+            ]
+        ]
+    },
+    {
+        "id": "sub_env",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/env",
+        "topic": "g11/irrig/env",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 200,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "sub_weather",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/weather",
+        "topic": "g11/irrig/#",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 240,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "sub_state",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/state",
+        "topic": "g11/irrig/state",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 280,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "sub_pump",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/pump",
+        "topic": "g11/irrig/pump",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 320,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "sub_status",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/status",
+        "topic": "g11/irrig/status",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 360,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "sub_alert",
+        "type": "mqtt in",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/alert",
+        "topic": "g11/irrig/alert",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "x": 100,
+        "y": 400,
+        "wires": [
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "fn_threshold",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Format Threshold",
+        "func": "\nmsg.payload = {\n  zone: 1,\n  dry: msg.topic === 'dry_z1' ? Number(msg.payload) : undefined,\n  wet: msg.topic === 'wet_z1' ? Number(msg.payload) : undefined\n};\nreturn msg;\n",
+        "outputs": 1,
+        "x": 380,
+        "y": 560,
+        "wires": [
+            [
+                "pub_threshold"
+            ]
+        ]
+    },
+    {
+        "id": "pub_mode",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/cmd/mode",
+        "topic": "g11/irrig/cmd/mode",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 380,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "pub_pump",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/cmd/pump",
+        "topic": "g11/irrig/cmd/pump",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 380,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "pub_threshold",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/cmd/threshold",
+        "topic": "g11/irrig/cmd/threshold",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 580,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "pub_weather",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/sim/weather",
+        "topic": "g11/irrig/sim/weather",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 380,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "pub_fault",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/sim/fault",
+        "topic": "g11/irrig/sim/fault",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 380,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "inject_openmeteo",
+        "type": "inject",
+        "z": "flow_smart_farm",
+        "name": "Định kỳ 15p & Boot",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "900",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 2,
+        "topic": "",
+        "payload": "11.8500,108.5300,Cầu Đất - Đà Lạt (Lâm Đồng)",
+        "payloadType": "str",
+        "x": 120,
+        "y": 480,
+        "wires": [
+            [
+                "fn_build_weather_url"
+            ]
+        ]
+    },
+    {
+        "id": "btn_refresh_openmeteo",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Button Refresh Weather",
+        "group": "grp_weather_env",
+        "order": 3,
+        "width": 6,
+        "height": 1,
+        "passthru": false,
+        "label": "Cap Nhat Thoi Tiet Theo Khu Vuc",
+        "tooltip": "Cap nhat du bao thoi tiet tu dong theo khu vuc dang chon",
+        "color": "#ffffff",
+        "bgcolor": "#0284c7",
+        "payload": "trigger",
+        "payloadType": "str",
+        "topic": "refresh_weather",
+        "x": 140,
+        "y": 520,
+        "wires": [
+            [
+                "fn_build_weather_url"
+            ]
+        ]
+    },
+    {
+        "id": "http_openmeteo",
+        "type": "http request",
+        "z": "flow_smart_farm",
+        "name": "Open-Meteo REST API",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 380,
+        "y": 500,
+        "wires": [
+            [
+                "fn_parse_openmeteo"
+            ]
+        ]
+    },
+    {
+        "id": "fn_parse_openmeteo",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Phân Tích Live Open-Meteo",
+        "func": "\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        node.warn('Khong the parse JSON tu Open-Meteo: ' + e.message);\n    }\n}\n\nconst locName = msg.locationName || 'Cau Dat - Da Lat (Lam Dong)';\n\nfunction getRegionFallback(name) {\n    if (name.includes('Long Khanh')) return { temp: 26.6, hum: 90, prob: 20, rain: 0.0 };\n    if (name.includes('Buon Ma Thuot')) return { temp: 27.6, hum: 76, prob: 42, rain: 0.0 };\n    if (name.includes('Cao Phong')) return { temp: 30.8, hum: 56, prob: 0, rain: 0.0 };\n    if (name.includes('Cu Chi')) return { temp: 28.4, hum: 83, prob: 29, rain: 0.5 };\n    return { temp: 20.2, hum: 98, prob: 36, rain: 0.0 }; // Cau Dat - Da Lat\n}\n\nlet isLive = true;\nlet probs = [];\nlet rains = [];\nlet temps = [];\nlet hums = [];\nlet curTemp = 20.2;\nlet curHum = 98;\nlet maxP = 0;\nlet effP = 0.0;\nlet heavy = false;\n\nfunction getK(r) {\n    if (r < 2.0) return 0.15;\n    if (r < 5.0) return 0.50;\n    if (r < 10.0) return 0.80;\n    return 0.50;\n}\n\nif (!data || typeof data !== 'object' || (!data.hourly && !data.current) || data.error) {\n    isLive = false;\n    const fb = getRegionFallback(locName);\n    curTemp = fb.temp;\n    curHum = fb.hum;\n    maxP = fb.prob;\n    effP = fb.rain;\n    probs = [fb.prob, fb.prob, fb.prob];\n    rains = [0, 0, 0];\n    temps = [fb.temp, fb.temp, fb.temp];\n    hums = [fb.hum, fb.hum, fb.hum];\n    node.warn('Open-Meteo tam thoi khong phan hoi. Su dung thong so khi hau khu vuc ' + locName + ' (T=' + curTemp + 'C, H=' + curHum + '%)');\n} else {\n    const cur = data.current || {};\n    const hourly = data.hourly || {};\n\n    probs = hourly.precipitation_probability || [];\n    rains = hourly.precipitation || [];\n    temps = hourly.temperature_2m || [];\n    hums = hourly.relative_humidity_2m || [];\n\n    for (let i = 0; i < 3; i++) {\n        const p = probs[i] !== undefined ? probs[i] : 0;\n        const r = rains[i] !== undefined ? rains[i] : 0.0;\n        if (p > maxP) maxP = p;\n        effP += (r * getK(r));\n        if (r >= 10.0) heavy = true;\n    }\n\n    if (cur.temperature_2m !== undefined) {\n        curTemp = Number(cur.temperature_2m);\n    } else if (temps.length > 0 && temps[0] !== undefined) {\n        curTemp = Number(temps[0]);\n    }\n\n    if (cur.relative_humidity_2m !== undefined) {\n        curHum = Number(cur.relative_humidity_2m);\n    } else if (hums.length > 0 && hums[0] !== undefined) {\n        curHum = Number(hums[0]);\n    }\n}\n\nconst weatherPayload = {\n    source: isLive ? 'LIVE_OPEN_METEO' : 'REGION_PROFILE',\n    location: locName,\n    latitude: msg.latitude || '11.8500',\n    longitude: msg.longitude || '108.5300',\n    timestamp: Date.now(),\n    max_prob: maxP,\n    eff_precip: Number(effP.toFixed(2)),\n    heavy_rain: heavy,\n    weather_temp: curTemp,\n    weather_hum: curHum,\n    temperature: curTemp,\n    humidity: curHum,\n    temp: curTemp,\n    hum: curHum,\n    precipitation_probability: probs.slice(0, 3),\n    precipitation: rains.slice(0, 3),\n    temperature_2m: temps.slice(0, 3),\n    relative_humidity_2m: hums.slice(0, 3)\n};\n\nnode.status({ fill: isLive ? 'green' : 'yellow', shape: 'dot', text: locName + ': ' + curTemp + 'C | ' + curHum + '% | P_max:' + maxP + '%' });\n\nreturn [\n    { topic: 'g11/irrig/weather', payload: weatherPayload },\n    { topic: 'g11/irrig/sim/weather', payload: weatherPayload }\n];\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 500,
+        "wires": [
+            [
+                "fn_farm_state"
+            ],
+            [
+                "pub_weather"
+            ]
+        ]
+    },
+    {
+        "id": "select_farm_location",
+        "type": "ui_dropdown",
+        "z": "flow_smart_farm",
+        "name": "Chọn Nông Trại",
+        "label": " Khu vực:",
+        "tooltip": "Chọn khu vực nông nghiệp thực tế để tự động lấy dự báo thời tiết Open-Meteo",
+        "place": "Chọn vị trí nông trại...",
+        "group": "grp_weather_env",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "Cau Dat - Da Lat, Lam Dong (Doi doc 1.500m)",
+                "value": "11.8500,108.5300,Cau Dat - Da Lat (Lam Dong)",
+                "type": "str"
+            },
+            {
+                "label": "Long Khanh, Dong Nai (Doi bazan cay an trai)",
+                "value": "10.9400,107.2400,Long Khanh (Dong Nai)",
+                "type": "str"
+            },
+            {
+                "label": "Buon Ma Thuot, Dak Lak (Cao nguyen ca phe)",
+                "value": "12.6667,108.0500,Buon Ma Thuot (Dak Lak)",
+                "type": "str"
+            },
+            {
+                "label": "Cao Phong, Hoa Binh (Doi cam doc Bac Bo)",
+                "value": "20.7300,105.3000,Cao Phong (Hoa Binh)",
+                "type": "str"
+            },
+            {
+                "label": "Cu Chi, TP. Ho Chi Minh (Vung ven song)",
+                "value": "11.0064,106.5132,Cu Chi (TP. Ho Chi Minh)",
+                "type": "str"
+            }
+        ],
+        "payload": "",
+        "topic": "select_location",
+        "x": 140,
+        "y": 440,
+        "wires": [
+            [
+                "fn_build_weather_url"
+            ]
+        ]
+    },
+    {
+        "id": "fn_build_weather_url",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Tạo URL Open-Meteo",
+        "func": "\nlet locStr = msg.payload;\nif (typeof locStr !== 'string' || !locStr.includes(',')) {\n    locStr = global.get('current_farm_loc') || \"11.8500,108.5300,Cau Dat - Da Lat (Lam Dong)\";\n} else {\n    global.set('current_farm_loc', locStr);\n}\n\nconst parts = locStr.split(',');\nconst lat = parts[0].trim();\nconst lon = parts[1].trim();\nconst name = parts[2] ? parts[2].trim() : \"Cau Dat - Da Lat (Lam Dong)\";\n\nmsg.url = \"https://api.open-meteo.com/v1/forecast?latitude=\" + lat + \"&longitude=\" + lon + \"&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation&timezone=Asia%2FHo_Chi_Minh\";\nmsg.headers = {\n    \"User-Agent\": \"SmartFarm-IoT-G11/1.0 (nhom11.iot.project@student.edu.vn)\"\n};\nmsg.locationName = name;\nmsg.latitude = lat;\nmsg.longitude = lon;\nnode.status({ fill: \"blue\", shape: \"dot\", text: name });\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 500,
+        "wires": [
+            [
+                "http_openmeteo"
+            ]
+        ]
+    },
+    {
+        "id": "fn_toggle_pump",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Toggle Pump Dispatcher",
+        "func": "const state = global.get('farm_state') || {};\nconst trig = msg.payload;\nlet zone = 1;\nif (trig === 'toggle_2') zone = 2;\nif (trig === 'toggle_3') zone = 3;\n\nlet curState = false;\nif (zone === 1) curState = !!state.p1;\nelse if (zone === 2) curState = !!state.p2;\nelse if (zone === 3) curState = !!state.p3;\n\nconst nextAction = curState ? \"OFF\" : \"ON\";\nconst outPayload = {\n    zone: zone,\n    action: nextAction,\n    cmd: nextAction,\n    ttl: 600\n};\n\n// Cap nhat state tuc thi\nif (zone === 1) state.p1 = (nextAction === 'ON');\nelse if (zone === 2) state.p2 = (nextAction === 'ON');\nelse if (zone === 3) state.p3 = (nextAction === 'ON');\nstate.pumpActive = (state.p1 || state.p2 || state.p3);\nglobal.set('farm_state', state);\n\nnode.status({ fill: nextAction === 'ON' ? 'green' : 'grey', shape: 'dot', text: 'Z' + zone + ' -> ' + nextAction });\n\nreturn [\n    { topic: \"g11/irrig/cmd/pump\", payload: outPayload },\n    { topic: \"g11/irrig/z\" + zone + \"/pump\", payload: { zone: zone, status: nextAction, on: (nextAction === 'ON'), runtime: 0 } }\n];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 420,
+        "wires": [
+            [
+                "pub_pump"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "fn_sim_weather_dispatch",
+        "type": "function",
+        "z": "flow_smart_farm",
+        "name": "Sim Weather Dispatcher",
+        "func": "const data = msg.payload;\nconst probs = (data.hourly && data.hourly.precipitation_probability) ? data.hourly.precipitation_probability : [5, 5, 5];\nconst rains = (data.hourly && data.hourly.precipitation) ? data.hourly.precipitation : [0, 0, 0];\nconst temps = (data.hourly && data.hourly.temperature_2m) ? data.hourly.temperature_2m : [28, 28, 28];\n\nlet maxP = 0;\nlet effP = 0.0;\nlet heavy = false;\n\nfunction getK(r) {\n    if (r < 2.0) return 0.15;\n    if (r < 5.0) return 0.50;\n    if (r < 10.0) return 0.80;\n    return 0.50;\n}\n\nfor (let i = 0; i < 3; i++) {\n    const p = probs[i] !== undefined ? probs[i] : 0;\n    const r = rains[i] !== undefined ? rains[i] : 0.0;\n    if (p > maxP) maxP = p;\n    effP += (r * getK(r));\n    if (r >= 10.0) heavy = true;\n}\n\nconst curTemp = temps[0] || 25.0;\nconst scTopic = msg.topic || \"\";\nlet scName = \"Mo phong thoi tiet\";\nif (scTopic === 'W0') scName = \"W0: Nang rao (0mm)\";\nelse if (scTopic === 'W1') scName = \"W1: Mua rao (8mm)\";\nelse if (scTopic === 'W2') scName = \"W2: Mua phun (1mm)\";\nelse if (scTopic === 'W3') scName = \"W3: Mua lon (15mm/h)\";\nelse if (scTopic === 'W4') scName = \"W4: Han kiet (<25%)\";\nelse if (scTopic === 'W5') scName = \"W5: Du bao sai (Het mua)\";\n\nconst weatherPayload = {\n    source: \"SIM_INJECT: \" + scName,\n    location: \"Kich ban: \" + scName,\n    max_prob: maxP,\n    eff_precip: Number(effP.toFixed(2)),\n    heavy_rain: heavy,\n    weather_temp: curTemp,\n    temperature: curTemp,\n    temp: curTemp,\n    weather_hum: (maxP >= 70 ? 95 : 60),\n    precipitation_probability: probs.slice(0, 3),\n    precipitation: rains.slice(0, 3),\n    temperature_2m: temps.slice(0, 3)\n};\n\nconst out1 = { topic: \"g11/irrig/sim/weather\", payload: data };\nconst out2 = { topic: \"g11/irrig/weather\", payload: weatherPayload };\nlet out3 = null;\n\nif (scTopic === 'W4') {\n    out3 = { topic: \"g11/irrig/sim/fault\", payload: { fault: \"W4_DROUGHT\", zone: 1, moisture: 20 } };\n} else if (scTopic === 'W0') {\n    out3 = { topic: \"g11/irrig/sim/fault\", payload: { fault: \"CLEAR_FAULT\" } };\n}\n\nreturn [out1, out2, out3];",
+        "outputs": 3,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 740,
+        "wires": [
+            [
+                "pub_weather"
+            ],
+            [
+                "fn_farm_state"
+            ],
+            [
+                "pub_fault"
+            ]
+        ]
+    },
+    {
+        "id": "btn_w4",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "W4 Hạn Kiệt",
+        "group": "grp_sim_weather",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "label": "W4: Han kiet (<25%)",
+        "tooltip": "Tiem kich ban dat kho cap tinh de kiem tra bat buoc tuoi cuu cay",
+        "color": "#ffffff",
+        "bgcolor": "#7c3aed",
+        "payload": "{\"hourly\": {\"precipitation_probability\": [85, 85, 85, 70, 40, 20], \"precipitation\": [0, 8, 2, 0, 0, 0], \"temperature_2m\": [35, 35, 34, 33, 32, 30]}}",
+        "payloadType": "json",
+        "topic": "W4",
+        "x": 160,
+        "y": 740,
+        "wires": [
+            [
+                "fn_sim_weather_dispatch"
+            ]
+        ]
+    },
+    {
+        "id": "btn_fault_d3",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "D3 Mất Mạng",
+        "group": "grp_sim_faults",
+        "order": 3,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "label": "D3: Mat Mang (Fallback S8)",
+        "color": "#ffffff",
+        "bgcolor": "#ea580c",
+        "payload": "offline",
+        "payloadType": "str",
+        "topic": "sim_fault",
+        "x": 160,
+        "y": 1000,
+        "wires": [
+            [
+                "pub_status"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "btn_fault_d4",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "D4 Có Mạng Lại",
+        "group": "grp_sim_faults",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "label": "D4: Co Mang Lai (Online)",
+        "color": "#ffffff",
+        "bgcolor": "#059669",
+        "payload": "online",
+        "payloadType": "str",
+        "topic": "sim_fault",
+        "x": 160,
+        "y": 1040,
+        "wires": [
+            [
+                "pub_status"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "btn_fault_d6",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "D6 Ngập Úng Z3",
+        "group": "grp_sim_faults",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "label": "D6: Ngap Ung Z3 (>=80%)",
+        "color": "#ffffff",
+        "bgcolor": "#7c3aed",
+        "payload": "{\"fault\": \"D6_FLOOD\", \"zone\": 3, \"moisture\": 85}",
+        "payloadType": "json",
+        "topic": "sim_fault",
+        "x": 160,
+        "y": 1080,
+        "wires": [
+            [
+                "pub_fault"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "btn_fault_reset",
+        "type": "ui_button",
+        "z": "flow_smart_farm",
+        "name": "Reset Phục Hồi",
+        "group": "grp_sim_faults",
+        "order": 6,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "label": "[RESET] PHUC HOI HE THONG",
+        "color": "#ffffff",
+        "bgcolor": "#0284c7",
+        "payload": "{\"fault\": \"CLEAR_FAULT\"}",
+        "payloadType": "json",
+        "topic": "sim_fault",
+        "x": 160,
+        "y": 1120,
+        "wires": [
+            [
+                "pub_fault"
+            ],
+            [
+                "fn_farm_state"
+            ]
+        ]
+    },
+    {
+        "id": "pub_status",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/status",
+        "topic": "g11/irrig/status",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 400,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "pub_z3_sim",
+        "type": "mqtt out",
+        "z": "flow_smart_farm",
+        "name": "g11/irrig/z3/soil",
+        "topic": "g11/irrig/z3/soil",
+        "qos": "1",
+        "retain": "false",
+        "broker": "mqtt_broker",
+        "x": 400,
+        "y": 920,
+        "wires": []
+    }
+]

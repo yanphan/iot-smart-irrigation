@@ -2,29 +2,33 @@
 #define SOIL_SENSOR_H
 
 // ============================================================
-// soil_sensor.h — Interface / Abstract Class cho cảm biến độ ẩm đất
+// soil_sensor.h - Interface / Abstract Class cho cam bien do am dat
 // ============================================================
-// Lớp trừu tượng cho phép đa hình:
-//   - SimSoilSensor (MODE_SIM): Đọc biến trở Wokwi
-//   - HWSoilSensor  (MODE_HW):  Đọc ADC1 phần cứng thật
+// Lop truu tuong cho phep da hinh:
+//   - SimSoilSensor (MODE_SIM): Doc bien tro Wokwi
+//   - HWSoilSensor  (MODE_HW):  Doc ADC1 phan cung that
 // ============================================================
 
-#include <Arduino.h>
 #include "config.h"
+#include <Arduino.h>
 
 class SoilSensor {
 public:
-    // Đọc độ ẩm đất theo phần trăm (0-100%) cho vùng zone (1, 2, 3)
-    virtual int readMoisturePercent(int zone) = 0;
+  // Doc do am dat theo phan tram (0-100%) cho vung zone (1, 2, 3)
+  virtual int readMoisturePercent(int zone) = 0;
 
-    // Khởi tạo cảm biến (cấu hình chân, log thông tin)
-    virtual void begin() = 0;
+  // Doc gia tri ADC tho (0-4095) de phat hien loi SENSOR_RANGE
+  virtual int readRawADC(int zone) { return 0; }
 
-    // Destructor ảo — bắt buộc cho abstract class
-    virtual ~SoilSensor() {}
+  // Khoi tao cam bien (cau hinh chan, log thong tin)
+  virtual void begin() = 0;
+
+  // Destructor ao - bat buoc cho abstract class
+  virtual ~SoilSensor() {}
 };
 
-// Con trỏ đối tượng toàn cục (được định nghĩa trong sim_soil_sensor.cpp hoặc hw_soil_sensor.cpp)
-extern SoilSensor* soilSensor;
+// Con tro doi tuong toan cuc (duoc dinh nghia trong sim_soil_sensor.cpp hoac
+// hw_soil_sensor.cpp)
+extern SoilSensor *soilSensor;
 
 #endif // SOIL_SENSOR_H
