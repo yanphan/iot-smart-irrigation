@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "author": "Nhóm 11",
+  "author": "Nhom 11",
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
@@ -9,13 +9,13 @@
     { "type": "wokwi-relay-module", "id": "relay2", "top": 200, "left": -150, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay3", "top": 250, "left": -150, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay4", "top": 300, "left": -150, "attrs": {} },
-    { "type": "wokwi-potentiometer", "id": "pot1", "top": -50, "left": -150, "attrs": {} },
-    { "type": "wokwi-potentiometer", "id": "pot2", "top": 0, "left": -150, "attrs": {} },
-    { "type": "wokwi-potentiometer", "id": "pot3", "top": 50, "left": -150, "attrs": {} }
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -50, "left": -150, "attrs": { "value": "450" } },
+    { "type": "wokwi-potentiometer", "id": "pot2", "top": 0, "left": -150, "attrs": { "value": "550" } },
+    { "type": "wokwi-potentiometer", "id": "pot3", "top": 50, "left": -150, "attrs": { "value": "600" } }
   ],
   "connections": [
-    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
     
     ["dht1:VCC", "esp:3V3", "red", []],
     ["dht1:GND", "esp:GND.1", "black", []],
@@ -48,5 +48,10 @@
     ["relay4:VCC", "esp:5V", "red", []],
     ["relay4:GND", "esp:GND.2", "black", []],
     ["relay4:IN", "esp:33", "green", []]
-  ]
+  ],
+  "serialMonitor": {
+    "display": "always",
+    "newline": "crlf",
+    "convertEol": true
+  }
 }
