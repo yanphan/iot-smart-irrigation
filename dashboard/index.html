@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Irrigation G11 — Digital Twin IoT Dashboard</title>
+    <meta name="description" content="Hệ thống giám sát và điều khiển tưới tiêu thông minh ESP32 FreeRTOS kết hợp bản sao số Digital Twin theo độ dốc địa hình.">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Thư viện MQTT qua WebSocket từ CDN -->
+    <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+</head>
+<body>
+
+    <!-- 1. HEADER CHÍNH -->
+    <header class="header-bar glass-panel">
+        <div class="brand-wrapper">
+            <div class="brand-icon">🌱</div>
+            <div>
+                <h1 class="brand-title">Smart Irrigation G11 — Digital Twin</h1>
+                <p class="brand-subtitle">Hệ thống tưới tiêu thông minh ESP32 FreeRTOS & Mô phỏng dòng chảy địa hình</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Badge trạng thái MQTT -->
+            <div class="status-badge" id="connStatusBox">
+                <span class="dot-indicator" id="connDot"></span>
+                <span id="connText">Đang kết nối EMQX WebSocket...</span>
+            </div>
+
+            <!-- Công tắc chuyển chế độ AUTO / MANUAL -->
+            <div class="mode-toggle">
+                <button type="button" class="mode-btn active" id="btnModeAuto">TỰ ĐỘNG (AUTO)</button>
+                <button type="button" class="mode-btn" id="btnModeManual">THỦ CÔNG (MANUAL)</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. KHUNG BẢN SAO SỐ DIGITAL TWIN (CANVAS DÒNG NƯỚC & ĐỊA HÌNH) -->
+    <section class="stage-container glass-panel">
+        <div class="stage-header">
+            <div class="stage-title">
+                <span>🌊</span> Mô hình Bản sao số địa hình dốc (Digital Twin Physics)
+            </div>
+            <div class="stage-badge">REAL-TIME FLUID SIMULATION</div>
+        </div>
+        <canvas id="twinCanvas"></canvas>
+    </section>
+
+    <!-- 3. LƯỚI THẺ ĐIỀU KHIỂN & CHỈ SỐ (3 CỘT) -->
+    <main class="dashboard-grid">
+
+        <!-- CỘT 1: GIÁM SÁT ĐỘ ẨM ĐẤT 3 VÙNG -->
+        <section class="card-box glass-panel">
+            <h2 class="card-title">
+                <span>🌾</span> Độ ẩm đất 3 tầng địa hình
+            </h2>
+
+            <div class="zones-wrapper">
+                <!-- Zone 1 -->
+                <div class="zone-item">
+                    <div class="zone-info">
+                        <div class="zone-name">Zone 1 — Đỉnh đồi (Dốc cao)</div>
+                        <div class="zone-desc" id="descZ1">Đang đọc cảm biến...</div>
+                        <div class="zone-gauge-bar">
+                            <div class="gauge-fill" id="barZ1" style="width: 50%; background-color: var(--color-emerald);"></div>
+                        </div>
+                    </div>
+                    <div class="zone-value-wrap">
+                        <div class="zone-value" id="valZ1">50%</div>
+                    </div>
+                </div>
+
+                <!-- Zone 2 -->
+                <div class="zone-item">
+                    <div class="zone-info">
+                        <div class="zone-name">Zone 2 — Sườn dốc (Trung gian)</div>
+                        <div class="zone-desc" id="descZ2">Đang đọc cảm biến...</div>
+                        <div class="zone-gauge-bar">
+                            <div class="gauge-fill" id="barZ2" style="width: 50%; background-color: var(--color-emerald);"></div>
+                        </div>
+                    </div>
+                    <div class="zone-value-wrap">
+                        <div class="zone-value" id="valZ2">50%</div>
+                    </div>
+                </div>
+
+                <!-- Zone 3 -->
+                <div class="zone-item">
+                    <div class="zone-info">
+                        <div class="zone-name">Zone 3 — Thung lũng (Trũng thấp)</div>
+                        <div class="zone-desc" id="descZ3">Đang đọc cảm biến...</div>
+                        <div class="zone-gauge-bar">
+                            <div class="gauge-fill" id="barZ3" style="width: 50%; background-color: var(--color-emerald);"></div>
+                        </div>
+                    </div>
+                    <div class="zone-value-wrap">
+                        <div class="zone-value" id="valZ3">50%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT 2: TRẠM VI KHÍ HẬU & DỰ BÁO THỜI TIẾT -->
+        <section class="card-box glass-panel">
+            <h2 class="card-title">
+                <span>🌦️</span> Trạm thời tiết & Vi khí hậu
+            </h2>
+
+            <!-- Chỉ số cảm biến DHT22 tại vườn -->
+            <div class="weather-kpi-grid">
+                <div class="kpi-tile">
+                    <div class="kpi-label">Nhiệt độ vi khí hậu</div>
+                    <div class="kpi-val" id="tempVal">28.0°C</div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-label">Độ ẩm không khí</div>
+                    <div class="kpi-val" id="humVal">65%</div>
+                </div>
+            </div>
+
+            <!-- Dự báo thời tiết Open-Meteo -->
+            <div class="forecast-radar-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Dự báo mưa (Cửa sổ 3h)</span>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--color-cyan);" id="pmaxVal">10%</span>
+                </div>
+                <div class="zone-gauge-bar">
+                    <div class="gauge-fill" id="pmaxBar" style="width: 10%; background: linear-gradient(90deg, #38bdf8, #0284c7);"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    <span>Lượng mưa hiệu dụng P_eff: <strong id="peffVal" style="color: var(--text-primary);">0.0mm</strong></span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;" id="weatherStatusDesc">
+                    Thời tiết nắng ráo bình thường ☀️
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT 3: BỘ ĐIỀU PHỐI FSM, VAN BƠM & DEMO STUDIO -->
+        <section class="card-box glass-panel">
+            <h2 class="card-title">
+                <span>⚙️</span> Điều khiển van & Demo Studio
+            </h2>
+
+            <!-- Thẻ trạng thái FSM -->
+            <div class="fsm-state-card">
+                <div class="fsm-badge" id="fsmBadge">S1_MONITOR</div>
+                <div class="fsm-detail">
+                    <div class="fsm-title">Máy trạng thái FSM</div>
+                    <div class="fsm-desc" id="fsmDesc">Hệ thống đang giám sát ổn định</div>
+                </div>
+            </div>
+
+            <!-- Nút bật/tắt van bơm thủ công -->
+            <div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+                    Điều khiển van cơ học (Chế độ MANUAL)
+                </div>
+                <div class="valves-control-row">
+                    <button type="button" class="valve-btn" id="btnValveZ1">
+                        <span>🚿 Van Z1</span>
+                        <small id="valveStatusZ1">ĐÃ TẮT</small>
+                    </button>
+                    <button type="button" class="valve-btn" id="btnValveZ2">
+                        <span>🚿 Van Z2</span>
+                        <small id="valveStatusZ2">ĐÃ TẮT</small>
+                    </button>
+                    <button type="button" class="valve-btn" id="btnValveZ3">
+                        <span>🚿 Van Z3</span>
+                        <small id="valveStatusZ3">ĐÃ TẮT</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cụm nút tiêm kịch bản 1-Click Demo -->
+            <div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+                    Studio tiêm kịch bản kiểm thử (1-Click Presets)
+                </div>
+                <div class="presets-grid">
+                    <button type="button" class="preset-btn" id="presetSunny">☀️ Nắng ráo (Tưới Z1)</button>
+                    <button type="button" class="preset-btn" id="presetDrizzle">🌦️ Mưa phùn (Vẫn tưới)</button>
+                    <button type="button" class="preset-btn" id="presetHeavyRain">⛈️ Mưa to (Hoãn tưới)</button>
+                    <button type="button" class="preset-btn btn-danger" id="presetFaultD1">⚠️ Lỗi cảm biến D1</button>
+                    <button type="button" class="preset-btn btn-danger" id="presetFaultD2">⚠️ Lỗi kẹt van D2</button>
+                    <button type="button" class="preset-btn btn-reset" id="presetReset">🔄 Khôi phục bình thường</button>
+                </div>
+            </div>
+
+            <!-- Hộp nhật ký sự kiện thời gian thực -->
+            <div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                    Nhật ký sự kiện thời gian thực
+                </div>
+                <div class="event-log-box" id="eventLog">
+                    <div class="log-entry"><span class="time">[INIT]</span> Khởi động bảng điều khiển Digital Twin...</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Các tập lệnh JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/mqtt_client.js"></script>
+    <script src="js/digital_twin.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
