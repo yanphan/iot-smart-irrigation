@@ -126,73 +126,113 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH PHÂN KHU (MAP VIEW)
+  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & 6 LÔ CANH TÁC VI MÔ
   // ------------------------------------------------------------
+  const subplotsState = {
+    '1A': { moisture: 37, isPumpOn: true },
+    '1B': { moisture: 54, isPumpOn: false },
+    '2A': { moisture: 48, isPumpOn: false },
+    '2B': { moisture: 56, isPumpOn: false },
+    '3A': { moisture: 62, isPumpOn: false },
+    '3B': { moisture: 68, isPumpOn: false }
+  };
+
   function updateTopographicMap() {
     const { soil, pumps } = mqttClient.latest;
     const area = CONFIG.AREAS[mqttClient.currentArea];
 
-    [1, 2, 3].forEach(z => {
-      const moisture = soil[z].moisture;
-      const th = CONFIG.THRESHOLDS[z];
-      const poly = document.getElementById(`polyZone${z}`);
-      const dot = document.getElementById(`dotSensor${z}`);
-      const lblSensor = document.getElementById(`lblSensor${z}`);
-      const pumpBadge = document.getElementById(`pumpBadge${z}`);
-      const lblPump = document.getElementById(`lblPump${z}`);
-      const ripple = document.getElementById(`ripple${z}`);
+    // Đồng bộ các lô chính (1A, 2A, 3A) trực tiếp từ cảm biến phần cứng ESP32
+    if (soil[1]) subplotsState['1A'].moisture = soil[1].moisture;
+    if (soil[2]) subplotsState['2A'].moisture = soil[2].moisture;
+    if (soil[3]) subplotsState['3A'].moisture = soil[3].moisture;
+
+    if (pumps[1]) subplotsState['1A'].isPumpOn = (pumps[1].status === 'ON');
+    if (pumps[2]) subplotsState['2A'].isPumpOn = (pumps[2].status === 'ON');
+    if (pumps[3]) subplotsState['3A'].isPumpOn = (pumps[3].status === 'ON');
+
+    // Cập nhật từng lô đất vi mô trên bản đồ vệ tinh trắc địa
+    Object.keys(subplotsState).forEach(plotKey => {
+      const data = subplotsState[plotKey];
+      const tierNum = parseInt(plotKey.charAt(0));
+      const th = CONFIG.THRESHOLDS[tierNum];
+
+      const poly = document.getElementById(`polyPlot${plotKey}`);
+      const dot = document.getElementById(`dotSensor${plotKey}`);
+      const lblSensor = document.getElementById(`lblSensor${plotKey}`);
+      const pumpBadge = document.getElementById(`pumpBadge${plotKey}`);
+      const lblPump = document.getElementById(`lblPump${plotKey}`);
+      const ripple = document.getElementById(`ripple${plotKey}`);
+      const subTxt = document.getElementById(`subTxt${plotKey}`);
+      const subBadge = document.getElementById(`subBadgePump${plotKey}`);
 
       let stateText = 'Đủ ẩm';
       let stateClass = 'optimal';
 
-      if (moisture >= th.flood) {
+      if (data.moisture >= th.flood) {
         stateText = 'Ngập úng!';
         stateClass = 'flood';
-      } else if (moisture < th.dry) {
+      } else if (data.moisture < th.dry) {
         stateText = 'Khô hạn';
         stateClass = 'dry';
       }
 
-      // 1. Cập nhật màu mảng phân khu SVG
+      // 1. Đổi màu mảng lô đất trên bản đồ vệ tinh
       if (poly) {
         poly.className.baseVal = `map-zone-polygon moist-${stateClass}`;
       }
 
-      // 2. Cập nhật nhãn cảm biến
-      if (dot) {
-        dot.className = `sensor-dot-state ${stateClass}`;
-      }
-      if (lblSensor) {
-        lblSensor.textContent = `Cảm biến S${z} (${area.zones[z].elevation}): ${moisture}% • ${stateText}`;
-      }
+      // 2. Nhãn cảm biến
+      if (dot) dot.className = `sensor-dot-state ${stateClass}`;
+      if (lblSensor) lblSensor.textContent = `S${plotKey}: ${data.moisture}% (${stateText})`;
 
-      // 3. Cập nhật trạng thái van bơm trên bản đồ
-      const isPumpOn = (pumps[z] && pumps[z].status === 'ON');
+      // 3. Trạng thái van bơm trên bản đồ
       if (pumpBadge) {
-        if (isPumpOn) {
+        if (data.isPumpOn) {
           pumpBadge.className = 'pump-badge on';
-          if (lblPump) lblPump.textContent = `Bơm P${z}: ĐANG TƯỚI (PHUN)`;
+          if (lblPump) lblPump.textContent = `P${plotKey}: ĐANG TƯỚI`;
           if (ripple) ripple.style.display = 'block';
         } else {
           pumpBadge.className = 'pump-badge off';
-          if (lblPump) lblPump.textContent = `Bơm P${z}: TẮT`;
+          if (lblPump) lblPump.textContent = (plotKey === '3B') ? 'P3-Xả: SẴN SÀNG' : `P${plotKey}: TẮT`;
           if (ripple) ripple.style.display = 'none';
+        }
+      }
+
+      // 4. Bảng chi tiết bên dưới bản đồ
+      if (subTxt) {
+        const color = (stateClass === 'dry') ? 'var(--amber)' : (stateClass === 'flood' ? 'var(--red)' : 'var(--primary)');
+        subTxt.innerHTML = `Độ ẩm: <strong>${data.moisture}%</strong> • <span style="color:${color}">${stateText}</span>`;
+      }
+      if (subBadge) {
+        if (data.isPumpOn) {
+          subBadge.className = 'preset-badge rain';
+          subBadge.textContent = `Van P${plotKey}: BẬT TƯỚI`;
+        } else {
+          subBadge.className = 'preset-badge normal';
+          subBadge.textContent = (plotKey === '3B') ? 'Xả tràn: SẴN SÀNG' : `Van P${plotKey}: TẮT`;
         }
       }
     });
 
     // Cập nhật Semicircle Gauge
-    renderSemicircleGauge(soil[1].moisture, soil[2].moisture, soil[3].moisture);
+    renderSemicircleGauge(subplotsState['1A'].moisture, subplotsState['2A'].moisture, subplotsState['3A'].moisture);
   }
 
   // Tương tác bấm trực tiếp vào Bơm trên bản đồ
   document.querySelectorAll('.pump-badge').forEach(badge => {
     badge.addEventListener('click', () => {
-      const zone = badge.dataset.zone;
-      const isCurrentOn = badge.classList.contains('on');
-      const nextAction = isCurrentOn ? 'OFF' : 'ON';
-      mqttClient.sendPump(zone, nextAction, 600);
-      showToast(`Đã gửi lệnh van bơm P${zone}: ${nextAction}`, 'normal');
+      const plot = badge.dataset.plot;
+      if (!plot) return;
+      const tierNum = parseInt(plot.charAt(0));
+      const curOn = subplotsState[plot].isPumpOn;
+      subplotsState[plot].isPumpOn = !curOn;
+      const nextAction = subplotsState[plot].isPumpOn ? 'ON' : 'OFF';
+
+      if (plot.endsWith('A')) {
+        mqttClient.sendPump(tierNum, nextAction, 600);
+      }
+      updateTopographicMap();
+      showToast(`Đã chuyển van tưới Lô ${plot} -> ${nextAction}`, 'normal');
     });
   });
 

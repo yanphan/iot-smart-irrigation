@@ -445,12 +445,13 @@ body {
 
 .satellite-map-box {
   width: 100%;
-  height: 380px;
+  height: 500px;
   border-radius: var(--radius-lg);
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border-subtle);
-  background: #0f172a;
+  background: #06111f;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
 }
 
 /* Lớp hình ảnh vệ tinh nền */
@@ -460,7 +461,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.65) contrast(1.15);
+  filter: brightness(0.72) contrast(1.15) saturate(1.1);
   transition: all 0.5s ease;
 }
 
@@ -473,28 +474,49 @@ body {
   z-index: 10;
 }
 
-/* Các phân khu (Z1, Z2, Z3) trên bản đồ */
+/* Các phân khu lô đất (Sub-plots) trên bản đồ */
 .map-zone-polygon {
-  stroke-width: 2.5;
+  stroke-width: 2;
   transition: all 0.4s ease;
   cursor: pointer;
 }
 
-/* Trạng thái màu sắc theo độ ẩm đất */
+.map-zone-polygon:hover {
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
+}
+
+/* Trạng thái màu sắc theo độ ẩm đất từng lô */
 .map-zone-polygon.moist-optimal {
-  fill: rgba(22, 163, 74, 0.35); /* Xanh lá: Đủ ẩm */
+  fill: rgba(34, 197, 94, 0.32); /* Xanh lá: Đủ ẩm */
   stroke: #22c55e;
 }
 
 .map-zone-polygon.moist-dry {
-  fill: rgba(234, 88, 12, 0.45); /* Cam: Khô hạn */
+  fill: rgba(234, 88, 12, 0.42); /* Cam: Khô hạn */
   stroke: #f97316;
 }
 
 .map-zone-polygon.moist-flood {
-  fill: rgba(239, 68, 68, 0.55); /* Đỏ: Ngập úng */
+  fill: rgba(239, 68, 68, 0.5); /* Đỏ: Ngập úng */
   stroke: #ef4444;
   animation: pulse-flood 1.5s infinite;
+}
+
+/* Nhãn tầng cao độ bên trái bản đồ */
+.map-tier-badge {
+  position: absolute;
+  left: 14px;
+  z-index: 25;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #f8fafc;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  border-left: 3px solid #38bdf8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* Mũi tên hướng nước ngấm dồn theo dốc */
@@ -506,7 +528,54 @@ body {
   animation: dashRunoff 1.5s linear infinite;
 }
 
-/* Các nhãn vị trí Cảm biến và Bơm nổi trên bản đồ */
+/* Bảng phân tích lô đất vi mô bên dưới bản đồ */
+.plots-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.plot-tier-card {
+  background: #f8fafc;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plot-tier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 6px;
+}
+
+.plot-tier-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.plot-tier-elev {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.sub-plot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
 .map-marker {
   position: absolute;
   z-index: 20;

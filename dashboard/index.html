@@ -144,62 +144,112 @@
 
             <!-- Khung ảnh bản đồ vệ tinh & các lớp SVG phân khu -->
             <div class="satellite-map-box" id="mapBox">
-              <!-- Ảnh nền chụp từ trên cao -->
-              <img src="assets/farm_field.jpg" alt="Bản đồ địa hình vệ tinh" class="map-bg-image" id="mapBgImg">
+              <!-- Ảnh vệ tinh trực giao trắc địa độ cao thật của Cầu Đất - Đà Lạt -->
+              <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image" id="mapBgImg">
 
-              <!-- Lớp SVG vẽ 3 phân khu theo độ cao dốc & đường nước chảy -->
-              <svg class="map-svg-overlay" viewBox="0 0 1000 400" preserveAspectRatio="none">
-                <!-- Đường đồng mức độ cao (Elevation Contours) -->
-                <path d="M 0 140 Q 500 130 1000 150" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
-                <path d="M 0 260 Q 500 250 1000 270" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+              <!-- Các nhãn tầng cao độ bên trái bản đồ -->
+              <div class="map-tier-badge" style="top: 8%;">TẦNG 1: ĐỈNH ĐỒI (1,630m)</div>
+              <div class="map-tier-badge" style="top: 40%;">TẦNG 2: SƯỜN DỐC 25° (1,560m)</div>
+              <div class="map-tier-badge" style="top: 72%;">TẦNG 3: VÙNG TRŨNG (1,500m)</div>
 
-                <!-- VÙNG 1 (Z1 - Đỉnh dốc / 1,630m): Tầng trên cùng -->
-                <polygon id="polyZone1" class="map-zone-polygon moist-optimal" points="0,0 1000,0 1000,140 0,140" />
+              <!-- Lớp SVG vẽ 6 phân khu lô đất vi mô theo các đường đồng mức -->
+              <svg class="map-svg-overlay" viewBox="0 0 1000 500" preserveAspectRatio="none">
+                <!-- Đường đồng mức cao độ (Contour Lines) -->
+                <path d="M 0 160 Q 500 140 1000 170" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+                <path d="M 0 330 Q 500 310 1000 340" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
 
-                <!-- VÙNG 2 (Z2 - Sườn dốc 25° / 1,560m): Tầng giữa -->
-                <polygon id="polyZone2" class="map-zone-polygon moist-optimal" points="0,140 1000,140 1000,260 0,260" />
+                <!-- TẦNG 1: ĐỈNH ĐỒI (1,600m - 1,650m) -->
+                <!-- Lô 1A: Tây Bắc đỉnh đồi (Khô nhanh, tưới cục bộ) -->
+                <polygon id="polyPlot1A" class="map-zone-polygon moist-dry" points="30,30 460,20 440,160 20,165" />
+                <!-- Lô 1B: Đông Bắc đỉnh đồi (Có cây che bóng, đủ ẩm) -->
+                <polygon id="polyPlot1B" class="map-zone-polygon moist-optimal" points="470,20 970,20 950,170 450,160" />
 
-                <!-- VÙNG 3 (Z3 - Vùng trũng thung lũng / 1,500m): Tầng đáy lòng chảo -->
-                <polygon id="polyZone3" class="map-zone-polygon moist-optimal" points="0,260 1000,260 1000,400 0,400" />
+                <!-- TẦNG 2: SƯỜN DỐC 25° (1,540m - 1,590m) -->
+                <!-- Lô 2A: Tây sườn dốc -->
+                <polygon id="polyPlot2A" class="map-zone-polygon moist-optimal" points="20,175 440,170 420,330 20,335" />
+                <!-- Lô 2B: Đông sườn dốc -->
+                <polygon id="polyPlot2B" class="map-zone-polygon moist-optimal" points="450,170 950,180 930,340 430,330" />
+
+                <!-- TẦNG 3: VÙNG TRŨNG THUNG LŨNG (1,480m - 1,530m) -->
+                <!-- Lô 3A: Đáy dốc thung lũng -->
+                <polygon id="polyPlot3A" class="map-zone-polygon moist-optimal" points="20,345 420,340 400,485 20,485" />
+                <!-- Lô 3B: Lòng chảo ven suối (Hứng nước đọng, nguy cơ ngập) -->
+                <polygon id="polyPlot3B" class="map-zone-polygon moist-optimal" points="430,340 930,350 910,485 410,485" />
 
                 <!-- Mũi tên uốn lượn thể hiện hướng nước ngấm dồn từ đỉnh Z1 -> Sườn Z2 -> Vùng trũng Z3 -->
-                <path class="slope-runoff-arrow" d="M 850 70 Q 820 180 870 330" marker-end="url(#arrowhead)"/>
+                <path class="slope-runoff-arrow" d="M 450 60 Q 420 250 440 450"/>
               </svg>
 
-              <!-- MARKERS: VỊ TRÍ CẢM BIẾN VÀ BƠM PHÂN BỔ TRÊN BẢN ĐỒ -->
-              <!-- Zone 1 (Đỉnh dốc: 20% từ trên xuống) -->
-              <div class="map-marker" style="top: 18%; left: 30%;">
+              <!-- CÁC TRẠM CẢM BIẾN & CỤM BƠM PHÂN BỔ TRÊN TỪNG LÔ ĐẤT -->
+              <!-- Lô 1A (Tây Bắc đỉnh đồi - Khô hạn cục bộ) -->
+              <div class="map-marker" style="top: 18%; left: 24%;">
                 <div class="sensor-badge">
-                  <span class="sensor-dot-state optimal" id="dotSensor1"></span>
-                  <span id="lblSensor1">Cảm biến S1: 38%</span>
+                  <span class="sensor-dot-state dry" id="dotSensor1A"></span>
+                  <span id="lblSensor1A">S1-A: 37% (Khô)</span>
                 </div>
-                <div class="pump-badge off" id="pumpBadge1" data-zone="1">
-                  <span id="lblPump1">Bơm P1: TẮT</span>
-                  <div class="water-spray-ripple" id="ripple1" style="display:none;"></div>
+                <div class="pump-badge on" id="pumpBadge1A" data-plot="1A">
+                  <span id="lblPump1A">P1-A: ĐANG TƯỚI</span>
+                  <div class="water-spray-ripple" id="ripple1A" style="display:block;"></div>
                 </div>
               </div>
 
-              <!-- Zone 2 (Sườn dốc: 50% từ trên xuống) -->
-              <div class="map-marker" style="top: 50%; left: 55%;">
+              <!-- Lô 1B (Đông Bắc đỉnh đồi - Đủ ẩm) -->
+              <div class="map-marker" style="top: 18%; left: 70%;">
                 <div class="sensor-badge">
-                  <span class="sensor-dot-state optimal" id="dotSensor2"></span>
-                  <span id="lblSensor2">Cảm biến S2: 52%</span>
+                  <span class="sensor-dot-state optimal" id="dotSensor1B"></span>
+                  <span id="lblSensor1B">S1-B: 54% (Đủ ẩm)</span>
                 </div>
-                <div class="pump-badge off" id="pumpBadge2" data-zone="2">
-                  <span id="lblPump2">Bơm P2: TẮT</span>
-                  <div class="water-spray-ripple" id="ripple2" style="display:none;"></div>
+                <div class="pump-badge off" id="pumpBadge1B" data-plot="1B">
+                  <span id="lblPump1B">P1-B: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple1B" style="display:none;"></div>
                 </div>
               </div>
 
-              <!-- Zone 3 (Vùng trũng thung lũng: 80% từ trên xuống) -->
-              <div class="map-marker" style="top: 80%; left: 40%;">
+              <!-- Lô 2A (Tây sườn dốc 25° - Đủ ẩm) -->
+              <div class="map-marker" style="top: 50%; left: 23%;">
                 <div class="sensor-badge">
-                  <span class="sensor-dot-state optimal" id="dotSensor3"></span>
-                  <span id="lblSensor3">Cảm biến S3: 68%</span>
+                  <span class="sensor-dot-state optimal" id="dotSensor2A"></span>
+                  <span id="lblSensor2A">S2-A: 48% (Đủ ẩm)</span>
                 </div>
-                <div class="pump-badge off" id="pumpBadge3" data-zone="3">
-                  <span id="lblPump3">Bơm P3: TẮT</span>
-                  <div class="water-spray-ripple" id="ripple3" style="display:none;"></div>
+                <div class="pump-badge off" id="pumpBadge2A" data-plot="2A">
+                  <span id="lblPump2A">P2-A: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple2A" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Lô 2B (Đông sườn dốc 25° - Đủ ẩm) -->
+              <div class="map-marker" style="top: 50%; left: 68%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor2B"></span>
+                  <span id="lblSensor2B">S2-B: 56% (Đủ ẩm)</span>
+                </div>
+                <div class="pump-badge off" id="pumpBadge2B" data-plot="2B">
+                  <span id="lblPump2B">P2-B: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple2B" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Lô 3A (Đáy dốc thung lũng - Đủ ẩm) -->
+              <div class="map-marker" style="top: 82%; left: 22%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor3A"></span>
+                  <span id="lblSensor3A">S3-A: 62% (Đủ ẩm)</span>
+                </div>
+                <div class="pump-badge off" id="pumpBadge3A" data-plot="3A">
+                  <span id="lblPump3A">P3-A: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple3A" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Lô 3B (Lòng chảo trũng đọng nước ven sông - Cảnh báo ngập) -->
+              <div class="map-marker" style="top: 82%; left: 68%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor3B"></span>
+                  <span id="lblSensor3B">S3-B: 68% (Đủ ẩm)</span>
+                </div>
+                <div class="pump-badge off" id="pumpBadge3B" data-plot="3B">
+                  <span id="lblPump3B">P3-Xả: SẴN SÀNG</span>
+                  <div class="water-spray-ripple" id="ripple3B" style="display:none;"></div>
                 </div>
               </div>
             </div>
@@ -207,33 +257,102 @@
             <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) -->
             <div class="map-legend-bar">
               <div class="legend-group">
-                <span style="font-weight: 700; color: var(--text-main);">Trạng thái đất:</span>
+                <span style="font-weight: 700; color: var(--text-main);">Trạng thái lô đất:</span>
                 <div class="legend-item">
                   <span class="legend-color-box optimal"></span>
-                  <span>Đủ ẩm (Tối ưu)</span>
+                  <span>Đủ ẩm (40% - 60%)</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box dry"></span>
-                  <span>Khô cằn (Cần tưới)</span>
+                  <span>Khô hạn (< 40% Cần tưới cục bộ)</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box flood"></span>
-                  <span>Nguy cơ ngập úng</span>
+                  <span>Nguy cơ ngập úng (> 80%)</span>
                 </div>
               </div>
 
               <div class="legend-group">
-                <span style="font-weight: 700; color: var(--text-main);">Thiết bị:</span>
+                <span style="font-weight: 700; color: var(--text-main);">Thiết bị phân khu:</span>
                 <div class="legend-item">
                   <span class="legend-color-box pump-on"></span>
-                  <span>Bơm đang bật (Phun nước)</span>
+                  <span>Van đang phun nước tưới</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box pump-off"></span>
-                  <span>Bơm tắt</span>
+                  <span>Van đóng</span>
                 </div>
                 <div class="legend-item" style="color: #0284c7; font-weight: 600;">
-                  <span>⇣ Mũi tên: Hướng nước ngấm theo dốc</span>
+                  <span>⇣ Hướng nước ngấm dồn dốc</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BẢNG GIÁM SÁT 3 TẦNG ĐỘ DỐC VÀ CÁC LÔ ĐẤT VI MÔ (SUB-PLOTS) -->
+            <div class="plots-tier-grid">
+              <!-- TẦNG 1: ĐỈNH ĐỒI -->
+              <div class="plot-tier-card">
+                <div class="plot-tier-header">
+                  <span class="plot-tier-title">TẦNG 1: ĐỈNH ĐỒI</span>
+                  <span class="plot-tier-elev">1,615m - 1,630m</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 1A</strong> (Cảm biến S1-A)
+                    <div style="font-size: 11px; color: var(--amber); font-weight: 600;" id="subTxt1A">Độ ẩm: 37% • Khô hạn</div>
+                  </div>
+                  <span class="preset-badge rain" id="subBadgePump1A">Van P1-A: BẬT</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 1B</strong> (Cảm biến S1-B)
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt1B">Độ ẩm: 54% • Đủ ẩm</div>
+                  </div>
+                  <span class="preset-badge normal" id="subBadgePump1B">Van P1-B: TẮT</span>
+                </div>
+              </div>
+
+              <!-- TẦNG 2: SƯỜN DỐC 25° -->
+              <div class="plot-tier-card">
+                <div class="plot-tier-header">
+                  <span class="plot-tier-title">TẦNG 2: SƯỜN DỐC 25°</span>
+                  <span class="plot-tier-elev">1,545m - 1,560m</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 2A</strong> (Cảm biến S2-A)
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2A">Độ ẩm: 48% • Đủ ẩm</div>
+                  </div>
+                  <span class="preset-badge normal" id="subBadgePump2A">Van P2-A: TẮT</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 2B</strong> (Cảm biến S2-B)
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2B">Độ ẩm: 56% • Đủ ẩm</div>
+                  </div>
+                  <span class="preset-badge normal" id="subBadgePump2B">Van P2-B: TẮT</span>
+                </div>
+              </div>
+
+              <!-- TẦNG 3: VÙNG TRŨNG THUNG LŨNG -->
+              <div class="plot-tier-card">
+                <div class="plot-tier-header">
+                  <span class="plot-tier-title">TẦNG 3: THUNG LŨNG</span>
+                  <span class="plot-tier-elev">1,495m - 1,510m</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 3A</strong> (Cảm biến S3-A)
+                    <div style="font-size: 11px; color: var(--blue); font-weight: 600;" id="subTxt3A">Độ ẩm: 62% • Đủ nước</div>
+                  </div>
+                  <span class="preset-badge normal" id="subBadgePump3A">Van P3-A: TẮT</span>
+                </div>
+                <div class="sub-plot-item">
+                  <div>
+                    <strong>Lô 3B</strong> (Cảm biến S3-B)
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="subTxt3B">Độ ẩm: 68% • Bình thường</div>
+                  </div>
+                  <span class="preset-badge normal" id="subBadgePump3B">Xả tràn: SẴN SÀNG</span>
                 </div>
               </div>
             </div>

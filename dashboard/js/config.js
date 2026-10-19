@@ -81,6 +81,17 @@ const CONFIG = {
     3: { dry: 35, wet: 55, flood: 80, emergency: 25 }
   },
 
+  // PHÂN KHU LÔ CANH TÁC VI MÔ TRÊN TỪNG TẦNG ĐỘ DỐC (SUB-PLOTS)
+  // Mỗi tầng độ dốc có nhiều cụm cảm biến và van bơm riêng biệt
+  SUBPLOTS: {
+    '1A': { id: '1A', tier: 1, name: 'Lô 1A (Tây Bắc đỉnh đồi)', elevation: '1,630m', sensorId: 'S1-A', pumpId: 'P1-A', isPrimary: true },
+    '1B': { id: '1B', tier: 1, name: 'Lô 1B (Đông Bắc đỉnh đồi)', elevation: '1,615m', sensorId: 'S1-B', pumpId: 'P1-B', isPrimary: false },
+    '2A': { id: '2A', tier: 2, name: 'Lô 2A (Tây sườn dốc 25°)', elevation: '1,560m', sensorId: 'S2-A', pumpId: 'P2-A', isPrimary: true },
+    '2B': { id: '2B', tier: 2, name: 'Lô 2B (Đông sườn dốc 25°)', elevation: '1,545m', sensorId: 'S2-B', pumpId: 'P2-B', isPrimary: false },
+    '3A': { id: '3A', tier: 3, name: 'Lô 3A (Đáy dốc ven suối)', elevation: '1,510m', sensorId: 'S3-A', pumpId: 'P3-A', isPrimary: true },
+    '3B': { id: '3B', tier: 3, name: 'Lô 3B (Lòng chảo đọng nước)', elevation: '1,495m', sensorId: 'S3-B', pumpId: 'P3-Xả', isPrimary: false }
+  },
+
   // Máy trạng thái FSM
   STATES: {
     'S0_INIT': { code: 'S0_INIT', name: 'Khởi tạo', color: '#64748b', bg: '#f1f5f9' },
