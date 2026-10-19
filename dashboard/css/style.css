@@ -335,17 +335,17 @@ body {
    3. CONTENT AREA & VIEWS
    ------------------------------------------------------------ */
 .content-area {
-  padding: 28px 32px 48px;
+  padding: 16px 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 /* Quản lý các View chuyển tab */
 .view-panel {
   display: none;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 .view-panel.active {
@@ -354,23 +354,23 @@ body {
 
 .page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-text h1 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.5px;
 }
 
 .header-text p {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .header-actions {
@@ -383,18 +383,20 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 6px 12px;
   background-color: #ffffff;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-main);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .dropdown-pill:hover {
   background-color: #f8fafc;
+  border-color: var(--primary-border);
 }
 
 /* ------------------------------------------------------------
@@ -402,10 +404,10 @@ body {
    ------------------------------------------------------------ */
 .card {
   background-color: var(--bg-card);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-card);
   box-shadow: var(--shadow-card);
-  padding: 22px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -415,19 +417,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-main);
 }
 
 .card-badge-status {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
   background-color: #f1f5f9;
   color: var(--text-muted);
@@ -680,21 +682,21 @@ body {
   background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(4px);
   color: #ffffff;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
 }
 
 .sensor-dot-state {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -724,8 +726,8 @@ body {
 }
 
 .pump-pin-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #1e293b;
   border: 2px solid #64748b;
@@ -733,7 +735,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 11px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: all 0.25s ease;
 }
@@ -747,14 +749,14 @@ body {
 }
 
 .pump-pill {
-  padding: 3px 10px;
+  padding: 2px 7px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   white-space: nowrap;
   transition: all 0.25s ease;
 }
@@ -875,14 +877,14 @@ body {
    ------------------------------------------------------------ */
 .grid-row-1 {
   display: grid;
-  grid-template-columns: 1.1fr 1.3fr 0.9fr;
-  gap: 20px;
+  grid-template-columns: 1.05fr 1.35fr 0.95fr;
+  gap: 14px;
 }
 
 .grid-row-2 {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* Thẻ thời tiết tối giản */
@@ -936,11 +938,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 12px 0;
+  margin: 8px 0;
 }
 
 .weather-temp-big {
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 800;
   color: var(--text-main);
   line-height: 1;
@@ -952,9 +954,9 @@ body {
   justify-content: space-between;
   background-color: #f8fafc;
   border: 1px solid var(--border-card);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .microclimate-item {
@@ -970,11 +972,11 @@ body {
 .kpi-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .kpi-card {
-  padding: 18px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -988,18 +990,112 @@ body {
 }
 
 .kpi-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--text-muted);
 }
 
 .kpi-fsm-badge {
   display: inline-block;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 4px;
+}
+
+/* Thanh đo dung tích bể chứa */
+.tank-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: var(--radius-full);
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.tank-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+/* ============================================================
+   BỐ CỤC CHUYÊN BIỆT CHO TAB BẢN ĐỒ VỆ TINH (SPLIT 2 CỘT GỌN GÀNG)
+   ============================================================ */
+.satellite-split-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .satellite-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subplots-detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subplots-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tier-section {
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tier-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 5px;
+}
+
+.tier-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.tier-elevation {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.tier-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.btn-action-sm.active-pump {
+  background-color: var(--blue);
+  color: #ffffff;
+  border-color: var(--blue);
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
 }
 
 /* Bảng Testing Studio */

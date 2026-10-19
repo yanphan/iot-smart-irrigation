@@ -45,31 +45,31 @@ const CONFIG = {
     real: {
       id: 'real',
       name: 'Khu Vực Thực Tế',
-      locationName: 'Cầu Đất - Đà Lạt (Lâm Đồng)',
-      tagline: 'Địa hình đồi dốc tự nhiên 25°, độ cao 1,500m - 1,630m',
-      climateDesc: 'Khí hậu ôn đới mát mẻ, đất đỏ bazan, có sương mù và mưa rào chiều tối',
+      locationName: 'Cầu Đất - Đà Lạt',
+      tagline: 'Địa hình đồi dốc tự nhiên',
+      climateDesc: 'Ôn đới mát mẻ',
       lat: 11.8500,
       lon: 108.5300,
       baseElevation: 1550,
       zones: {
-        1: { name: 'Vùng 1 (Đỉnh đồi)', elevation: '1,630m', slope: 'Dốc cao, thoát nước nhanh' },
-        2: { name: 'Vùng 2 (Sườn đồi)', elevation: '1,560m', slope: 'Dốc 25°, thấm trung bình' },
-        3: { name: 'Vùng 3 (Thung lũng)', elevation: '1,500m', slope: 'Vùng trũng đọng nước' }
+        1: { name: 'Vùng 1 (Đỉnh đồi)', elevation: '1,630m', slope: 'Dốc cao' },
+        2: { name: 'Vùng 2 (Sườn đồi)', elevation: '1,560m', slope: 'Dốc 25°' },
+        3: { name: 'Vùng 3 (Thung lũng)', elevation: '1,500m', slope: 'Vùng trũng' }
       }
     },
     sim: {
       id: 'sim',
-      name: 'Khu Vực Mô Phỏng Kiểm Thử',
-      locationName: 'Vùng Thử Nghiệm Sandbox (Khô Nóng & Trũng Sâu)',
-      tagline: 'Khu vực thử nghiệm kịch bản khắc nghiệt: Sốc nhiệt, khô cạn đỉnh dốc & úng ngập lòng chảo',
-      climateDesc: 'Nhiệt độ cao (35°C - 38°C), độ ẩm không khí thấp (<30%), thung lũng thoát nước kém',
+      name: 'Khu Vực Mô Phỏng',
+      locationName: 'Vùng Mô Phỏng',
+      tagline: 'Mô phỏng đồi dốc',
+      climateDesc: 'Thử nghiệm kịch bản',
       lat: 11.8500,
       lon: 108.5300,
       baseElevation: 800,
       zones: {
-        1: { name: 'Vùng 1 (Gò khô hạn)', elevation: '850m', slope: 'Khô cằn, bốc hơi nước cực nhanh' },
-        2: { name: 'Vùng 2 (Dốc xói mòn)', elevation: '820m', slope: 'Đất cát khô nóng' },
-        3: { name: 'Vùng 3 (Lòng chảo trũng)', elevation: '780m', slope: 'Đáy trũng ứ nước, dễ ngập lụt' }
+        1: { name: 'Vùng 1 (Gò khô hạn)', elevation: '850m', slope: 'Bốc hơi nhanh' },
+        2: { name: 'Vùng 2 (Dốc xói mòn)', elevation: '820m', slope: 'Khô nóng' },
+        3: { name: 'Vùng 3 (Lòng chảo trũng)', elevation: '780m', slope: 'Dễ ngập úng' }
       }
     }
   },
@@ -100,17 +100,17 @@ const CONFIG = {
     '3D': { id: '3D', tier: 3, name: 'Lô 3D (Trạm bơm tiêu úng ven sông)', elevation: '1,480m', sensorId: 'S3-D', pumpId: 'P3-Xả', isPrimary: false }
   },
 
-  // Máy trạng thái FSM
+  // Máy trạng thái FSM: Tên hiển thị tiếng Việt rõ ràng, thân thiện với người dùng
   STATES: {
-    'S0_INIT': { code: 'S0_INIT', name: 'Khởi tạo', color: '#64748b', bg: '#f1f5f9' },
-    'S1_MONITOR': { code: 'S1_MONITOR', name: 'Giám sát ổn định', color: '#16a34a', bg: '#dcfce7' },
-    'S2_CHECK': { code: 'S2_CHECK', name: 'Đang kiểm tra', color: '#0284c7', bg: '#e0f2fe' },
-    'S3_RAIN_DELAY': { code: 'S3_RAIN_DELAY', name: 'Hoãn tưới đón mưa', color: '#0284c7', bg: '#e0f2fe' },
-    'S4_IRRIGATING': { code: 'S4_IRRIGATING', name: 'Đang tưới tuần tự', color: '#f59e0b', bg: '#fef3c7' },
-    'S5_DRAIN': { code: 'S5_DRAIN', name: 'Xả tràn chống úng', color: '#ef4444', bg: '#fee2e2' },
-    'S6_MANUAL': { code: 'S6_MANUAL', name: 'Điều khiển thủ công', color: '#8b5cf6', bg: '#f3e8ff' },
-    'S8_FALLBACK': { code: 'S8_FALLBACK', name: 'Tự trị (Mất mạng)', color: '#d97706', bg: '#fef3c7' },
-    'S9_SOAK_WAIT': { code: 'S9_SOAK_WAIT', name: 'Nghỉ chờ ngấm đất', color: '#0d9488', bg: '#ccfbf1' },
-    'S99_SAFE': { code: 'S99_SAFE', name: 'Ngắt an toàn khẩn cấp', color: '#dc2626', bg: '#fee2e2' }
+    'S0_INIT': { code: 'S0_INIT', name: 'Khởi động hệ thống', desc: 'Đang kiểm tra kết nối thiết bị', color: '#64748b', bg: '#f1f5f9' },
+    'S1_MONITOR': { code: 'S1_MONITOR', name: 'Đang giám sát tự động', desc: 'Cảm biến & máy bơm hoạt động ổn định', color: '#16a34a', bg: '#dcfce7' },
+    'S2_CHECK': { code: 'S2_CHECK', name: 'Kiểm tra an toàn', desc: 'Đang quét dữ liệu trước khi kích hoạt tưới', color: '#0284c7', bg: '#e0f2fe' },
+    'S3_RAIN_DELAY': { code: 'S3_RAIN_DELAY', name: 'Tạm hoãn tưới (Đón mưa)', desc: 'Dự báo có mưa, tạm dừng để tiết kiệm nước', color: '#0284c7', bg: '#e0f2fe' },
+    'S4_IRRIGATING': { code: 'S4_IRRIGATING', name: 'Đang tưới tự động', desc: 'Đang kích hoạt van tưới theo chu kỳ độ dốc', color: '#ea580c', bg: '#ffedd5' },
+    'S5_DRAIN': { code: 'S5_DRAIN', name: 'Đang xả tràn tiêu úng', desc: 'Bơm tiêu úng thung lũng đang vận hành xả nước', color: '#ef4444', bg: '#fee2e2' },
+    'S6_MANUAL': { code: 'S6_MANUAL', name: 'Điều khiển thủ công', desc: 'Người dùng trực tiếp vận hành van bơm', color: '#8b5cf6', bg: '#f5f3ff' },
+    'S8_FALLBACK': { code: 'S8_FALLBACK', name: 'Vận hành tự trị độc lập', desc: 'Tự động kiểm soát khi mất kết nối mạng', color: '#d97706', bg: '#fef3c7' },
+    'S9_SOAK_WAIT': { code: 'S9_SOAK_WAIT', name: 'Chờ nước ngấm vào đất', desc: 'Tạm dừng van giữa các xung tưới để nước thấm đều', color: '#0d9488', bg: '#ccfbf1' },
+    'S99_SAFE': { code: 'S99_SAFE', name: 'Ngắt an toàn khẩn cấp', desc: 'Hệ thống tự động khóa van bảo vệ sự cố', color: '#dc2626', bg: '#fee2e2' }
   }
 };

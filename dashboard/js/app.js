@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------
   // 1. CHUYỂN ĐỔI TAB TRÊN SIDEBAR (MULTI-VIEW NAVIGATION)
   // ------------------------------------------------------------
+  // 1. CHUYỂN ĐỔI TAB TRÊN SIDEBAR (MULTI-VIEW NAVIGATION)
+  // ------------------------------------------------------------
   const navItems = document.querySelectorAll('.nav-item[data-view]');
   const viewPanels = document.querySelectorAll('.view-panel');
 
@@ -38,16 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
         activePanel.classList.add('active');
       }
 
-      // Xử lý đặc biệt cho tab map
+      // Xử lý chuyển đổi bản đồ giữa Dashboard và Bản đồ vệ tinh
+      const mapCard = document.querySelector('.map-card-container');
       if (targetView === 'map') {
-        const fullMapMount = document.getElementById('fullMapMount');
-        const mapCard = document.querySelector('.map-card-container');
-        if (fullMapMount && mapCard && !fullMapMount.contains(mapCard)) {
-          fullMapMount.appendChild(mapCard);
+        const satMount = document.getElementById('satelliteMapMount');
+        if (satMount && mapCard && !satMount.contains(mapCard)) {
+          satMount.appendChild(mapCard);
         }
-      } else {
+      } else if (targetView === 'dashboard') {
         const dashView = document.getElementById('view-dashboard');
-        const mapCard = document.querySelector('.map-card-container');
         if (dashView && mapCard && !dashView.contains(mapCard)) {
           dashView.insertBefore(mapCard, dashView.firstChild);
         }
@@ -56,7 +57,29 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ------------------------------------------------------------
-  // 2. BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
+  // 2. THEO DÕI LƯỢNG NƯỚC ĐÃ TƯỚI & DUNG TÍCH BỂ CHỨA (ĐỘNG)
+  // ------------------------------------------------------------
+  const waterState = {
+    tankCapacity: 10000, // 10,000 L
+    tankCurrent: 7850,   // 7,850 L còn lại
+    irrigatedToday: 2150 // 2,150 L đã tưới hôm nay
+  };
+
+  function updateWaterMetricsUI() {
+    const tankEl = document.getElementById('waterTankLevel');
+    const barEl = document.getElementById('tankProgressBar');
+    const usedEl = document.getElementById('waterUsedToday');
+    const percentEl = document.getElementById('tankPercent');
+
+    const percent = Math.max(0, Math.min(100, (waterState.tankCurrent / waterState.tankCapacity) * 100)).toFixed(1);
+    if (tankEl) tankEl.textContent = `${waterState.tankCurrent.toLocaleString('vi-VN')} L`;
+    if (barEl) barEl.style.width = `${percent}%`;
+    if (usedEl) usedEl.innerHTML = `Đã tưới: <strong>${waterState.irrigatedToday.toLocaleString('vi-VN')} L</strong>`;
+    if (percentEl) percentEl.textContent = `Còn ${percent}%`;
+  }
+
+  // ------------------------------------------------------------
+  // 3. BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
   // ------------------------------------------------------------
   const btnReal = document.getElementById('btnAreaReal');
   const btnSim = document.getElementById('btnAreaSim');
@@ -69,18 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSim.classList.toggle('active', areaKey === 'sim');
 
     // Cập nhật tiêu đề và mô tả
-    const pageDesc = document.getElementById('pageAreaDesc');
     const mapTitle = document.getElementById('mapTitleText');
     const locBadge = document.getElementById('weatherLocationBadge');
     const elevLabel = document.getElementById('gardenElevation');
     const mapBg = document.getElementById('mapBgImg');
 
-    if (pageDesc) {
-      pageDesc.textContent = `${area.name}: ${area.tagline} (${area.climateDesc})`;
-    }
-
     if (mapTitle) {
-      mapTitle.textContent = `Bản Đồ Phân Khu Vệ Tinh & Địa Hình Độ Dốc • ${area.name}`;
+      mapTitle.textContent = `Bản Đồ Vệ Tinh & Địa Hình Độ Dốc • ${area.name}`;
     }
 
     if (locBadge) {
@@ -99,6 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mapBg.style.filter = 'brightness(0.65) contrast(1.15)';
       }
     }
+
+    // Cập nhật lượng nước thực tế vs mô phỏng
+    if (areaKey === 'sim') {
+      waterState.tankCurrent = 6420;
+      waterState.irrigatedToday = 3580;
+    } else {
+      waterState.tankCurrent = 7850;
+      waterState.irrigatedToday = 2150;
+    }
+    updateWaterMetricsUI();
 
     // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
     // Phân bổ 9 cặp: Tầng 1 (2 cặp) • Tầng 2 (3 cặp) • Tầng 3 (4 cặp)
@@ -239,6 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
         data.moisture += 2;
       }
 
+      // Trừ lượng nước trong bể chứa và cộng lượng nước đã tưới (trừ lô 3D là bơm tiêu úng)
+      if (plotKey !== '3D' && waterState.tankCurrent > 10) {
+        waterState.tankCurrent -= 2;
+        waterState.irrigatedToday += 2;
+        updateWaterMetricsUI();
+      }
+
       // ĐIỀU KIỆN DỪNG 1: Đất đã ngấm đủ ẩm (>= ngưỡng wet 60%)
       if (data.moisture >= th.wet) {
         stopPlotWatering(plotKey, `Đã đạt độ ẩm tối ưu (${data.moisture}%)`);
@@ -311,30 +346,29 @@ document.addEventListener('DOMContentLoaded', () => {
       const ripple = document.getElementById(`ripple${plotKey}`);
       const timerEl = document.getElementById(`timer${plotKey}`);
       const subTxt = document.getElementById(`subTxt${plotKey}`);
-      const subBadge = document.getElementById(`subBadgePump${plotKey}`);
+      const subBtn = document.getElementById(`subBtnPump${plotKey}`);
 
       let stateText = 'Đủ ẩm';
       let stateClass = 'optimal';
 
       if (data.moisture >= th.flood) {
-        stateText = 'Ngập úng!';
+        stateText = 'Ngập úng';
         stateClass = 'flood';
       } else if (data.moisture < th.dry) {
         stateText = 'Khô hạn';
         stateClass = 'dry';
       }
 
-      // 1. CẬP NHẬT VÒNG TRÒN HÀO QUANG TRẠNG THÁI MÔI TRƯỜNG QUANH CẢM BIẾN (HALO)
-      // Cam = Khô hạn, Xanh = Đủ ẩm, Đỏ = Ngập úng
+      // 1. CẬP NHẬT VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG (HALO)
       if (halo) {
         halo.className = `sensor-status-halo ${stateClass}`;
       }
 
-      // 2. Nhãn trạm cảm biến IoT độc lập
+      // 2. Nhãn trạm cảm biến IoT độc lập: hiển thị trạng thái ngắn gọn
       if (dot) dot.className = `sensor-dot-state ${stateClass}`;
-      if (lblSensor) lblSensor.textContent = `S${plotKey}: ${data.moisture}% (${stateText})`;
+      if (lblSensor) lblSensor.textContent = stateText;
 
-      // 3. Trạng thái cụm máy bơm / van tưới tự động
+      // 3. Trạng thái cụm máy bơm / van tưới tự động: hiển thị Đang tưới - Tắt - Đang xả
       if (pumpNode) {
         pumpNode.classList.toggle('on', data.isPumpOn);
       }
@@ -342,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (pumpBadge) {
         if (data.isPumpOn) {
           pumpBadge.className = 'pump-pill on';
-          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'P3-Xả: ĐANG XẢ' : `P${plotKey}: ĐANG TƯỚI`;
+          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'Đang xả' : 'Đang tưới';
           if (ripple) ripple.style.display = 'block';
           if (timerEl) {
             timerEl.style.display = 'inline-block';
@@ -350,24 +384,24 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           pumpBadge.className = 'pump-pill off';
-          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'P3-Xả: SẴN SÀNG' : `P${plotKey}: TẮT`;
+          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'Sẵn sàng' : 'Tắt';
           if (ripple) ripple.style.display = 'none';
           if (timerEl) timerEl.style.display = 'none';
         }
       }
 
-      // 4. Bảng chi tiết bên dưới bản đồ
+      // 4. Bảng chi tiết bên giao diện Bản đồ vệ tinh
       if (subTxt) {
         const color = (stateClass === 'dry') ? 'var(--amber)' : (stateClass === 'flood' ? 'var(--red)' : 'var(--primary)');
         subTxt.innerHTML = `Độ ẩm: <strong>${data.moisture}%</strong> • <span style="color:${color}">${stateText}</span>`;
       }
-      if (subBadge) {
+      if (subBtn) {
         if (data.isPumpOn) {
-          subBadge.className = 'preset-badge rain';
-          subBadge.textContent = (plotKey === '3D') ? 'Xả tràn: ĐANG BẬT' : `Van P${plotKey}: BẬT TƯỚI (${data.pulseRemaining}s)`;
+          subBtn.textContent = (plotKey === '3D') ? 'Đang Xả' : 'Đang Tưới';
+          subBtn.classList.add('active-pump');
         } else {
-          subBadge.className = 'preset-badge normal';
-          subBadge.textContent = (plotKey === '3D') ? 'Xả tràn: SẴN SÀNG' : `Van P${plotKey}: TẮT`;
+          subBtn.textContent = (plotKey === '3D') ? 'Bật Xả Tràn' : 'Bật Tưới';
+          subBtn.classList.remove('active-pump');
         }
       }
     });
@@ -393,10 +427,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Tương tác nút Bật/Tắt trong Bảng chi tiết lô canh tác (view-map)
+  document.querySelectorAll('[id^="subBtnPump"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const plot = e.currentTarget.dataset.plot;
+      if (!plot) return;
+      if (subplotsState[plot].isPumpOn) {
+        stopPlotWatering(plot, 'Người dùng ngắt thủ công');
+        showToast(`Đã tắt van Lô ${plot}`, 'normal');
+      } else {
+        startPlotWatering(plot, 20);
+      }
+    });
+  });
+
   // Nút ngắt khẩn cấp tất cả máy bơm
   const btnMapAllOff = document.getElementById('btnMapAllOff');
   if (btnMapAllOff) {
     btnMapAllOff.addEventListener('click', () => {
+      Object.keys(subplotsState).forEach(plot => {
+        stopPlotWatering(plot, 'Ngắt khẩn cấp');
+      });
+      mqttClient.sendPump(1, 'OFF', 0);
+      mqttClient.sendPump(2, 'OFF', 0);
+      mqttClient.sendPump(3, 'OFF', 0);
+      showToast('⏹️ Đã ngắt khẩn cấp toàn bộ các máy bơm & van tưới!', 'warn');
+    });
+  }
+
+  const btnMapAllOff2 = document.getElementById('btnMapAllOff2');
+  if (btnMapAllOff2) {
+    btnMapAllOff2.addEventListener('click', () => {
       Object.keys(subplotsState).forEach(plot => {
         stopPlotWatering(plot, 'Ngắt khẩn cấp');
       });
@@ -552,33 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (weatherSourceBadge) weatherSourceBadge.textContent = 'Mô Phỏng Sandbox';
 
       if (rainStatusEl) {
-        rainStatusEl.innerHTML = `<span class="preset-badge sun">Mô Phỏng Sandbox: Khô hạn gay gắt (P_max: 0%): Cần cấp nước khẩn cấp</span>`;
-      }
-
-      if (listEl) {
-        listEl.innerHTML = '';
-        const simDays = [
-          { day: 'Hôm nay', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt nhiệt đới', max: 39, min: 28, rainProb: 0, rainSum: 0 },
-          { day: 'Ngày +1', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng nóng đỉnh điểm', max: 40, min: 29, rainProb: 5, rainSum: 0 },
-          { day: 'Ngày +2', date: 'Mô phỏng', icon: '🌤️', desc: 'Nắng chói chang', max: 38, min: 28, rainProb: 10, rainSum: 0 },
-          { day: 'Ngày +3', date: 'Mô phỏng', icon: '🌤️', desc: 'Khô ráo gió cát', max: 37, min: 27, rainProb: 5, rainSum: 0 },
-          { day: 'Ngày +4', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt kéo dài', max: 39, min: 28, rainProb: 0, rainSum: 0 },
-          { day: 'Ngày +5', date: 'Mô phỏng', icon: '⛅', desc: 'Mây mỏng ít gió', max: 36, min: 27, rainProb: 15, rainSum: 0.2 },
-          { day: 'Ngày +6', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng hanh khô', max: 38, min: 28, rainProb: 0, rainSum: 0 }
-        ];
-        simDays.forEach((d, idx) => {
-          const card = document.createElement('div');
-          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
-          card.innerHTML = `
-            <div class="forecast-day-name">${d.day}</div>
-            <div class="forecast-day-date">${d.date}</div>
-            <div class="forecast-day-icon">${d.icon}</div>
-            <div class="forecast-day-desc">${d.desc}</div>
-            <div class="forecast-day-temp">${weatherService.formatTemp(d.max)} / ${weatherService.formatTemp(d.min)}</div>
-            <span class="preset-badge normal forecast-day-rain">Mưa 0%</span>
-          `;
-          listEl.appendChild(card);
-        });
+        rainStatusEl.innerHTML = `<span class="preset-badge sun">Mô Phỏng: Nắng gắt (P_max: 0%) • Cần cấp nước</span>`;
       }
     } else {
       // 2. KỊCH BẢN THỜI TIẾT THỰC TẾ (CẦU ĐẤT - ĐÀ LẠT TỪ OPEN-METEO)
@@ -598,32 +633,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rainStatusEl) {
         const isRainCondition = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
         if (cur.shouldDelay || isRainCondition || cur.pMax3h >= 70) {
-          rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%, P_eff: ${cur.pEff3h || 0}mm)</span>`;
+          rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%)</span>`;
         } else if (cur.pMax3h >= 40) {
           rainStatusEl.innerHTML = `<span class="preset-badge normal">Khả năng mưa rải rác (${cur.pMax3h}%): Tiếp tục theo dõi</span>`;
         } else {
           rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
         }
-      }
-
-      if (listEl && weatherService.dailyData.length > 0) {
-        listEl.innerHTML = '';
-        weatherService.dailyData.forEach((d, idx) => {
-          const card = document.createElement('div');
-          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
-          const isRainy = d.rainProb >= 50;
-          const rainLabel = d.rainSum > 0 ? `${d.rainProb}% (${d.rainSum}mm)` : `${d.rainProb}%`;
-
-          card.innerHTML = `
-            <div class="forecast-day-name">${d.dayLabel}</div>
-            <div class="forecast-day-date">${d.dateStr}</div>
-            <div class="forecast-day-icon">${d.icon}</div>
-            <div class="forecast-day-desc">${d.text}</div>
-            <div class="forecast-day-temp">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
-            <span class="preset-badge ${isRainy ? 'rain' : 'normal'} forecast-day-rain">Mưa ${rainLabel}</span>
-          `;
-          listEl.appendChild(card);
-        });
       }
     }
   }
@@ -680,19 +695,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (humGarden) humGarden.textContent = d.humidity + '%';
   });
 
-  // Trạng thái FSM
+  // Trạng thái FSM: Hiển thị tên tiếng Việt rõ ràng, dễ hiểu cho người dùng
   mqttClient.on('onState', (d) => {
     const fsmEl = document.getElementById('kpiFsmState');
     const fsmReasonEl = document.getElementById('kpiFsmReason');
-    const fsmConf = CONFIG.STATES[d.state] || { name: d.state, color: '#64748b', bg: '#f1f5f9' };
+    const fsmConf = CONFIG.STATES[d.state] || { name: 'Đang giám sát tự động', desc: 'Cảm biến & máy bơm hoạt động ổn định', color: '#16a34a', bg: '#dcfce7' };
 
     if (fsmEl) {
-      fsmEl.textContent = d.state;
+      fsmEl.textContent = fsmConf.name; // Tên hiển thị rõ ràng, không dùng mã S
       fsmEl.style.backgroundColor = fsmConf.bg;
       fsmEl.style.color = fsmConf.color;
     }
     if (fsmReasonEl) {
-      fsmReasonEl.textContent = d.reason || fsmConf.name;
+      fsmReasonEl.textContent = fsmConf.desc;
     }
 
     const modeBtn = document.getElementById('toggleModeBtn');
@@ -731,7 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
             current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
           });
-          showToast('Đã tiêm kịch bản W1: Mưa dông lớn (15mm) -> Hoãn tưới S3_RAIN_DELAY', 'normal');
+          showToast('Đã tiêm kịch bản W1: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa', 'normal');
           break;
 
         case 'W2':
@@ -744,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         case 'D1':
           mqttClient.sendSimFault('D1_SOIL_FAIL');
-          showToast('Đã tiêm mã lỗi D1_SOIL_FAIL -> Kích hoạt S99_SAFE an toàn khẩn cấp!', 'alert');
+          showToast('Đã tiêm mã lỗi D1_SOIL_FAIL -> Kích hoạt ngắt an toàn khẩn cấp!', 'alert');
           break;
 
         case 'D2':
@@ -773,18 +788,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Bật/tắt mô phỏng độc lập trên Web
-  const simToggleBtn = document.getElementById('standaloneSimBtn');
-  if (simToggleBtn) {
-    let simActive = false;
-    simToggleBtn.addEventListener('click', () => {
-      simActive = !simActive;
-      mqttClient.toggleStandaloneSim(simActive);
-      simToggleBtn.textContent = simActive ? 'Mô phỏng Web: BẬT' : 'Mô phỏng Web: TẮT';
-      showToast(simActive ? 'Đã bật mô phỏng tự sinh dữ liệu trên Web' : 'Đã tắt mô phỏng Web', 'normal');
-    });
-  }
-
   // Toast utility
   function showToast(message, type = 'normal') {
     const container = document.getElementById('toastContainer');
@@ -807,6 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initChart();
   updateAreaUI('real');
   updateTopographicMap();
+  updateWaterMetricsUI();
   weatherService.fetchWeather();
   mqttClient.connect();
 });
