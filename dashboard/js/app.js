@@ -92,13 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSim.classList.toggle('active', areaKey === 'sim');
 
     // Cập nhật tiêu đề và mô tả
-    const mapTitle = document.getElementById('mapTitleText');
+    const mapSubtitle = document.getElementById('mapSubtitleText');
     const locBadge = document.getElementById('weatherLocationBadge');
     const elevLabel = document.getElementById('gardenElevation');
     const mapBg = document.getElementById('mapBgImg');
 
-    if (mapTitle) {
-      mapTitle.textContent = `Bản Đồ Vệ Tinh & Địa Hình Độ Dốc • ${area.name}`;
+    if (mapSubtitle) {
+      mapSubtitle.textContent = `${area.name} • ${area.locationName}`;
     }
 
     if (locBadge) {
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       subplotsState['3C'].isPumpOn = false;
       subplotsState['3C'].pulseRemaining = 0;
       subplotsState['3D'].moisture = 92;
-      subplotsState['3D'].isPumpOn = true; // Bơm tiêu úng P3-Xả đang xả
+      subplotsState['3D'].isPumpOn = false; // Bơm tiêu úng P3-Xả sẵn sàng kích hoạt để hút xả ngập
       subplotsState['3D'].pulseRemaining = 0;
     } else {
       // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!data) return;
     if (data.timerId) clearInterval(data.timerId);
 
+    const isDrain = (plotKey === '3D');
     data.isPumpOn = true;
     data.pulseRemaining = durationSec;
     const tierNum = parseInt(plotKey.charAt(0));
@@ -257,34 +258,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateTopographicMap();
-    showToast(`Bật van tưới Lô ${plotKey} (Thời gian xung: ${durationSec}s)`, 'normal');
+    if (isDrain) {
+      showToast('⚙️ Kích hoạt trạm bơm tiêu úng P3-Xả: Đang bơm thu hồi nước ngập dồn dốc về bể chứa', 'normal');
+    } else {
+      showToast(`Bật van tưới Lô ${plotKey} (Thời gian xung: ${durationSec}s)`, 'normal');
+    }
 
-    // Vòng lặp mô phỏng ngấm nước vào đất: độ ẩm tăng dần đến khi đủ ẩm thì TỰ ĐỘNG TẮT
+    // Vòng lặp vận hành
     data.timerId = setInterval(() => {
       data.pulseRemaining--;
-      // Nước tưới làm ẩm đất tăng dần
-      if (data.moisture < 80) {
-        data.moisture += 2;
+
+      if (isDrain) {
+        // CHỨC NĂNG TIÊU ÚNG XẢ NGẬP (LÔ 3D):
+        // Nước đọng ở hố tụ thủy chân dốc được hút xả -> độ ẩm đất giảm dần
+        if (data.moisture > 40) {
+          data.moisture -= 3;
+        }
+
+        // BƠM NƯỚC VỀ LẠI BỂ CHỨA (+4L/giây):
+        if (waterState.tankCurrent < waterState.tankCapacity) {
+          waterState.tankCurrent = Math.min(waterState.tankCapacity, waterState.tankCurrent + 4);
+          updateWaterMetricsUI();
+        }
+
+        // ĐIỀU KIỆN DỪNG TIÊU ÚNG: Đất đã hết ngập úng (đạt ngưỡng an toàn <= 58%)
+        if (data.moisture <= 58) {
+          stopPlotWatering(plotKey, `Đã tiêu úng an toàn (${data.moisture}%)`);
+          showToast(`⚙️ Lô ${plotKey} đã tiêu úng an toàn (${data.moisture}%) -> Nước đã được bơm thu hồi về bể chứa!`, 'success');
+          return;
+        }
+      } else {
+        // CHỨC NĂNG TƯỚI BÌNH THƯỜNG (CÁC LÔ KHÁC):
+        if (data.moisture < 80) {
+          data.moisture += 2;
+        }
+
+        // Trừ lượng nước trong bể chứa và cộng lượng nước đã tưới
+        if (waterState.tankCurrent > 10) {
+          waterState.tankCurrent -= 2;
+          waterState.irrigatedToday += 2;
+          updateWaterMetricsUI();
+        }
+
+        // ĐIỀU KIỆN DỪNG TƯỚI: Đất đã ngấm đủ ẩm (>= ngưỡng wet 60%)
+        if (data.moisture >= th.wet) {
+          stopPlotWatering(plotKey, `Đã đạt độ ẩm tối ưu (${data.moisture}%)`);
+          showToast(`💧 Lô ${plotKey} đã ngấm đủ nước (${data.moisture}%) -> Tự động dừng tưới an toàn!`, 'success');
+          return;
+        }
       }
 
-      // Trừ lượng nước trong bể chứa và cộng lượng nước đã tưới (trừ lô 3D là bơm tiêu úng)
-      if (plotKey !== '3D' && waterState.tankCurrent > 10) {
-        waterState.tankCurrent -= 2;
-        waterState.irrigatedToday += 2;
-        updateWaterMetricsUI();
-      }
-
-      // ĐIỀU KIỆN DỪNG 1: Đất đã ngấm đủ ẩm (>= ngưỡng wet 60%)
-      if (data.moisture >= th.wet) {
-        stopPlotWatering(plotKey, `Đã đạt độ ẩm tối ưu (${data.moisture}%)`);
-        showToast(`💧 Lô ${plotKey} đã ngấm đủ nước (${data.moisture}%) -> Tự động dừng tưới an toàn!`, 'success');
-        return;
-      }
-
-      // ĐIỀU KIỆN DỪNG 2: Hết thời gian xung tưới an toàn (20s)
+      // ĐIỀU KIỆN DỪNG CHUNG: Hết thời gian xung an toàn (20s)
       if (data.pulseRemaining <= 0) {
-        stopPlotWatering(plotKey, 'Hoàn thành xung tưới 20s');
-        showToast(`⏱️ Lô ${plotKey} hoàn thành xung tưới 20s -> Chuyển sang SOAK_WAIT (chờ ngấm)`, 'normal');
+        stopPlotWatering(plotKey, 'Hoàn thành xung vận hành 20s');
+        if (isDrain) {
+          showToast(`⏱️ Hoàn thành chu kỳ xả úng 20s cho Lô ${plotKey}`, 'normal');
+        } else {
+          showToast(`⏱️ Lô ${plotKey} hoàn thành xung tưới 20s -> Chuyển sang SOAK_WAIT (chờ ngấm)`, 'normal');
+        }
         return;
       }
 
@@ -397,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (subBtn) {
         if (data.isPumpOn) {
-          subBtn.textContent = (plotKey === '3D') ? 'Đang Xả' : 'Đang Tưới';
+          subBtn.textContent = (plotKey === '3D') ? 'Dừng Xả' : 'Đang Tưới';
           subBtn.classList.add('active-pump');
         } else {
           subBtn.textContent = (plotKey === '3D') ? 'Bật Xả Tràn' : 'Bật Tưới';
@@ -613,7 +644,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (weatherSourceBadge) weatherSourceBadge.textContent = 'Mô Phỏng Sandbox';
 
       if (rainStatusEl) {
-        rainStatusEl.innerHTML = `<span class="preset-badge sun">Mô Phỏng: Nắng gắt (P_max: 0%) • Cần cấp nước</span>`;
+        rainStatusEl.innerHTML = `<span class="preset-badge sun">Mô Phỏng Sandbox: Nắng gắt (P_max: 0%) • Cần cấp nước</span>`;
+      }
+
+      // Dự báo 7 ngày cho kịch bản mô phỏng sandbox
+      if (listEl) {
+        listEl.innerHTML = '';
+        const simDays = [
+          { day: 'Hôm nay', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt nhiệt đới', max: 39, min: 28, rainProb: 0 },
+          { day: 'Ngày +1', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng nóng đỉnh điểm', max: 40, min: 29, rainProb: 5 },
+          { day: 'Ngày +2', date: 'Mô phỏng', icon: '🌤️', desc: 'Nắng chói chang', max: 38, min: 28, rainProb: 10 },
+          { day: 'Ngày +3', date: 'Mô phỏng', icon: '🌤️', desc: 'Khô ráo gió nhẹ', max: 37, min: 27, rainProb: 5 },
+          { day: 'Ngày +4', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt kéo dài', max: 39, min: 28, rainProb: 0 },
+          { day: 'Ngày +5', date: 'Mô phỏng', icon: '⛅', desc: 'Mây mỏng ít gió', max: 36, min: 27, rainProb: 15 },
+          { day: 'Ngày +6', date: 'Mô phỏng', icon: '🌤️', desc: 'Nắng dịu nhẹ', max: 35, min: 26, rainProb: 20 }
+        ];
+        simDays.forEach((d, idx) => {
+          const card = document.createElement('div');
+          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
+          card.innerHTML = `
+            <div class="forecast-day-name">${d.day}</div>
+            <div class="forecast-day-date">${d.date}</div>
+            <div class="forecast-day-icon">${d.icon}</div>
+            <div class="forecast-day-desc">${d.desc}</div>
+            <div class="forecast-day-temp">${weatherService.formatTemp(d.max)} / ${weatherService.formatTemp(d.min)}</div>
+            <span class="preset-badge normal forecast-day-rain">Mưa ${d.rainProb}%</span>
+          `;
+          listEl.appendChild(card);
+        });
       }
     } else {
       // 2. KỊCH BẢN THỜI TIẾT THỰC TẾ (CẦU ĐẤT - ĐÀ LẠT TỪ OPEN-METEO)
@@ -639,6 +697,27 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
         }
+      }
+
+      // Dự báo 7 ngày thực tế từ Open-Meteo
+      if (listEl && weatherService.dailyData && weatherService.dailyData.length > 0) {
+        listEl.innerHTML = '';
+        weatherService.dailyData.forEach((d, idx) => {
+          const card = document.createElement('div');
+          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
+          const isRainy = d.rainProb >= 50;
+          const rainLabel = d.rainSum > 0 ? `${d.rainProb}% (${d.rainSum}mm)` : `${d.rainProb}%`;
+
+          card.innerHTML = `
+            <div class="forecast-day-name">${d.dayLabel}</div>
+            <div class="forecast-day-date">${d.dateStr}</div>
+            <div class="forecast-day-icon">${d.icon}</div>
+            <div class="forecast-day-desc">${d.text}</div>
+            <div class="forecast-day-temp">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
+            <span class="preset-badge ${isRainy ? 'rain' : 'normal'} forecast-day-rain">Mưa ${rainLabel}</span>
+          `;
+          listEl.appendChild(card);
+        });
       }
     }
   }

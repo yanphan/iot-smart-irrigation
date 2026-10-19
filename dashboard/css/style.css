@@ -98,14 +98,14 @@ body {
 .brand-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #22c55e, #15803d);
+  border-radius: 11px;
+  background: linear-gradient(135deg, #064e3b, #0f172a);
+  border: 1px solid rgba(52, 211, 153, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-size: 20px;
-  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  flex-shrink: 0;
 }
 
 .brand-title {
@@ -447,6 +447,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.map-header-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .satellite-map-box {
@@ -819,24 +831,35 @@ body {
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
 }
 
-/* Chú giải bản đồ (Map Legend) */
+/* Chú giải bản đồ (Map Legend) - Bố cục phân tách Tiêu đề & Chú thích 2 hàng riêng biệt */
 .map-legend-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 10px;
   background-color: #ffffff;
   border: 1px solid var(--border-subtle);
-  padding: 10px 18px;
+  padding: 12px 18px;
   border-radius: var(--radius-md);
   font-size: 12px;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
-.legend-group {
+.legend-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.legend-title {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.legend-items-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .legend-item {
@@ -844,6 +867,8 @@ body {
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .legend-color-box {

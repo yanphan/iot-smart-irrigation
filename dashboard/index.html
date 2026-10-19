@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartIrrig G11 - Hệ Thống Tưới Thông Minh Đồi Dốc & Dự Báo Thời Tiết</title>
+  <title>AgriFlow G11 - Hệ Thống Tưới Thông Minh Đồi Dốc & Dự Báo Thời Tiết</title>
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,8 +31,22 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <a href="#dashboard" class="brand-logo" data-view="dashboard">
-          <div class="brand-icon">🌱</div>
-          <div class="brand-title">Irrig<span>Vista</span><span class="brand-badge">G11</span></div>
+          <div class="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2.5C7.5 8 4.5 12 4.5 15.5C4.5 19.64 7.86 23 12 23C16.14 23 19.5 19.64 19.5 15.5C19.5 12 16.5 8 12 2.5Z" fill="url(#brandGrad)" />
+              <path d="M12 7V17M12 12L15.5 9.5M12 14.5L8.5 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="7" r="1.5" fill="#ffffff"/>
+              <circle cx="15.5" cy="9.5" r="1.2" fill="#ffffff"/>
+              <circle cx="8.5" cy="12" r="1.2" fill="#ffffff"/>
+              <defs>
+                <linearGradient id="brandGrad" x1="4.5" y1="2.5" x2="19.5" y2="23" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#34d399"/>
+                  <stop offset="1" stop-color="#0284c7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="brand-title">Agri<span>Flow</span><span class="brand-badge">IoT G11</span></div>
         </a>
       </div>
 
@@ -53,7 +67,7 @@
 
       <div class="sidebar-footer">
         <div style="font-size: 11px; color: #94a3b8; text-align: center;">
-          Smart Irrigation G11 • v2.0
+          AgriFlow IoT G11 • v2.0
         </div>
       </div>
     </aside>
@@ -116,8 +130,9 @@
                ============================================================ -->
           <div class="card map-card-container">
             <div class="card-header" style="margin-bottom: 8px;">
-              <div class="card-title" id="mapTitleText">
-                Bản Đồ Phân Khu Vệ Tinh & Độ Dốc Địa Hình • Cầu Đất - Đà Lạt
+              <div class="map-header-title-box">
+                <div class="card-title">Bản Đồ Vệ Tinh & Địa Hình Độ Dốc</div>
+                <div class="map-subtitle" id="mapSubtitleText">Khu Vực Thực Tế • Cầu Đất - Đà Lạt</div>
               </div>
               <div style="display: flex; align-items: center; gap: 10px;">
                 <button id="btnMapAllOff" class="btn-emergency-stop" title="Ngắt khẩn cấp tất cả máy bơm ngay lập tức">
@@ -358,34 +373,23 @@
               </div>
             </div>
 
-            <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) - 1 ICON DUY NHẤT CHO MỖI MỤC -->
+            <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) - 2 HÀNG RÕ RÀNG (TIÊU ĐỀ RIÊNG, CHÚ THÍCH RIÊNG) -->
             <div class="map-legend-bar">
-              <div class="legend-group">
-                <span style="font-weight: 700; color: var(--text-main);">Vòng tròn trạng thái độ ẩm:</span>
-                <div class="legend-item">
-                  <span>🟢 Đủ ẩm (40% - 60%)</span>
-                </div>
-                <div class="legend-item">
-                  <span>🟠 Khô hạn (&lt; 40% Cần tưới)</span>
-                </div>
-                <div class="legend-item">
-                  <span>🔴 Ngập úng (&gt; 80% Cần xả)</span>
+              <div class="legend-block">
+                <div class="legend-title">Vòng tròn trạng thái độ ẩm:</div>
+                <div class="legend-items-row">
+                  <div class="legend-item">🟢 Đủ ẩm (40% - 60%)</div>
+                  <div class="legend-item">🟠 Khô hạn (&lt; 40% Cần tưới)</div>
+                  <div class="legend-item">🔴 Ngập úng (&gt; 80% Cần xả)</div>
                 </div>
               </div>
 
-              <div class="legend-group">
-                <span style="font-weight: 700; color: var(--text-main);">Phần cứng IoT:</span>
-                <div class="legend-item">
-                  <span>📡 Trạm cảm biến</span>
-                </div>
-                <div class="legend-item">
-                  <span>💧 Bơm tưới phun</span>
-                </div>
-                <div class="legend-item">
-                  <span>⚙️ Bơm tiêu úng</span>
-                </div>
-                <div class="legend-item" style="color: #0284c7; font-weight: 600;">
-                  <span>↘ Dòng nước ngấm dồn dốc</span>
+              <div class="legend-block">
+                <div class="legend-title">Phần cứng IoT:</div>
+                <div class="legend-items-row">
+                  <div class="legend-item">📡 Trạm cảm biến</div>
+                  <div class="legend-item">💧 Bơm tưới phun</div>
+                  <div class="legend-item">⚙️ Bơm tiêu úng</div>
                 </div>
               </div>
             </div>
@@ -532,25 +536,29 @@
             </div>
           </section>
 
+          <!-- ============================================================
+               ROW 3: DỰ BÁO THỜI TIẾT 7 NGÀY (HÀNG RIÊNG)
+               ============================================================ -->
+          <section class="card" style="margin-top: 14px;">
+            <div class="card-header">
+              <div class="card-title">Dự Báo Thời Tiết 7 Ngày</div>
+              <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất - Open-Meteo</span>
+            </div>
+            <div class="forecast-grid-7d" id="forecastListContainer">
+              <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                Đang đồng bộ dữ liệu dự báo 7 ngày...
+              </div>
+            </div>
+          </section>
+
         </div> <!-- HẾT VIEW DASHBOARD -->
 
         <!-- VIEW 2: BẢN ĐỒ VỆ TINH & PHÂN KHU CHI TIẾT -->
         <div class="view-panel" id="view-map">
           <div class="satellite-split-layout">
-            <!-- CỘT TRÁI: BẢN ĐỒ VỆ TINH THU NHỎ GỌN GÀNG -->
-            <div class="card map-left-col">
-              <div class="card-header">
-                <div class="card-title">Bản Đồ Vệ Tinh Trắc Địa Độ Dốc</div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                  <button id="btnMapAllOff2" class="btn-emergency-stop" title="Ngắt khẩn cấp tất cả máy bơm">
-                    Tắt Khẩn Cấp Bơm
-                  </button>
-                  <span class="card-badge-status active">Thời gian thực</span>
-                </div>
-              </div>
-              <div id="satelliteMapMount">
-                <!-- Chứa bản đồ vệ tinh khi chuyển sang tab Bản đồ vệ tinh -->
-              </div>
+            <!-- CỘT TRÁI: BẢN ĐỒ VỆ TINH GỌN GÀNG (Không bị lồng box thừa) -->
+            <div id="satelliteMapMount" class="map-left-col">
+              <!-- Bản đồ vệ tinh (.map-card-container) sẽ tự động chuyển sang đây khi mở tab -->
             </div>
 
             <!-- CỘT PHẢI: CHI TIẾT 3 TẦNG ĐỘ DỐC (9 CẶP THIẾT BỊ) -->
