@@ -831,14 +831,17 @@ body {
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
 }
 
-/* Chú giải bản đồ (Map Legend) - Bố cục phân tách Tiêu đề & Chú thích 2 hàng riêng biệt */
+/* Chú giải bản đồ (Map Legend) - Bố cục song song: Độ ẩm (Trái) & Phần cứng (Phải) */
 .map-legend-bar {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 24px;
   background-color: #ffffff;
   border: 1px solid var(--border-subtle);
-  padding: 12px 18px;
+  padding: 12px 20px;
   border-radius: var(--radius-md);
   font-size: 12px;
 }

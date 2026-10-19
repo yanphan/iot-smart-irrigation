@@ -79,148 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 3. BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
-  // ------------------------------------------------------------
-  const btnReal = document.getElementById('btnAreaReal');
-  const btnSim = document.getElementById('btnAreaSim');
-
-  function updateAreaUI(areaKey) {
-    const area = CONFIG.AREAS[areaKey];
-    if (!area) return;
-
-    btnReal.classList.toggle('active', areaKey === 'real');
-    btnSim.classList.toggle('active', areaKey === 'sim');
-
-    // Cập nhật tiêu đề và mô tả
-    const mapSubtitle = document.getElementById('mapSubtitleText');
-    const locBadge = document.getElementById('weatherLocationBadge');
-    const elevLabel = document.getElementById('gardenElevation');
-    const mapBg = document.getElementById('mapBgImg');
-
-    if (mapSubtitle) {
-      mapSubtitle.textContent = `${area.name} • ${area.locationName}`;
-    }
-
-    if (locBadge) {
-      locBadge.textContent = area.locationName;
-    }
-
-    if (elevLabel) {
-      elevLabel.textContent = area.baseElevation + 'm';
-    }
-
-    // Hiệu ứng màu nền bản đồ vệ tinh: khu mô phỏng khô cằn hơi ngả sắc vàng ấm
-    if (mapBg) {
-      if (areaKey === 'sim') {
-        mapBg.style.filter = 'brightness(0.7) sepia(0.35) contrast(1.2)';
-      } else {
-        mapBg.style.filter = 'brightness(0.65) contrast(1.15)';
-      }
-    }
-
-    // Cập nhật lượng nước thực tế vs mô phỏng
-    if (areaKey === 'sim') {
-      waterState.tankCurrent = 6420;
-      waterState.irrigatedToday = 3580;
-    } else {
-      waterState.tankCurrent = 7850;
-      waterState.irrigatedToday = 2150;
-    }
-    updateWaterMetricsUI();
-
-    // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
-    // Phân bổ 9 cặp: Tầng 1 (2 cặp) • Tầng 2 (3 cặp) • Tầng 3 (4 cặp)
-    if (areaKey === 'sim') {
-      // MÔI TRƯỜNG MÔ PHỎNG: Thể hiện đầy đủ 3 trạng thái rõ rệt (Khô - Đủ ẩm - Ngập úng)
-      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh (2 cặp: 1A, 1B)
-      subplotsState['1A'].moisture = 26;
-      subplotsState['1A'].isPumpOn = true;
-      subplotsState['1A'].pulseRemaining = 18;
-      subplotsState['1B'].moisture = 36;
-      subplotsState['1B'].isPumpOn = false;
-      subplotsState['1B'].pulseRemaining = 0;
-
-      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng (3 cặp: 2A, 2B, 2C)
-      subplotsState['2A'].moisture = 48;
-      subplotsState['2A'].isPumpOn = false;
-      subplotsState['2A'].pulseRemaining = 0;
-      subplotsState['2B'].moisture = 52;
-      subplotsState['2B'].isPumpOn = false;
-      subplotsState['2B'].pulseRemaining = 0;
-      subplotsState['2C'].moisture = 55;
-      subplotsState['2C'].isPumpOn = false;
-      subplotsState['2C'].pulseRemaining = 0;
-
-      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc (4 cặp: 3A, 3B, 3C, 3D)
-      subplotsState['3A'].moisture = 68;
-      subplotsState['3A'].isPumpOn = false;
-      subplotsState['3A'].pulseRemaining = 0;
-      subplotsState['3B'].moisture = 76;
-      subplotsState['3B'].isPumpOn = false;
-      subplotsState['3B'].pulseRemaining = 0;
-      subplotsState['3C'].moisture = 84;
-      subplotsState['3C'].isPumpOn = false;
-      subplotsState['3C'].pulseRemaining = 0;
-      subplotsState['3D'].moisture = 92;
-      subplotsState['3D'].isPumpOn = false; // Bơm tiêu úng P3-Xả sẵn sàng kích hoạt để hút xả ngập
-      subplotsState['3D'].pulseRemaining = 0;
-    } else {
-      // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
-      // Tầng 1 (2 cặp)
-      subplotsState['1A'].moisture = 42;
-      subplotsState['1A'].isPumpOn = false;
-      subplotsState['1A'].pulseRemaining = 0;
-      subplotsState['1B'].moisture = 54;
-      subplotsState['1B'].isPumpOn = false;
-      subplotsState['1B'].pulseRemaining = 0;
-
-      // Tầng 2 (3 cặp)
-      subplotsState['2A'].moisture = 48;
-      subplotsState['2A'].isPumpOn = false;
-      subplotsState['2A'].pulseRemaining = 0;
-      subplotsState['2B'].moisture = 54;
-      subplotsState['2B'].isPumpOn = false;
-      subplotsState['2B'].pulseRemaining = 0;
-      subplotsState['2C'].moisture = 56;
-      subplotsState['2C'].isPumpOn = false;
-      subplotsState['2C'].pulseRemaining = 0;
-
-      // Tầng 3 (4 cặp)
-      subplotsState['3A'].moisture = 62;
-      subplotsState['3A'].isPumpOn = false;
-      subplotsState['3A'].pulseRemaining = 0;
-      subplotsState['3B'].moisture = 66;
-      subplotsState['3B'].isPumpOn = false;
-      subplotsState['3B'].pulseRemaining = 0;
-      subplotsState['3C'].moisture = 68;
-      subplotsState['3C'].isPumpOn = false;
-      subplotsState['3C'].pulseRemaining = 0;
-      subplotsState['3D'].moisture = 70;
-      subplotsState['3D'].isPumpOn = false;
-      subplotsState['3D'].pulseRemaining = 0;
-    }
-
-    updateTopographicMap();
-    renderWeatherCard();
-    showToast(`Đã chuyển sang ${area.name}`, 'normal');
-  }
-
-  if (btnReal) {
-    btnReal.addEventListener('click', () => {
-      mqttClient.setArea('real');
-      updateAreaUI('real');
-    });
-  }
-
-  if (btnSim) {
-    btnSim.addEventListener('click', () => {
-      mqttClient.setArea('sim');
-      updateAreaUI('sim');
-    });
-  }
-
-  // ------------------------------------------------------------
-  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & CẢM BIẾN / MÁY BƠM
+  // 3. TRẠNG THÁI BẢN ĐỒ VỆ TINH & 9 CẶP THIẾT BỊ ĐỒI DỐC
   // Phân bổ chuẩn: 2 (Tầng 1) - 3 (Tầng 2) - 4 (Tầng 3) = 9 cặp
   // ------------------------------------------------------------
   const subplotsState = {
@@ -240,7 +99,32 @@ document.addEventListener('DOMContentLoaded', () => {
     '3D': { moisture: 70, isPumpOn: false, pulseRemaining: 0, timerId: null }
   };
 
-  // Kích hoạt chu kỳ tưới thông minh (có điểm dừng tự ngắt khi đủ ẩm 60% hoặc hết xung 20s)
+  // Cập nhật nhãn trạng thái vận hành trên thẻ KPI
+  function updateSystemStateUI(name, desc, type = 'normal') {
+    const fsmEl = document.getElementById('kpiFsmState');
+    const fsmReasonEl = document.getElementById('kpiFsmReason');
+    if (fsmEl) {
+      fsmEl.textContent = name;
+      if (type === 'flood') {
+        fsmEl.style.backgroundColor = '#fee2e2';
+        fsmEl.style.color = '#ef4444';
+      } else if (type === 'dry') {
+        fsmEl.style.backgroundColor = '#ffedd5';
+        fsmEl.style.color = '#ea580c';
+      } else if (type === 'water') {
+        fsmEl.style.backgroundColor = '#e0f2fe';
+        fsmEl.style.color = '#0284c7';
+      } else {
+        fsmEl.style.backgroundColor = '#dcfce7';
+        fsmEl.style.color = '#16a34a';
+      }
+    }
+    if (fsmReasonEl) {
+      fsmReasonEl.textContent = desc;
+    }
+  }
+
+  // Kích hoạt chu kỳ tưới / tiêu úng thông minh (có điểm dừng tự ngắt)
   function startPlotWatering(plotKey, durationSec = 20) {
     const data = subplotsState[plotKey];
     if (!data) return;
@@ -259,8 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateTopographicMap();
     if (isDrain) {
+      updateSystemStateUI('Đang Tiêu Úng Lô 3D', `Phát hiện ngập úng (${data.moisture}% > 80%) -> Bơm tiêu úng P3-Xả đang hút nước dồn dốc về bể`, 'flood');
       showToast('⚙️ Kích hoạt trạm bơm tiêu úng P3-Xả: Đang bơm thu hồi nước ngập dồn dốc về bể chứa', 'normal');
     } else {
+      updateSystemStateUI(`Đang Tưới Lô ${plotKey}`, `Cấp nước đồi dốc (Độ ẩm hiện tại: ${data.moisture}%)`, 'water');
       showToast(`Bật van tưới Lô ${plotKey} (Thời gian xung: ${durationSec}s)`, 'normal');
     }
 
@@ -341,7 +227,201 @@ document.addEventListener('DOMContentLoaded', () => {
       mqttClient.sendPump(tierNum, 'OFF', 0);
     }
 
+    if (plotKey === '3D') {
+      updateSystemStateUI('Đang giám sát tự động', `Đã tiêu úng an toàn Lô 3D (${data.moisture}%) -> Hoàn tất thu hồi nước về bể`, 'normal');
+    } else {
+      updateSystemStateUI('Đang giám sát tự động', `Lô ${plotKey} ngắt bơm an toàn -> Trạng thái hệ thống ổn định`, 'normal');
+    }
+
     updateTopographicMap();
+  }
+
+  // ------------------------------------------------------------
+  // ĐỘNG CƠ MÔ PHỎNG CẢM BIẾN & TỰ ĐỘNG XẢ ÚNG / TƯỚI (SIM ENGINE)
+  // ------------------------------------------------------------
+  let simDynamicsTimer = null;
+
+  function stopSimDynamics() {
+    if (simDynamicsTimer) {
+      clearInterval(simDynamicsTimer);
+      simDynamicsTimer = null;
+    }
+  }
+
+  function startSimDynamics() {
+    stopSimDynamics();
+    simDynamicsTimer = setInterval(() => {
+      if (mqttClient.currentArea !== 'sim') return;
+
+      const modeBtn = document.getElementById('toggleModeBtn');
+      const isAuto = (modeBtn?.dataset.mode || 'AUTO') === 'AUTO';
+
+      // 1. TỰ ĐỘNG CHUYỂN CHẾ ĐỘ XẢ ÚNG / TƯỚI KHI Ở CHẾ ĐỘ AUTO
+      if (isAuto) {
+        // Tự động xả ngập nếu Lô 3D (chân dốc) bị ngập úng >= 80%
+        if (subplotsState['3D'].moisture >= 80 && !subplotsState['3D'].isPumpOn) {
+          startPlotWatering('3D', 20);
+          updateSystemStateUI('Tự Động Tiêu Úng Lô 3D', `Phát hiện ngập úng chân dốc (${subplotsState['3D'].moisture}% > 80%) -> Tự động kích hoạt bơm P3-Xả hút nước về bể`, 'flood');
+        }
+        // Tự động tưới nếu Lô 1A (đỉnh đồi) bị khô hạn < 40%
+        if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
+          startPlotWatering('1A', 20);
+          updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
+        }
+      }
+
+      // 2. MÔ PHỎNG BIẾN THIÊN CẢM BIẾN THEO THỜI GIAN THỰC (KHÔNG GÁN CỨNG)
+      const idlePlots = ['1B', '2A', '2B', '2C', '3A', '3B', '3C'];
+      idlePlots.forEach(pk => {
+        const d = subplotsState[pk];
+        if (!d.isPumpOn) {
+          // Dao động tự nhiên ±0.3% - ±0.5%
+          const delta = (Math.random() * 0.8 - 0.4);
+          d.moisture = Math.max(15, Math.min(95, Math.round((d.moisture + delta) * 10) / 10));
+        }
+      });
+
+      // Hiệu ứng ngấm dồn dốc: Nếu 3D đang xả, Lô 3C bên cạnh cũng rút bớt ngập
+      if (subplotsState['3D'].isPumpOn && subplotsState['3C'].moisture > 65) {
+        subplotsState['3C'].moisture = Math.round((subplotsState['3C'].moisture - 0.4) * 10) / 10;
+      }
+
+      // Hiệu ứng ngấm dồn dốc: Nếu 1A đang tưới, Lô 1B nhận thêm chút ẩm
+      if (subplotsState['1A'].isPumpOn && subplotsState['1B'].moisture < 58) {
+        subplotsState['1B'].moisture = Math.round((subplotsState['1B'].moisture + 0.3) * 10) / 10;
+      }
+
+      updateTopographicMap();
+    }, 2500);
+  }
+
+  // ------------------------------------------------------------
+  // BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
+  // ------------------------------------------------------------
+  const btnReal = document.getElementById('btnAreaReal');
+  const btnSim = document.getElementById('btnAreaSim');
+
+  function updateAreaUI(areaKey) {
+    const area = CONFIG.AREAS[areaKey];
+    if (!area) return;
+
+    btnReal.classList.toggle('active', areaKey === 'real');
+    btnSim.classList.toggle('active', areaKey === 'sim');
+
+    // Cập nhật tiêu đề và mô tả
+    const mapSubtitle = document.getElementById('mapSubtitleText');
+    const locBadge = document.getElementById('weatherLocationBadge');
+    const elevLabel = document.getElementById('gardenElevation');
+    const mapBg = document.getElementById('mapBgImg');
+
+    if (mapSubtitle) {
+      mapSubtitle.textContent = `${area.name} • ${area.locationName}`;
+    }
+
+    if (locBadge) {
+      locBadge.textContent = area.locationName;
+    }
+
+    if (elevLabel) {
+      elevLabel.textContent = area.baseElevation + 'm';
+    }
+
+    // Hiệu ứng màu nền bản đồ vệ tinh: khu mô phỏng khô cằn hơi ngả sắc vàng ấm
+    if (mapBg) {
+      if (areaKey === 'sim') {
+        mapBg.style.filter = 'brightness(0.7) sepia(0.35) contrast(1.2)';
+      } else {
+        mapBg.style.filter = 'brightness(0.65) contrast(1.15)';
+      }
+    }
+
+    // Dừng các xung bơm và mô phỏng trước đó
+    stopSimDynamics();
+    Object.keys(subplotsState).forEach(pk => {
+      if (subplotsState[pk].timerId) clearInterval(subplotsState[pk].timerId);
+      subplotsState[pk].isPumpOn = false;
+      subplotsState[pk].pulseRemaining = 0;
+    });
+
+    // Cập nhật lượng nước thực tế vs mô phỏng
+    if (areaKey === 'sim') {
+      waterState.tankCurrent = 6420;
+      waterState.irrigatedToday = 3580;
+    } else {
+      waterState.tankCurrent = 7850;
+      waterState.irrigatedToday = 2150;
+    }
+    updateWaterMetricsUI();
+
+    // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
+    if (areaKey === 'sim') {
+      // MÔI TRƯỜNG MÔ PHỎNG: Thể hiện đầy đủ 3 trạng thái rõ rệt (Khô - Đủ ẩm - Ngập úng)
+      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh
+      subplotsState['1A'].moisture = 26;
+      subplotsState['1B'].moisture = 36;
+
+      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng
+      subplotsState['2A'].moisture = 48;
+      subplotsState['2B'].moisture = 52;
+      subplotsState['2C'].moisture = 55;
+
+      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc
+      subplotsState['3A'].moisture = 68;
+      subplotsState['3B'].moisture = 76;
+      subplotsState['3C'].moisture = 84;
+      subplotsState['3D'].moisture = 92;
+
+      // Bật động cơ mô phỏng thời gian thực
+      startSimDynamics();
+
+      // Trong chế độ AUTO: Tự động kích hoạt xả ngập Lô 3D và tưới Lô 1A ngay khi vào kịch bản!
+      const modeBtn = document.getElementById('toggleModeBtn');
+      const isAuto = (modeBtn?.dataset.mode || 'AUTO') === 'AUTO';
+      if (isAuto) {
+        setTimeout(() => {
+          if (subplotsState['3D'].moisture >= 80 && !subplotsState['3D'].isPumpOn) {
+            startPlotWatering('3D', 20);
+            updateSystemStateUI('Tự Động Tiêu Úng Lô 3D', `Phát hiện ngập úng chân dốc (${subplotsState['3D'].moisture}% > 80%) -> Tự động kích hoạt bơm P3-Xả hút nước về bể`, 'flood');
+            showToast('🚨 [AUTO] Cảm biến S3-D báo ngập úng (92% > 80%) -> Hệ thống tự động chuyển sang chế độ XẢ ÚNG (Bơm P3-Xả)!', 'alert');
+          }
+          if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
+            startPlotWatering('1A', 20);
+            updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
+            showToast('💧 [AUTO] Cảm biến S1-A báo khô hạn (26% < 40%) -> Hệ thống tự động bật van tưới bù ẩm!', 'normal');
+          }
+        }, 400);
+      }
+    } else {
+      // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
+      subplotsState['1A'].moisture = 42;
+      subplotsState['1B'].moisture = 54;
+      subplotsState['2A'].moisture = 48;
+      subplotsState['2B'].moisture = 54;
+      subplotsState['2C'].moisture = 56;
+      subplotsState['3A'].moisture = 62;
+      subplotsState['3B'].moisture = 66;
+      subplotsState['3C'].moisture = 68;
+      subplotsState['3D'].moisture = 70;
+      updateSystemStateUI('Đang giám sát tự động', 'Hệ thống Cầu Đất - Đà Lạt hoạt động ổn định', 'normal');
+    }
+
+    updateTopographicMap();
+    renderWeatherCard();
+    showToast(`Đã chuyển sang ${area.name}`, 'normal');
+  }
+
+  if (btnReal) {
+    btnReal.addEventListener('click', () => {
+      mqttClient.setArea('real');
+      updateAreaUI('real');
+    });
+  }
+
+  if (btnSim) {
+    btnSim.addEventListener('click', () => {
+      mqttClient.setArea('sim');
+      updateAreaUI('sim');
+    });
   }
 
   function updateTopographicMap() {
@@ -442,6 +522,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const z2Avg = Math.round((subplotsState['2A'].moisture + subplotsState['2B'].moisture + subplotsState['2C'].moisture) / 3);
     const z3Avg = Math.round((subplotsState['3A'].moisture + subplotsState['3B'].moisture + subplotsState['3C'].moisture + subplotsState['3D'].moisture) / 4);
     renderSemicircleGauge(z1Avg, z2Avg, z3Avg);
+
+    // Cập nhật Biểu đồ độ ẩm theo vùng thời gian thực
+    if (moistureChart && chartHistory.z1.length > 0) {
+      chartHistory.z1[chartHistory.z1.length - 1] = z1Avg;
+      chartHistory.z2[chartHistory.z2.length - 1] = z2Avg;
+      chartHistory.z3[chartHistory.z3.length - 1] = z3Avg;
+      moistureChart.update('none');
+    }
   }
 
   // Tương tác bấm trực tiếp vào Cụm Bơm trên bản đồ
@@ -451,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!plot) return;
       if (subplotsState[plot].isPumpOn) {
         stopPlotWatering(plot, 'Người dùng ngắt thủ công');
-        showToast(`Đã tắt van tưới Lô ${plot}`, 'normal');
+        showToast((plot === '3D') ? 'Đã tắt trạm bơm tiêu úng Lô 3D' : `Đã tắt van tưới Lô ${plot}`, 'normal');
       } else {
         startPlotWatering(plot, 20);
       }
@@ -465,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!plot) return;
       if (subplotsState[plot].isPumpOn) {
         stopPlotWatering(plot, 'Người dùng ngắt thủ công');
-        showToast(`Đã tắt van Lô ${plot}`, 'normal');
+        showToast((plot === '3D') ? 'Đã tắt trạm bơm tiêu úng Lô 3D' : `Đã tắt van Lô ${plot}`, 'normal');
       } else {
         startPlotWatering(plot, 20);
       }
@@ -863,7 +951,23 @@ document.addEventListener('DOMContentLoaded', () => {
       mqttClient.sendMode(target);
       modeBtn.dataset.mode = target;
       modeBtn.textContent = `Chế độ: ${target}`;
-      showToast(`Đã chuyển sang chế độ ${target}`, 'normal');
+
+      if (target === 'AUTO') {
+        showToast('Đã chuyển sang chế độ TỰ ĐỘNG (AUTO): Tự động phát hiện ngập úng để xả và khô hạn để tưới!', 'success');
+        if (mqttClient.currentArea === 'sim') {
+          if (subplotsState['3D'].moisture >= 80 && !subplotsState['3D'].isPumpOn) {
+            startPlotWatering('3D', 20);
+            updateSystemStateUI('Tự Động Tiêu Úng Lô 3D', `Phát hiện ngập úng chân dốc (${subplotsState['3D'].moisture}% > 80%) -> Tự động kích hoạt bơm P3-Xả hút nước về bể`, 'flood');
+          }
+          if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
+            startPlotWatering('1A', 20);
+            updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
+          }
+        }
+      } else {
+        showToast('Đã chuyển sang chế độ THỦ CÔNG (MANUAL): Tắt tự động xả úng & tưới, chờ người dùng điều khiển', 'normal');
+        updateSystemStateUI('Giám sát thủ công (MANUAL)', 'Chế độ thủ công: Chờ lệnh điều khiển trực tiếp từ người vận hành', 'normal');
+      }
     });
   }
 
