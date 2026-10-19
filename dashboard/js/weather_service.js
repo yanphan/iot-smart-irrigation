@@ -4,8 +4,9 @@
 
 class WeatherService {
   constructor() {
-    this.lat = CONFIG.LOCATION.LATITUDE;
-    this.lon = CONFIG.LOCATION.LONGITUDE;
+    const area = (CONFIG.AREAS && CONFIG.AREAS.real) || CONFIG.LOCATION || {};
+    this.lat = area.lat || area.LATITUDE || 11.8500;
+    this.lon = area.lon || area.LONGITUDE || 108.5300;
     this.currentData = null;
     this.hourlyData = [];
     this.dailyData = [];

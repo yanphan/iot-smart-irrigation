@@ -1,14 +1,12 @@
 // ============================================================
 // app.js - Điều phối giao diện Web Dashboard Smart Irrigation G11
-// Phong cách: FarmVista Clean Smart AgTech
+// Hỗ trợ: Bản đồ địa hình vệ tinh, Phân khu Thực tế vs Mô phỏng,
+//         Multi-tab Sidebar và xử lý sự kiện chuẩn xác
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. KHỞI TẠO BIẾN TOÀN CỤC & CHART
   let moistureChart = null;
-  let chartTimeRange = '24h'; // '24h', '3h', '7d'
 
-  // Bộ nhớ đệm lịch sử độ ẩm cho biểu đồ
   const chartHistory = {
     labels: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', 'Hiện tại'],
     z1: [48, 44, 41, 39, 36, 34, 32, 38],
@@ -18,7 +16,188 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ------------------------------------------------------------
-  // 2. KHỞI TẠO BIỂU ĐỒ (CHART.JS)
+  // 1. CHUYỂN ĐỔI TAB TRÊN SIDEBAR (MULTI-VIEW NAVIGATION)
+  // ------------------------------------------------------------
+  const navItems = document.querySelectorAll('.nav-item[data-view]');
+  const viewPanels = document.querySelectorAll('.view-panel');
+
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetView = item.dataset.view;
+
+      navItems.forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+
+      viewPanels.forEach(panel => {
+        panel.classList.remove('active');
+      });
+
+      const activePanel = document.getElementById(`view-${targetView}`);
+      if (activePanel) {
+        activePanel.classList.add('active');
+      }
+
+      // Xử lý đặc biệt cho tab map
+      if (targetView === 'map') {
+        const fullMapMount = document.getElementById('fullMapMount');
+        const mapCard = document.querySelector('.map-card-container');
+        if (fullMapMount && mapCard && !fullMapMount.contains(mapCard)) {
+          fullMapMount.appendChild(mapCard);
+        }
+      } else {
+        const dashView = document.getElementById('view-dashboard');
+        const mapCard = document.querySelector('.map-card-container');
+        if (dashView && mapCard && !dashView.contains(mapCard)) {
+          dashView.insertBefore(mapCard, dashView.firstChild);
+        }
+      }
+    });
+  });
+
+  // ------------------------------------------------------------
+  // 2. BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
+  // ------------------------------------------------------------
+  const btnReal = document.getElementById('btnAreaReal');
+  const btnSim = document.getElementById('btnAreaSim');
+
+  function updateAreaUI(areaKey) {
+    const area = CONFIG.AREAS[areaKey];
+    if (!area) return;
+
+    btnReal.classList.toggle('active', areaKey === 'real');
+    btnSim.classList.toggle('active', areaKey === 'sim');
+
+    // Cập nhật tiêu đề và mô tả
+    const pageDesc = document.getElementById('pageAreaDesc');
+    const mapTitle = document.getElementById('mapTitleText');
+    const locBadge = document.getElementById('weatherLocationBadge');
+    const elevLabel = document.getElementById('gardenElevation');
+    const mapBg = document.getElementById('mapBgImg');
+
+    if (pageDesc) {
+      pageDesc.textContent = `${area.name}: ${area.tagline} (${area.climateDesc})`;
+    }
+
+    if (mapTitle) {
+      mapTitle.textContent = `Bản Đồ Phân Khu Vệ Tinh & Địa Hình Độ Dốc • ${area.name}`;
+    }
+
+    if (locBadge) {
+      locBadge.textContent = area.locationName;
+    }
+
+    if (elevLabel) {
+      elevLabel.textContent = area.baseElevation + 'm';
+    }
+
+    // Hiệu ứng màu nền bản đồ vệ tinh: khu mô phỏng khô cằn hơi ngả sắc vàng ấm
+    if (mapBg) {
+      if (areaKey === 'sim') {
+        mapBg.style.filter = 'brightness(0.7) sepia(0.35) contrast(1.2)';
+      } else {
+        mapBg.style.filter = 'brightness(0.65) contrast(1.15)';
+      }
+    }
+
+    // Cập nhật nhãn phân khu trên bản đồ
+    const s1 = document.getElementById('lblSensor1');
+    const s2 = document.getElementById('lblSensor2');
+    const s3 = document.getElementById('lblSensor3');
+    if (s1) s1.textContent = `${area.zones[1].name}: ${mqttClient.latest.soil[1].moisture}%`;
+    if (s2) s2.textContent = `${area.zones[2].name}: ${mqttClient.latest.soil[2].moisture}%`;
+    if (s3) s3.textContent = `${area.zones[3].name}: ${mqttClient.latest.soil[3].moisture}%`;
+
+    showToast(`Đã chuyển sang ${area.name}`, 'normal');
+  }
+
+  if (btnReal) {
+    btnReal.addEventListener('click', () => {
+      mqttClient.setArea('real');
+      updateAreaUI('real');
+    });
+  }
+
+  if (btnSim) {
+    btnSim.addEventListener('click', () => {
+      mqttClient.setArea('sim');
+      updateAreaUI('sim');
+    });
+  }
+
+  // ------------------------------------------------------------
+  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH PHÂN KHU (MAP VIEW)
+  // ------------------------------------------------------------
+  function updateTopographicMap() {
+    const { soil, pumps } = mqttClient.latest;
+    const area = CONFIG.AREAS[mqttClient.currentArea];
+
+    [1, 2, 3].forEach(z => {
+      const moisture = soil[z].moisture;
+      const th = CONFIG.THRESHOLDS[z];
+      const poly = document.getElementById(`polyZone${z}`);
+      const dot = document.getElementById(`dotSensor${z}`);
+      const lblSensor = document.getElementById(`lblSensor${z}`);
+      const pumpBadge = document.getElementById(`pumpBadge${z}`);
+      const lblPump = document.getElementById(`lblPump${z}`);
+      const ripple = document.getElementById(`ripple${z}`);
+
+      let stateText = 'Đủ ẩm';
+      let stateClass = 'optimal';
+
+      if (moisture >= th.flood) {
+        stateText = 'Ngập úng!';
+        stateClass = 'flood';
+      } else if (moisture < th.dry) {
+        stateText = 'Khô hạn';
+        stateClass = 'dry';
+      }
+
+      // 1. Cập nhật màu mảng phân khu SVG
+      if (poly) {
+        poly.className.baseVal = `map-zone-polygon moist-${stateClass}`;
+      }
+
+      // 2. Cập nhật nhãn cảm biến
+      if (dot) {
+        dot.className = `sensor-dot-state ${stateClass}`;
+      }
+      if (lblSensor) {
+        lblSensor.textContent = `Cảm biến S${z} (${area.zones[z].elevation}): ${moisture}% • ${stateText}`;
+      }
+
+      // 3. Cập nhật trạng thái van bơm trên bản đồ
+      const isPumpOn = (pumps[z] && pumps[z].status === 'ON');
+      if (pumpBadge) {
+        if (isPumpOn) {
+          pumpBadge.className = 'pump-badge on';
+          if (lblPump) lblPump.textContent = `Bơm P${z}: ĐANG TƯỚI (PHUN)`;
+          if (ripple) ripple.style.display = 'block';
+        } else {
+          pumpBadge.className = 'pump-badge off';
+          if (lblPump) lblPump.textContent = `Bơm P${z}: TẮT`;
+          if (ripple) ripple.style.display = 'none';
+        }
+      }
+    });
+
+    // Cập nhật Semicircle Gauge
+    renderSemicircleGauge(soil[1].moisture, soil[2].moisture, soil[3].moisture);
+  }
+
+  // Tương tác bấm trực tiếp vào Bơm trên bản đồ
+  document.querySelectorAll('.pump-badge').forEach(badge => {
+    badge.addEventListener('click', () => {
+      const zone = badge.dataset.zone;
+      const isCurrentOn = badge.classList.contains('on');
+      const nextAction = isCurrentOn ? 'OFF' : 'ON';
+      mqttClient.sendPump(zone, nextAction, 600);
+      showToast(`Đã gửi lệnh van bơm P${zone}: ${nextAction}`, 'normal');
+    });
+  });
+
+  // ------------------------------------------------------------
+  // 4. KHỞI TẠO BIỂU ĐỒ (CHART.JS)
   // ------------------------------------------------------------
   function initChart() {
     const ctx = document.getElementById('yieldChart');
@@ -32,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             label: 'Z1 - Đỉnh đồi (%)',
             data: chartHistory.z1,
-            borderColor: '#16a34a', // Xanh lá
+            borderColor: '#16a34a',
             backgroundColor: 'rgba(22, 163, 74, 0.08)',
             borderWidth: 2.5,
             fill: true,
@@ -44,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             label: 'Z2 - Sườn đồi (%)',
             data: chartHistory.z2,
-            borderColor: '#8b5cf6', // Tím
+            borderColor: '#8b5cf6',
             backgroundColor: 'transparent',
             borderWidth: 2,
             borderDash: [4, 4],
@@ -56,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             label: 'Z3 - Vùng trũng (%)',
             data: chartHistory.z3,
-            borderColor: '#0284c7', // Xanh lam
+            borderColor: '#0284c7',
             backgroundColor: 'transparent',
             borderWidth: 2,
             tension: 0.35,
@@ -66,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           {
             type: 'bar',
-            label: 'Lượng mưa dự báo (mm)',
+            label: 'Mưa dự báo (mm)',
             data: chartHistory.rain,
             backgroundColor: 'rgba(2, 132, 199, 0.25)',
             borderColor: '#0284c7',
@@ -80,10 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
         plugins: {
           legend: {
             position: 'top',
@@ -92,41 +267,21 @@ document.addEventListener('DOMContentLoaded', () => {
               boxWidth: 12,
               font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }
             }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleFont: { family: 'Plus Jakarta Sans', size: 12 },
-            bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
-            padding: 10,
-            cornerRadius: 8
           }
         },
         scales: {
-          x: {
-            grid: { display: false },
-            ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94a3b8' }
-          },
+          x: { grid: { display: false } },
           y: {
             min: 0,
             max: 100,
-            grid: { color: '#f1f5f9' },
-            ticks: {
-              stepSize: 20,
-              font: { family: 'Plus Jakarta Sans', size: 11 },
-              color: '#94a3b8',
-              callback: (v) => v + '%'
-            }
+            ticks: { stepSize: 20, callback: (v) => v + '%' }
           },
           yRain: {
             position: 'right',
             min: 0,
             max: 20,
             grid: { display: false },
-            ticks: {
-              font: { family: 'Plus Jakarta Sans', size: 11 },
-              color: '#0284c7',
-              callback: (v) => v + 'mm'
-            }
+            ticks: { callback: (v) => v + 'mm' }
           }
         }
       }
@@ -134,56 +289,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 3. VẼ GAUGE ĐỘ ẨM VÒNG CUNG 3 VÙNG (PRODUCTION OVERVIEW STYLE)
+  // 5. GAUGE VÒNG CUNG ĐỘ ẨM
   // ------------------------------------------------------------
   function renderSemicircleGauge(z1, z2, z3) {
     const avg = Math.round((z1 + z2 + z3) / 3);
     const centerValEl = document.getElementById('gaugeCenterVal');
-    if (centerValEl) {
-      centerValEl.textContent = avg + '%';
-    }
+    if (centerValEl) centerValEl.textContent = avg + '%';
 
-    // Cập nhật text trong legend
     const l1 = document.getElementById('legendZ1Val');
     const l2 = document.getElementById('legendZ2Val');
     const l3 = document.getElementById('legendZ3Val');
-    if (l1) l1.textContent = `Z1: ${z1}%`;
-    if (l2) l2.textContent = `Z2: ${z2}%`;
-    if (l3) l3.textContent = `Z3: ${z3}%`;
+    if (l1) l1.textContent = `Z1: ${z1}% (Đỉnh)`;
+    if (l2) l2.textContent = `Z2: ${z2}% (Sườn)`;
+    if (l3) l3.textContent = `Z3: ${z3}% (Trũng)`;
 
-    // Tính toán SVG arc path dash offset
-    // Tổng chiều dài nửa cung r=80 là PI * 80 ≈ 251.3
     const maxLen = 251.3;
     const pathZ1 = document.getElementById('gaugeArcZ1');
     const pathZ2 = document.getElementById('gaugeArcZ2');
     const pathZ3 = document.getElementById('gaugeArcZ3');
 
-    if (pathZ1) {
-      const len1 = (z1 / 100) * (maxLen / 3);
-      pathZ1.setAttribute('stroke-dasharray', `${len1} ${maxLen}`);
-    }
-    if (pathZ2) {
-      const len2 = (z2 / 100) * (maxLen / 3);
-      pathZ2.setAttribute('stroke-dasharray', `${len2} ${maxLen}`);
-    }
-    if (pathZ3) {
-      const len3 = (z3 / 100) * (maxLen / 3);
-      pathZ3.setAttribute('stroke-dasharray', `${len3} ${maxLen}`);
-    }
+    if (pathZ1) pathZ1.setAttribute('stroke-dasharray', `${(z1 / 100) * (maxLen / 3)} ${maxLen}`);
+    if (pathZ2) pathZ2.setAttribute('stroke-dasharray', `${(z2 / 100) * (maxLen / 3)} ${maxLen}`);
+    if (pathZ3) pathZ3.setAttribute('stroke-dasharray', `${(z3 / 100) * (maxLen / 3)} ${maxLen}`);
   }
 
   // ------------------------------------------------------------
-  // 4. KẾT NỐI VÀ LẮNG NGHE THỜI TIẾT (OPEN-METEO)
+  // 6. THỜI TIẾT OPEN-METEO
   // ------------------------------------------------------------
   weatherService.subscribe((data) => {
-    updateWeatherUI(data);
-  });
-
-  function updateWeatherUI(data) {
     const cur = data.current;
     if (!cur) return;
 
-    // 1. Thẻ thời tiết hiện tại
     const tempEl = document.getElementById('curWeatherTemp');
     const feelsEl = document.getElementById('curWeatherFeels');
     const descEl = document.getElementById('curWeatherDesc');
@@ -196,49 +332,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (iconEl) iconEl.textContent = cur.icon;
 
     if (highLowEl && data.daily.length > 0) {
-      const today = data.daily[0];
-      highLowEl.textContent = `Cao: ${weatherService.formatTemp(today.tempMax)}  Thấp: ${weatherService.formatTemp(today.tempMin)}`;
+      highLowEl.textContent = `Cao: ${weatherService.formatTemp(data.daily[0].tempMax)} • Thấp: ${weatherService.formatTemp(data.daily[0].tempMin)}`;
     }
 
-    // 2. Dự báo ngắn hạn 3 giờ tới (Banner & Quyết định hoãn tưới)
     const rainStatusEl = document.getElementById('rainDecisionBadge');
     if (rainStatusEl) {
       if (cur.shouldDelay) {
-        rainStatusEl.innerHTML = `<span class="preset-badge rain">🌧️ Khuyến nghị: Hoãn tưới (P_max: ${cur.pMax3h}%, P_eff: ${cur.pEff3h}mm)</span>`;
+        rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%, P_eff: ${cur.pEff3h}mm)</span>`;
       } else {
-        rainStatusEl.innerHTML = `<span class="preset-badge normal">☀️ Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
+        rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
       }
     }
 
-    // 3. Danh sách Dự báo 7 Ngày tới (Vegetable Harvest Summary Style)
     const listEl = document.getElementById('forecastListContainer');
     if (listEl && data.daily.length > 0) {
       listEl.innerHTML = '';
       data.daily.forEach((d) => {
         const item = document.createElement('div');
         item.className = 'forecast-item';
-
         const isRainy = d.rainProb >= 50;
-        const pillClass = isRainy ? 'high' : 'low';
         const rainLabel = isRainy ? `Mưa ${d.rainProb}% (${d.rainSum}mm)` : `Mưa ${d.rainProb}%`;
 
         item.innerHTML = `
-          <div class="forecast-item-left">
-            <div class="forecast-icon-circle">${d.icon}</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">${d.icon}</span>
             <div>
-              <div class="forecast-day-title">${d.dayLabel} <span style="font-weight:400; color:#94a3b8; font-size:11px;">(${d.dateStr})</span></div>
-              <div class="forecast-day-sub">${d.text}</div>
+              <div style="font-size: 13px; font-weight: 700;">${d.dayLabel} <span style="font-weight:400; color:#94a3b8; font-size:11px;">(${d.dateStr})</span></div>
+              <div style="font-size: 11px; color: var(--text-muted);">${d.text}</div>
             </div>
           </div>
-          <div class="forecast-item-right">
-            <div class="forecast-temp-val">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
-            <span class="forecast-rain-pill ${pillClass}">${rainLabel}</span>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
+            <span class="preset-badge ${isRainy ? 'rain' : 'normal'}" style="font-size: 10px;">${rainLabel}</span>
           </div>
         `;
         listEl.appendChild(item);
       });
     }
-  }
+  });
 
   // Chuyển đổi đơn vị C / F
   const unitToggle = document.getElementById('unitToggle');
@@ -252,10 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 5. KẾT NỐI VÀ LẮNG NGHE MQTT OVER WEBSOCKET
+  // 7. LẮNG NGHE MQTT & SỬA LỖI TOAST PHỤC HỒI
   // ------------------------------------------------------------
-
-  // Cập nhật trạng thái Broker trên Topbar
   mqttClient.on('onConnect', () => {
     const pill = document.getElementById('mqttStatusPill');
     const text = document.getElementById('mqttStatusText');
@@ -272,21 +401,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Mất kết nối MQTT WebSocket, đang tự động kết nối lại...', 'warn');
   });
 
-  // Khi nhận độ ẩm đất mới
-  mqttClient.on('onSoil', (d) => {
-    const { soil } = mqttClient.latest;
-    renderSemicircleGauge(soil[1].moisture, soil[2].moisture, soil[3].moisture);
-
-    // Cập nhật biểu đồ điểm cuối
-    if (moistureChart) {
-      moistureChart.data.datasets[0].data[7] = soil[1].moisture;
-      moistureChart.data.datasets[1].data[7] = soil[2].moisture;
-      moistureChart.data.datasets[2].data[7] = soil[3].moisture;
-      moistureChart.update('none');
-    }
+  mqttClient.on('onSoil', () => {
+    updateTopographicMap();
   });
 
-  // Khi nhận vi khí hậu DHT22 từ vườn
+  mqttClient.on('onPump', () => {
+    updateTopographicMap();
+  });
+
+  // Vi khí hậu DHT22 từ ESP32: Cập nhật động, không hardcode
   mqttClient.on('onEnv', (d) => {
     const tempGarden = document.getElementById('gardenTemp');
     const humGarden = document.getElementById('gardenHum');
@@ -294,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (humGarden) humGarden.textContent = d.humidity + '%';
   });
 
-  // Khi nhận trạng thái máy FSM
+  // Trạng thái FSM
   mqttClient.on('onState', (d) => {
     const fsmEl = document.getElementById('kpiFsmState');
     const fsmReasonEl = document.getElementById('kpiFsmReason');
@@ -309,101 +432,97 @@ document.addEventListener('DOMContentLoaded', () => {
       fsmReasonEl.textContent = d.reason || fsmConf.name;
     }
 
-    // Cập nhật chế độ Auto / Manual
-    const modeBadge = document.getElementById('systemModeBadge');
-    if (modeBadge) {
-      modeBadge.textContent = d.mode || 'AUTO';
-      modeBadge.className = (d.mode === 'MANUAL') ? 'preset-badge fault' : 'preset-badge normal';
+    const modeBtn = document.getElementById('toggleModeBtn');
+    if (modeBtn) {
+      modeBtn.dataset.mode = d.mode;
+      modeBtn.textContent = `Chế độ: ${d.mode}`;
     }
   });
 
-  // Khi nhận cảnh báo hệ thống
+  // SỬA LỖI: PHÂN BIỆT THÀNH CÔNG/PHỤC HỒI VS CẢNH BÁO LỖI
   mqttClient.on('onAlert', (d) => {
-    showToast(`⚠️ [CẢNH BÁO] ${d.alert}: ${d.detail} (Vùng ${d.zone || 'Tất cả'})`, 'alert');
+    if (d.isRecovered || d.alert === 'SYSTEM_NORMAL') {
+      showToast(`Hệ thống đã phục hồi bình thường: ${d.detail || 'Hoạt động ổn định'}`, 'success');
+    } else {
+      showToast(`CẢNH BÁO [${d.alert}]: ${d.detail} (Vùng ${d.zone || 'Tất cả'})`, 'alert');
+    }
   });
 
   // ------------------------------------------------------------
-  // 6. XỬ LÝ SỰ KIỆN TESTING STUDIO (TIÊM KỊCH BẢN 1-CLICK)
+  // 8. TESTING STUDIO (TIÊM KỊCH BẢN)
   // ------------------------------------------------------------
   document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const preset = e.currentTarget.dataset.preset;
-      executePreset(preset);
+      switch (preset) {
+        case 'W0':
+          mqttClient.sendSimWeather({
+            hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
+            current: { temperature_2m: 26.5, relative_humidity_2m: 55.0 }
+          });
+          showToast('Đã tiêm kịch bản W0: Nắng ráo -> Chuẩn bị tưới tuần tự Z1 -> Z2 -> Z3', 'normal');
+          break;
+
+        case 'W1':
+          mqttClient.sendSimWeather({
+            hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
+            current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
+          });
+          showToast('Đã tiêm kịch bản W1: Mưa dông lớn (15mm) -> Hoãn tưới S3_RAIN_DELAY', 'normal');
+          break;
+
+        case 'W2':
+          mqttClient.sendSimWeather({
+            hourly: { precipitation: [1.0, 1.0, 0.5], precipitation_probability: [75, 70, 65] },
+            current: { temperature_2m: 22.0, relative_humidity_2m: 78.0 }
+          });
+          showToast('Đã tiêm kịch bản W2: Mưa phùn nhẹ (2mm) -> Không đủ thấm, tiếp tục tưới', 'normal');
+          break;
+
+        case 'D1':
+          mqttClient.sendSimFault('D1_SOIL_FAIL');
+          showToast('Đã tiêm mã lỗi D1_SOIL_FAIL -> Kích hoạt S99_SAFE an toàn khẩn cấp!', 'alert');
+          break;
+
+        case 'D2':
+          mqttClient.sendSimFault('D2_PUMP_JAM');
+          showToast('Đã tiêm mã lỗi D2_PUMP_JAM -> Cảnh báo kẹt bơm!', 'warn');
+          break;
+
+        case 'RESET':
+          mqttClient.sendSimFault('RESET');
+          showToast('Đã gửi lệnh RESET -> Khôi phục hệ thống về bình thường', 'success');
+          break;
+      }
     });
   });
 
-  function executePreset(preset) {
-    switch (preset) {
-      case 'W0': // Nắng ráo
-        mqttClient.sendSimWeather({
-          hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
-          current: { temperature_2m: 26.5, relative_humidity_2m: 55.0 }
-        });
-        showToast('Đã tiêm kịch bản W0: Nắng ráo -> Chuẩn bị tưới tuần tự Z1, Z2, Z3', 'normal');
-        break;
-
-      case 'W1': // Mưa dông lớn (P_max=85%, P_eff=15mm) -> Hoãn tưới S3_RAIN_DELAY
-        mqttClient.sendSimWeather({
-          hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
-          current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
-        });
-        showToast('Đã tiêm kịch bản W1: Mưa dông lớn (15mm) -> ESP32 tự động hoãn tưới (S3_RAIN_DELAY)!', 'normal');
-        break;
-
-      case 'W2': // Mưa phùn nhẹ (P_eff=2mm) -> Bỏ qua, tiếp tục tưới
-        mqttClient.sendSimWeather({
-          hourly: { precipitation: [1.0, 1.0, 0.5], precipitation_probability: [75, 70, 65] },
-          current: { temperature_2m: 22.0, relative_humidity_2m: 78.0 }
-        });
-        showToast('Đã tiêm kịch bản W2: Mưa phùn nhẹ (2mm) -> Không đủ thấm, tiếp tục tưới', 'normal');
-        break;
-
-      case 'D1': // Đứt dây cảm biến
-        mqttClient.sendSimFault('D1_SOIL_FAIL');
-        showToast('Đã tiêm mã lỗi D1_SOIL_FAIL -> Hệ thống chuyển sang trạng thái ngắt an toàn S99_SAFE!', 'alert');
-        break;
-
-      case 'D2': // Kẹt van bơm
-        mqttClient.sendSimFault('D2_PUMP_JAM');
-        showToast('Đã tiêm mã lỗi D2_PUMP_JAM -> Cảnh báo hỏng bơm!', 'warn');
-        break;
-
-      case 'RESET': // Khôi phục bình thường
-        mqttClient.sendSimFault('RESET');
-        showToast('Đã gửi lệnh RESET -> Hệ thống trở lại bình thường (S1_MONITOR)', 'normal');
-        break;
-    }
-  }
-
-  // Chuyển chế độ AUTO / MANUAL
+  // Đổi chế độ AUTO / MANUAL
   const modeBtn = document.getElementById('toggleModeBtn');
   if (modeBtn) {
     modeBtn.addEventListener('click', () => {
-      const isManual = modeBtn.dataset.mode === 'MANUAL';
-      const targetMode = isManual ? 'AUTO' : 'MANUAL';
-      mqttClient.sendMode(targetMode);
-      modeBtn.dataset.mode = targetMode;
-      modeBtn.textContent = targetMode === 'MANUAL' ? '⚙️ Chế độ: MANUAL' : '🤖 Chế độ: AUTO';
-      showToast(`Đã chuyển hệ thống sang chế độ ${targetMode}`, 'normal');
+      const cur = modeBtn.dataset.mode || 'AUTO';
+      const target = (cur === 'MANUAL') ? 'AUTO' : 'MANUAL';
+      mqttClient.sendMode(target);
+      modeBtn.dataset.mode = target;
+      modeBtn.textContent = `Chế độ: ${target}`;
+      showToast(`Đã chuyển sang chế độ ${target}`, 'normal');
     });
   }
 
-  // Chế độ mô phỏng Web độc lập (Standalone Simulation)
+  // Bật/tắt mô phỏng độc lập trên Web
   const simToggleBtn = document.getElementById('standaloneSimBtn');
   if (simToggleBtn) {
     let simActive = false;
     simToggleBtn.addEventListener('click', () => {
       simActive = !simActive;
       mqttClient.toggleStandaloneSim(simActive);
-      simToggleBtn.textContent = simActive ? '🧪 Đang mô phỏng Web: BẬT' : '🧪 Mô phỏng Web: TẮT';
-      simToggleBtn.classList.toggle('active', simActive);
-      showToast(simActive ? 'Đã bật chế độ tự sinh dữ liệu mô phỏng trên Web' : 'Đã tắt chế độ mô phỏng', 'normal');
+      simToggleBtn.textContent = simActive ? 'Mô phỏng Web: BẬT' : 'Mô phỏng Web: TẮT';
+      showToast(simActive ? 'Đã bật mô phỏng tự sinh dữ liệu trên Web' : 'Đã tắt mô phỏng Web', 'normal');
     });
   }
 
-  // ------------------------------------------------------------
-  // 7. TOAST NOTIFICATION UTILITY
-  // ------------------------------------------------------------
+  // Toast utility
   function showToast(message, type = 'normal') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -421,16 +540,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 4000);
   }
 
-  // ------------------------------------------------------------
-  // 8. KHỞI CHẠY LẦN ĐẦU
-  // ------------------------------------------------------------
+  // Khởi chạy
   initChart();
-  renderSemicircleGauge(38, 52, 68);
+  updateAreaUI('real');
+  updateTopographicMap();
   weatherService.fetchWeather();
   mqttClient.connect();
-
-  // Tự động làm mới thời tiết mỗi 15 phút
-  setInterval(() => {
-    weatherService.fetchWeather();
-  }, 15 * 60 * 1000);
 });

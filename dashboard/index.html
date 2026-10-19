@@ -12,9 +12,9 @@
 
   <!-- Chart.js & MQTT.js qua CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+  <script src="js/mqtt.min.js"></script>
 
-  <!-- CSS Stylesheet -->
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/animations.css">
 </head>
@@ -23,442 +23,514 @@
   <div class="app-container">
 
     <!-- ============================================================
-         1. SIDEBAR (Điều hướng bên trái phong cách FarmVista)
+         1. SIDEBAR (Điều hướng đa màn hình)
          ============================================================ -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <a href="#" class="brand-logo">
+        <a href="#dashboard" class="brand-logo" data-view="dashboard">
           <div class="brand-icon">🌱</div>
           <div class="brand-title">Irrig<span>Vista</span><span class="brand-badge">G11</span></div>
         </a>
       </div>
 
       <nav class="sidebar-nav">
-        <a href="#dashboard" class="nav-item active">
+        <a class="nav-item active" data-view="dashboard">
           <span class="nav-icon">📊</span>
           <span>Dashboard</span>
         </a>
-        <a href="#soil" class="nav-item">
-          <span class="nav-icon">💧</span>
-          <span>Độ ẩm & Tưới dốc 3 vùng</span>
+        <a class="nav-item" data-view="map">
+          <span class="nav-icon">🗺️</span>
+          <span>Bản đồ phân khu vệ tinh</span>
         </a>
-        <a href="#weather" class="nav-item">
+        <a class="nav-item" data-view="weather">
           <span class="nav-icon">⛅</span>
           <span>Dự báo thời tiết 7 ngày</span>
         </a>
-        <a href="#terrain" class="nav-item">
-          <span class="nav-icon">🏔️</span>
-          <span>Địa hình Cầu Đất (1500m)</span>
-        </a>
-        <a href="#simulation" class="nav-item">
+        <a class="nav-item" data-view="simulation">
           <span class="nav-icon">🧪</span>
           <span>Studio kiểm thử kịch bản</span>
         </a>
-        <a href="#analytics" class="nav-item">
-          <span class="nav-icon">📈</span>
-          <span>Thống kê tiết kiệm nước</span>
-        </a>
-        <a href="#settings" class="nav-item">
+        <a class="nav-item" data-view="settings">
           <span class="nav-icon">⚙️</span>
           <span>Cấu hình ngưỡng Z1-Z3</span>
         </a>
       </nav>
 
       <div class="sidebar-footer">
-        <a href="#" class="nav-item" style="color: #ef4444;">
-          <span class="nav-icon">🚪</span>
-          <span>Đăng xuất</span>
-        </a>
+        <div style="font-size: 11px; color: #94a3b8; text-align: center;">
+          Smart Irrigation G11 • v2.0
+        </div>
       </div>
     </aside>
 
     <!-- ============================================================
-         2. MAIN WRAPPER (Khung nội dung chính)
+         2. MAIN WRAPPER
          ============================================================ -->
     <div class="main-wrapper">
 
       <!-- TOPBAR -->
       <header class="topbar">
         <div class="search-container">
-          <span style="color: #94a3b8; font-size: 16px;">🔍</span>
-          <input type="text" placeholder="Tìm kiếm cảm biến, vùng tưới, kịch bản...">
+          <span style="color: #94a3b8; font-size: 14px;">🔍</span>
+          <input type="text" placeholder="Tìm cảm biến, vùng dốc, kịch bản test...">
         </div>
 
         <div class="topbar-right">
+          <!-- BỘ CHUYỂN ĐỔI 2 KHU VỰC: THỰC TẾ vs MÔ PHỎNG -->
+          <div class="area-switcher" title="Chuyển đổi giữa Nông trường thực tế và Vùng mô phỏng kiểm thử">
+            <button class="area-btn active real" id="btnAreaReal" data-area="real">
+              Khu Vực Thực Tế
+            </button>
+            <button class="area-btn sim" id="btnAreaSim" data-area="sim">
+              Khu Vực Mô Phỏng
+            </button>
+          </div>
+
           <!-- Trạng thái kết nối MQTT -->
           <div class="mqtt-status-pill" id="mqttStatusPill">
             <span class="status-dot"></span>
-            <span id="mqttStatusText">Đang kết nối MQTT...</span>
+            <span id="mqttStatusText">MQTT...</span>
           </div>
 
-          <!-- Nút bật/tắt chạy thử mô phỏng độc lập trên Web -->
-          <button class="dropdown-pill" id="standaloneSimBtn" title="Chạy tự sinh dữ liệu kiểm thử nếu chưa mở Wokwi">
-            🧪 Mô phỏng Web: TẮT
+          <!-- Nút bật mô phỏng dữ liệu độc lập khi chưa bật Wokwi -->
+          <button class="dropdown-pill" id="standaloneSimBtn" title="Chạy tự sinh dữ liệu kiểm thử nếu chưa mở Wokwi" style="font-size: 12px; padding: 6px 12px;">
+            Mô phỏng Web: TẮT
           </button>
 
-          <!-- Chuông thông báo -->
-          <button class="icon-btn" title="Cảnh báo hệ thống">
-            🔔
-            <span class="badge-dot"></span>
-          </button>
-
-          <!-- Thông tin người dùng -->
+          <!-- Thông tin nhóm -->
           <div class="user-profile">
             <div class="user-avatar">G11</div>
-            <div class="user-info">
-              <span class="user-name">Nhóm 11 - IoT</span>
-              <span class="user-role">Smart Agriculture Admin</span>
+            <div>
+              <div class="user-name">Nhóm 11 - IoT</div>
+              <div class="user-role">Smart Agriculture</div>
             </div>
-            <span style="font-size: 11px; color: #94a3b8; margin-left: 4px;">▼</span>
           </div>
         </div>
       </header>
 
-      <!-- CONTENT AREA -->
+      <!-- ============================================================
+           CONTENT AREA (CÁC VIEW TƯƠNG ỨNG VỚI SIDEBAR)
+           ============================================================ -->
       <main class="content-area">
 
-        <!-- GREETING & PAGE HEADER -->
+        <!-- HEADER ĐỘNG (TỰ THAY ĐỔI THEO KHU VỰC ĐƯỢC CHỌN) -->
         <section class="page-header">
           <div class="header-text">
-            <h1>Good Morning !</h1>
-            <p>Tối ưu hóa vận hành tưới tiêu đồi dốc & dự báo thời tiết thực tế (Nông trường Cầu Đất - Đà Lạt 1,500m)</p>
+            <h1 id="pageGreeting">Good Morning !</h1>
+            <p id="pageAreaDesc">Đang tải thông tin khu vực canh tác...</p>
           </div>
 
           <div class="header-actions">
-            <!-- Nút lọc ngày -->
-            <button class="dropdown-pill">
-              📅 Hôm nay (19 Th10, 2026) ▾
-            </button>
-
-            <!-- Chế độ AUTO / MANUAL -->
+            <!-- Nút chọn chế độ AUTO / MANUAL -->
             <button class="dropdown-pill" id="toggleModeBtn" data-mode="AUTO">
-              🤖 Chế độ: AUTO
-            </button>
-
-            <!-- Nút xuất báo cáo -->
-            <button class="btn-primary" onclick="window.print()">
-              <span>Export</span> 📤
+              Chế độ: AUTO
             </button>
           </div>
         </section>
 
-        <!-- ============================================================
-             ROW 1: THỜI TIẾT, GAUGE ĐỘ ẨM 3 VÙNG & 2 KPI CARDS
-             ============================================================ -->
-        <section class="grid-row-1">
+        <!-- VIEW 1: DASHBOARD (TỔNG QUAN) -->
+        <div class="view-panel active" id="view-dashboard">
 
-          <!-- CARD 1: THỜI TIẾT THỰC TẾ & VI KHÍ HẬU -->
-          <div class="card weather-card">
-            <div class="weather-location-row">
-              <span class="location-badge">📍 Cầu Đất - Đà Lạt</span>
-              <div class="unit-toggle" id="unitToggle" title="Chuyển đổi độ C / độ F">
-                <div class="unit-opt active" data-unit="C">C</div>
-                <div class="unit-opt" data-unit="F">F</div>
+          <!-- ============================================================
+               BẢN ĐỒ PHÂN KHU ĐỊA HÌNH VỆ TINH (SATELLITE TOPOGRAPHIC MAP)
+               ============================================================ -->
+          <div class="card map-card-container">
+            <div class="card-header" style="margin-bottom: 8px;">
+              <div class="card-title" id="mapTitleText">
+                Bản Đồ Phân Khu Vệ Tinh & Độ Dốc Địa Hình (Cầu Đất - Đà Lạt)
               </div>
+              <div class="card-badge-status active">Thời gian thực</div>
             </div>
 
-            <div class="weather-main-row">
-              <div class="weather-temp-block">
-                <div class="weather-day">Thứ Hai</div>
-                <div class="weather-date">19 Th10, 2026</div>
-                <div class="weather-temp-big" id="curWeatherTemp">22°C</div>
-                <div class="weather-high-low" id="curWeatherHighLow">Cao: 25°C  Thấp: 15°C</div>
-              </div>
+            <!-- Khung ảnh bản đồ vệ tinh & các lớp SVG phân khu -->
+            <div class="satellite-map-box" id="mapBox">
+              <!-- Ảnh nền chụp từ trên cao -->
+              <img src="assets/farm_field.jpg" alt="Bản đồ địa hình vệ tinh" class="map-bg-image" id="mapBgImg">
 
-              <div class="weather-icon-block">
-                <div class="weather-big-icon" id="curWeatherIcon">⛅</div>
-                <div class="weather-condition-text" id="curWeatherDesc">Mây rải rác</div>
-                <div class="weather-feels" id="curWeatherFeels">Cảm giác như 23°C</div>
-              </div>
-            </div>
+              <!-- Lớp SVG vẽ 3 phân khu theo độ cao dốc & đường nước chảy -->
+              <svg class="map-svg-overlay" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                <!-- Đường đồng mức độ cao (Elevation Contours) -->
+                <path d="M 0 140 Q 500 130 1000 150" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+                <path d="M 0 260 Q 500 250 1000 270" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
 
-            <!-- Vi khí hậu thực tế tại vườn (từ cảm biến DHT22 trên ESP32) -->
-            <div class="microclimate-strip">
-              <div class="microclimate-item">
-                🌡️ Vườn: <strong id="gardenTemp">24.5°C</strong>
-              </div>
-              <div class="microclimate-item">
-                💧 Độ ẩm KK: <strong id="gardenHum">68.0%</strong>
-              </div>
-              <div class="microclimate-item">
-                🏔️ Độ cao: <strong>1,550m</strong>
-              </div>
-            </div>
+                <!-- VÙNG 1 (Z1 - Đỉnh dốc / 1,630m): Tầng trên cùng -->
+                <polygon id="polyZone1" class="map-zone-polygon moist-optimal" points="0,0 1000,0 1000,140 0,140" />
 
-            <!-- Quyết định hoãn tưới 3 giờ tới -->
-            <div id="rainDecisionBadge" style="margin-top: 10px;">
-              <span class="preset-badge normal">☀️ Nắng ráo: Tưới bình thường</span>
-            </div>
-          </div>
+                <!-- VÙNG 2 (Z2 - Sườn dốc 25° / 1,560m): Tầng giữa -->
+                <polygon id="polyZone2" class="map-zone-polygon moist-optimal" points="0,140 1000,140 1000,260 0,260" />
 
-          <!-- CARD 2: GAUGE VÒNG CUNG ĐỘ ẨM ĐẤT 3 VÙNG DỐC (Production Overview Style) -->
-          <div class="card gauge-card">
-            <div class="card-header" style="width: 100%;">
-              <div class="card-title">Độ Ẩm Đất 3 Vùng Dốc</div>
-              <span class="card-action">Thời gian thực ▾</span>
-            </div>
+                <!-- VÙNG 3 (Z3 - Vùng trũng thung lũng / 1,500m): Tầng đáy lòng chảo -->
+                <polygon id="polyZone3" class="map-zone-polygon moist-optimal" points="0,260 1000,260 1000,400 0,400" />
 
-            <!-- Semicircle SVG Gauge -->
-            <div class="gauge-visual-container">
-              <svg class="semicircle-svg" viewBox="0 0 200 110">
-                <!-- Nền nửa vòng tròn mờ -->
-                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16" stroke-linecap="round"/>
-                <!-- Vòng cung Z3 (Xanh lam - Vùng trũng) -->
-                <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7" stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3"/>
-                <!-- Vòng cung Z2 (Tím - Sườn đồi) -->
-                <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3"/>
-                <!-- Vòng cung Z1 (Xanh lá - Đỉnh đồi) -->
-                <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a" stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3"/>
+                <!-- Mũi tên uốn lượn thể hiện hướng nước ngấm dồn từ đỉnh Z1 -> Sườn Z2 -> Vùng trũng Z3 -->
+                <path class="slope-runoff-arrow" d="M 850 70 Q 820 180 870 330" marker-end="url(#arrowhead)"/>
               </svg>
 
-              <div class="gauge-center-info">
-                <div class="gauge-center-value" id="gaugeCenterVal">52%</div>
-                <div class="gauge-center-label">Độ ẩm trung bình</div>
-              </div>
-            </div>
-
-            <!-- Chú thích 3 vùng -->
-            <div class="gauge-zones-legend">
-              <div class="legend-pill">
-                <span class="legend-dot z1"></span>
-                <span id="legendZ1Val">Z1: 38%</span>
-                <span style="font-size:10px; color:#94a3b8;">(Đỉnh đồi)</span>
-              </div>
-              <div class="legend-pill">
-                <span class="legend-dot z2"></span>
-                <span id="legendZ2Val">Z2: 52%</span>
-                <span style="font-size:10px; color:#94a3b8;">(Sườn đồi)</span>
-              </div>
-              <div class="legend-pill">
-                <span class="legend-dot z3"></span>
-                <span id="legendZ3Val">Z3: 68%</span>
-                <span style="font-size:10px; color:#94a3b8;">(Vùng trũng)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- TOP-RIGHT STACK: 2 KPI STAT CARDS -->
-          <div class="kpi-stack">
-            <!-- KPI 1: Trạng thái FSM -->
-            <div class="card kpi-card">
-              <div class="kpi-header">
-                <span class="kpi-label">Trạng Thái Hệ Thống (FSM)</span>
-                <div class="kpi-icon-wrap green">⚙️</div>
-              </div>
-              <div class="kpi-value-row">
-                <div class="kpi-fsm-badge" id="kpiFsmState" style="background:#dcfce7; color:#16a34a;">
-                  S1_MONITOR
+              <!-- MARKERS: VỊ TRÍ CẢM BIẾN VÀ BƠM PHÂN BỔ TRÊN BẢN ĐỒ -->
+              <!-- Zone 1 (Đỉnh dốc: 20% từ trên xuống) -->
+              <div class="map-marker" style="top: 18%; left: 30%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor1"></span>
+                  <span id="lblSensor1">Cảm biến S1: 38%</span>
                 </div>
-                <div style="font-size: 11px; color: #64748b; margin-top: 4px;" id="kpiFsmReason">
-                  Giám sát ổn định - Core 1 decide()
+                <div class="pump-badge off" id="pumpBadge1" data-zone="1">
+                  <span id="lblPump1">Bơm P1: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple1" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Zone 2 (Sườn dốc: 50% từ trên xuống) -->
+              <div class="map-marker" style="top: 50%; left: 55%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor2"></span>
+                  <span id="lblSensor2">Cảm biến S2: 52%</span>
+                </div>
+                <div class="pump-badge off" id="pumpBadge2" data-zone="2">
+                  <span id="lblPump2">Bơm P2: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple2" style="display:none;"></div>
+                </div>
+              </div>
+
+              <!-- Zone 3 (Vùng trũng thung lũng: 80% từ trên xuống) -->
+              <div class="map-marker" style="top: 80%; left: 40%;">
+                <div class="sensor-badge">
+                  <span class="sensor-dot-state optimal" id="dotSensor3"></span>
+                  <span id="lblSensor3">Cảm biến S3: 68%</span>
+                </div>
+                <div class="pump-badge off" id="pumpBadge3" data-zone="3">
+                  <span id="lblPump3">Bơm P3: TẮT</span>
+                  <div class="water-spray-ripple" id="ripple3" style="display:none;"></div>
                 </div>
               </div>
             </div>
 
-            <!-- KPI 2: Nước tiết kiệm -->
-            <div class="card kpi-card">
-              <div class="kpi-header">
-                <span class="kpi-label">Lượng Nước Tiết Kiệm</span>
-                <div class="kpi-icon-wrap purple">💧</div>
-              </div>
-              <div class="kpi-value-row">
-                <div class="kpi-value">42.5%</div>
-                <div class="kpi-badge-trend">
-                  <span>▲ +12.8%</span>
-                  <span style="color:#64748b; font-weight:normal;">nhờ hoãn tưới đón mưa</span>
+            <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) -->
+            <div class="map-legend-bar">
+              <div class="legend-group">
+                <span style="font-weight: 700; color: var(--text-main);">Trạng thái đất:</span>
+                <div class="legend-item">
+                  <span class="legend-color-box optimal"></span>
+                  <span>Đủ ẩm (Tối ưu)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color-box dry"></span>
+                  <span>Khô cằn (Cần tưới)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color-box flood"></span>
+                  <span>Nguy cơ ngập úng</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-        </section>
-
-        <!-- ============================================================
-             ROW 2: BIỂU ĐỒ LỊCH SỬ & THẺ HÌNH ẢNH NÔNG TRƯỜNG DỐC
-             ============================================================ -->
-        <section class="grid-row-2">
-
-          <!-- CARD LEFT: BIỂU ĐỒ ĐỘ ẨM & LƯỢNG MƯA DỰ BÁO (Monthly Yield Analysis style) -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Biểu Đồ Độ Ẩm 3 Vùng & Lượng Mưa Dự Báo</div>
-              <div class="chart-filters">
-                <button class="filter-btn active">24 Giờ</button>
-                <button class="filter-btn">3 Giờ tới</button>
-                <button class="filter-btn">7 Ngày</button>
-              </div>
-            </div>
-
-            <div class="chart-container-box">
-              <canvas id="yieldChart"></canvas>
-            </div>
-          </div>
-
-          <!-- CARD RIGHT: HÌNH ẢNH NÔNG TRƯỜNG & ĐẶC TÍNH ĐỊA HÌNH (Corn Field style) -->
-          <div class="card field-card">
-            <div class="field-img-container">
-              <img src="assets/farm_field.jpg" alt="Nông trường Cầu Đất">
-              <div class="field-img-overlay">🌲 Nông Trường Cầu Đất - Đà Lạt</div>
-            </div>
-
-            <div class="field-body">
-              <div class="field-header-row">
-                <div class="field-title">Khay Đất Địa Hình Dốc 3 Vùng</div>
-                <span class="card-action">Chi Tiết Digital Twin ></span>
-              </div>
-
-              <!-- Bảng thông số kỹ thuật địa hình -->
-              <div class="field-specs-grid">
-                <div class="spec-item">
-                  <span class="spec-label">Độ Dốc</span>
-                  <span class="spec-val">25° Nghiêng</span>
+              <div class="legend-group">
+                <span style="font-weight: 700; color: var(--text-main);">Thiết bị:</span>
+                <div class="legend-item">
+                  <span class="legend-color-box pump-on"></span>
+                  <span>Bơm đang bật (Phun nước)</span>
                 </div>
-                <div class="spec-item">
-                  <span class="spec-label">Cơ Chế Ngấm</span>
-                  <span class="spec-val">Soak-Wait 120s</span>
+                <div class="legend-item">
+                  <span class="legend-color-box pump-off"></span>
+                  <span>Bơm tắt</span>
                 </div>
-                <div class="spec-item">
-                  <span class="spec-label">Bảo Vệ Z3</span>
-                  <span class="spec-val">Chống Ngập Úng</span>
+                <div class="legend-item" style="color: #0284c7; font-weight: 600;">
+                  <span>⇣ Mũi tên: Hướng nước ngấm theo dốc</span>
                 </div>
               </div>
             </div>
           </div>
 
-        </section>
+          <!-- ============================================================
+               ROW 1: THỜI TIẾT THỰC TẾ & 2 THẺ CHỈ SỐ KPI
+               ============================================================ -->
+          <section class="grid-row-1">
 
-        <!-- ============================================================
-             ROW 3: STUDIO KIỂM THỬ (TASK) & DỰ BÁO 7 NGÀY / 3H
-             ============================================================ -->
-        <section class="grid-row-3">
+            <!-- CARD 1: THỜI TIẾT HIỆN TẠI & VI KHÍ HẬU VƯỜN -->
+            <div class="card weather-card">
+              <div class="weather-location-row">
+                <span class="location-badge" id="weatherLocationBadge">Cầu Đất - Đà Lạt</span>
+                <div class="unit-toggle" id="unitToggle">
+                  <div class="unit-opt active" data-unit="C">C</div>
+                  <div class="unit-opt" data-unit="F">F</div>
+                </div>
+              </div>
 
-          <!-- CARD LEFT: STUDIO KIỂM THỬ & TIÊM KỊCH BẢN (Task Management style) -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🧪 Studio Kiểm Thử & Tiêm Kịch Bản Mô Phỏng</div>
-              <span class="preset-badge normal" id="systemModeBadge">AUTO</span>
+              <div class="weather-main-row">
+                <div>
+                  <div style="font-size: 16px; font-weight: 700;" id="curDayText">Thứ Hai</div>
+                  <div style="font-size: 12px; color: var(--text-muted);" id="curDateText">19 Th10, 2026</div>
+                  <div class="weather-temp-big" id="curWeatherTemp">22°C</div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="curWeatherHighLow">
+                    Cao: 25°C • Thấp: 15°C
+                  </div>
+                </div>
+
+                <div style="text-align: center;">
+                  <div style="font-size: 42px; line-height: 1;" id="curWeatherIcon">⛅</div>
+                  <div style="font-size: 13px; font-weight: 600; margin-top: 4px;" id="curWeatherDesc">Mây rải rác</div>
+                  <div style="font-size: 11px; color: var(--text-muted);" id="curWeatherFeels">Cảm giác như 23°C</div>
+                </div>
+              </div>
+
+              <!-- Vi khí hậu thực tế tại vườn (từ cảm biến DHT22 trên ESP32) -->
+              <div class="microclimate-strip">
+                <div class="microclimate-item">
+                  Nhiệt độ vườn: <strong id="gardenTemp">--°C</strong>
+                </div>
+                <div class="microclimate-item">
+                  Độ ẩm không khí: <strong id="gardenHum">--%</strong>
+                </div>
+                <div class="microclimate-item">
+                  Độ cao: <strong id="gardenElevation">1,550m</strong>
+                </div>
+              </div>
+
+              <!-- Quyết định hoãn tưới 3 giờ tới -->
+              <div id="rainDecisionBadge" style="margin-top: 10px;">
+                <span class="preset-badge normal">Đang nạp dữ liệu dự báo...</span>
+              </div>
             </div>
 
-            <div class="table-container">
-              <table class="custom-table">
-                <thead>
-                  <tr>
-                    <th>Kịch Bản Test</th>
-                    <th>Mục Tiêu Thử Nghiệm</th>
-                    <th>Hiện Tượng Kỳ Vọng</th>
-                    <th style="text-align: right;">Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- W0 -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge sun">W0 - Nắng Ráo</span>
-                    </td>
-                    <td>P_eff = 0mm</td>
-                    <td>Z1 khô -> Bơm tự bật theo xung 20s</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button>
-                    </td>
-                  </tr>
+            <!-- CARD 2: GAUGE ĐỘ ẨM VÒNG CUNG 3 VÙNG (KHÔNG DROPDOWN GIẢ) -->
+            <div class="card" style="align-items: center; text-align: center; justify-content: space-between;">
+              <div class="card-header" style="width: 100%;">
+                <div class="card-title">Độ Ẩm Đất 3 Vùng Dốc</div>
+                <div class="card-badge-status active">Cảm biến ADC1</div>
+              </div>
 
-                  <!-- W1 -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge rain">W1 - Mưa Dông Lớn</span>
-                    </td>
-                    <td>P_max 85%, P_eff 15mm</td>
-                    <td>Kích hoạt S3_RAIN_DELAY (Hoãn tưới)</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button>
-                    </td>
-                  </tr>
+              <!-- Semicircle SVG Gauge -->
+              <div style="position: relative; width: 220px; height: 110px; margin: 4px auto 0;">
+                <svg viewBox="0 0 200 110" style="width: 220px; height: 110px; overflow: visible;">
+                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16" stroke-linecap="round"/>
+                  <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7" stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3"/>
+                  <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3"/>
+                  <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a" stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3"/>
+                </svg>
 
-                  <!-- W2 -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge rain">W2 - Mưa Phùn Nhẹ</span>
-                    </td>
-                    <td>P_eff = 2.0mm</td>
-                    <td>Không đủ thấm -> Bỏ qua, vẫn tưới</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button>
-                    </td>
-                  </tr>
+                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center;">
+                  <div style="font-size: 26px; font-weight: 800; color: var(--text-main);" id="gaugeCenterVal">52%</div>
+                  <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Độ ẩm trung bình</div>
+                </div>
+              </div>
 
-                  <!-- D1 -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge fault">D1 - Đứt Cảm Biến</span>
-                    </td>
-                    <td>Hỏng ADC1 Zone 1</td>
-                    <td>Khóa van an toàn khẩn cấp S99_SAFE</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button>
-                    </td>
-                  </tr>
-
-                  <!-- D2 -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge fault">D2 - Kẹt Van Bơm</span>
-                    </td>
-                    <td>Mô phỏng hỏng bơm</td>
-                    <td>Cảnh báo kẹt van PUMP_JAM</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button>
-                    </td>
-                  </tr>
-
-                  <!-- RESET -->
-                  <tr>
-                    <td>
-                      <span class="preset-badge normal">Khôi Phục Hệ Thống</span>
-                    </td>
-                    <td>Reset toàn bộ cờ lỗi</td>
-                    <td>Hệ thống trở về S1_MONITOR ổn định</td>
-                    <td style="text-align: right;">
-                      <button class="btn-action-sm" data-preset="RESET" style="color:#16a34a; border-color:#16a34a;">Khôi Phục 🔄</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- CARD RIGHT: DỰ BÁO THỜI TIẾT 7 NGÀY (Vegetable Harvest Summary style) -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Dự Báo Thời Tiết 7 Ngày (Open-Meteo)</div>
-              <span class="card-action">Cầu Đất ▾</span>
+              <div style="display: flex; gap: 12px; margin-top: 10px; justify-content: center; flex-wrap: wrap;">
+                <span id="legendZ1Val" style="font-size: 12px; font-weight: 600; color: var(--primary);">Z1: 38% (Đỉnh)</span>
+                <span id="legendZ2Val" style="font-size: 12px; font-weight: 600; color: var(--purple);">Z2: 52% (Sườn)</span>
+                <span id="legendZ3Val" style="font-size: 12px; font-weight: 600; color: var(--blue);">Z3: 68% (Trũng)</span>
+              </div>
             </div>
 
-            <!-- Danh sách 7 ngày được nạp động từ Open-Meteo -->
-            <div class="forecast-list" id="forecastListContainer">
-              <!-- Placeholder trong khi tải dữ liệu -->
-              <div class="forecast-item">
-                <div class="forecast-item-left">
-                  <div class="forecast-icon-circle">⛅</div>
-                  <div>
-                    <div class="forecast-day-title">Đang kết nối Open-Meteo...</div>
-                    <div class="forecast-day-sub">Tọa độ 11.85°N, 108.53°E</div>
+            <!-- CARD 3: 2 THẺ CHỈ SỐ KPI -->
+            <div class="kpi-stack">
+              <div class="card kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-label">Trạng Thái Hệ Thống (FSM)</span>
+                  <span style="font-size: 18px;">⚙️</span>
+                </div>
+                <div style="margin-top: 8px;">
+                  <div class="kpi-fsm-badge" id="kpiFsmState" style="background:#dcfce7; color:#16a34a;">
+                    S1_MONITOR
+                  </div>
+                  <div style="font-size: 11px; color: #64748b; margin-top: 4px;" id="kpiFsmReason">
+                    Giám sát ổn định • decide() Core 1
+                  </div>
+                </div>
+              </div>
+
+              <div class="card kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-label">Lượng Nước Tiết Kiệm</span>
+                  <span style="font-size: 18px;">💧</span>
+                </div>
+                <div style="margin-top: 8px;">
+                  <div style="font-size: 26px; font-weight: 800; color: var(--text-main);">42.5%</div>
+                  <div style="font-size: 11px; color: var(--primary); font-weight: 700; margin-top: 2px;">
+                    ▲ +12.8% nhờ hoãn tưới đón mưa
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-        </section>
+          </section>
+
+          <!-- ============================================================
+               ROW 2: BIỂU ĐỒ LỊCH SỬ & DỰ BÁO THỜI TIẾT 7 NGÀY
+               ============================================================ -->
+          <section class="grid-row-2">
+            <!-- BIỂU ĐỒ CHART.JS -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Biểu Đồ Độ Ẩm 3 Vùng & Lượng Mưa Dự Báo</div>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn-action-sm" id="btnFilter24h">24 Giờ</button>
+                  <button class="btn-action-sm" id="btnFilter3h">3 Giờ tới</button>
+                </div>
+              </div>
+              <div style="width: 100%; height: 240px;">
+                <canvas id="yieldChart"></canvas>
+              </div>
+            </div>
+
+            <!-- DỰ BÁO 7 NGÀY -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Dự Báo Thời Tiết 7 Ngày (Open-Meteo)</div>
+                <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất</span>
+              </div>
+              <div class="forecast-list" id="forecastListContainer">
+                <div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                  Đang đồng bộ dữ liệu Open-Meteo API...
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div> <!-- HẾT VIEW DASHBOARD -->
+
+        <!-- VIEW 2: MAP TOÀN MÀN HÌNH -->
+        <div class="view-panel" id="view-map">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Bản Đồ Địa Hình Phân Khu Chi Tiết (Full View)</div>
+              <span class="card-badge-status active">Điều khiển trực tiếp trên bản đồ</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              Bấm trực tiếp vào các nút Bơm (P1, P2, P3) trên bản đồ để đóng/ngắt van trong chế độ MANUAL.
+            </p>
+            <div id="fullMapMount">
+              <!-- Sẽ được di chuyển hoặc clone từ map chính -->
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 3: DỰ BÁO THỜI TIẾT CHI TIẾT -->
+        <div class="view-panel" id="view-weather">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Dự Báo Khí Tượng Chi Tiết (Nông Trường Cầu Đất)</div>
+            </div>
+            <div id="detailedWeatherContainer" style="font-size: 14px;">
+              <!-- Nội dung chi tiết thời tiết -->
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 4: STUDIO KIỂM THỬ KỊCH BẢN (TESTING STUDIO) -->
+        <div class="view-panel" id="view-simulation">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Studio Kiểm Thử Kịch Bản & Tiêm Lỗi (Testing Studio)</div>
+              <span class="preset-badge normal" id="simViewModeBadge">Chế độ: AUTO</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              Bấm nút <strong>"Chạy Ngay ⚡"</strong> để gửi lệnh qua MQTT trực tiếp tới vi điều khiển ESP32 và quan sát phản xạ của thuật toán <code>decide()</code>.
+            </p>
+
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Kịch Bản Thử Nghiệm</th>
+                  <th>Tham Số Đầu Vào</th>
+                  <th>Phản Xạ Kỳ Vọng Của Hệ Thống</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="preset-badge sun">W0 - Nắng Ráo</span></td>
+                  <td>P_eff = 0mm</td>
+                  <td>Kích hoạt chu trình tưới tuần tự Z1 -> Z2 -> Z3</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button></td>
+                </tr>
+                <tr>
+                  <td><span class="preset-badge rain">W1 - Mưa Dông Lớn</span></td>
+                  <td>P_max 85%, P_eff 15mm</td>
+                  <td>Kích hoạt S3_RAIN_DELAY (Lập tức ngắt bơm hoãn tưới)</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button></td>
+                </tr>
+                <tr>
+                  <td><span class="preset-badge rain">W2 - Mưa Phùn Nhẹ</span></td>
+                  <td>P_eff = 2.0mm</td>
+                  <td>Lượng mưa không đủ thấm -> Bỏ qua, tiếp tục tưới</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button></td>
+                </tr>
+                <tr>
+                  <td><span class="preset-badge fault">D1 - Đứt Dây Cảm Biến</span></td>
+                  <td>Hỏng ADC1 Zone 1</td>
+                  <td>Kích hoạt còi báo, khóa van khẩn cấp S99_SAFE</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button></td>
+                </tr>
+                <tr>
+                  <td><span class="preset-badge fault">D2 - Kẹt Van Bơm</span></td>
+                  <td>Mô phỏng hỏng bơm</td>
+                  <td>Cảnh báo kẹt van PUMP_JAM</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button></td>
+                </tr>
+                <tr>
+                  <td><span class="preset-badge normal">Khôi Phục Hệ Thống</span></td>
+                  <td>Xóa cờ lỗi RESET</td>
+                  <td>Phục hồi về trạng thái S1_MONITOR bình thường</td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="RESET" style="color:var(--primary); border-color:var(--primary);">Khôi Phục 🔄</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- VIEW 5: CẤU HÌNH NGƯỠNG -->
+        <div class="view-panel" id="view-settings">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Cấu Hình Ngưỡng Độ Ẩm Từng Vùng Dốc</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px;">
+              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+                <h4 style="color: var(--primary); margin-bottom: 8px;">Vùng 1 (Đỉnh đồi)</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Đất khô nhanh nhất, thoát nước mạnh.</p>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Ngưỡng khô (Bật bơm):</span><strong>40%</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                  <span>Ngưỡng đủ (Tắt bơm):</span><strong>60%</strong>
+                </div>
+              </div>
+
+              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+                <h4 style="color: var(--purple); margin-bottom: 8px;">Vùng 2 (Sườn đồi)</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Độ dốc 25°, thời gian ngấm trung bình.</p>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Ngưỡng khô:</span><strong>40%</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                  <span>Ngưỡng đủ:</span><strong>60%</strong>
+                </div>
+              </div>
+
+              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+                <h4 style="color: var(--blue); margin-bottom: 8px;">Vùng 3 (Thung lũng)</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Hứng nước dồn xuống, cần chống ngập úng.</p>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Ngưỡng khô:</span><strong>35%</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+                  <span>Ngưỡng đủ:</span><strong>55%</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--red);">
+                  <span>Báo động ngập úng:</span><strong>> 80%</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </main>
     </div>
 
   </div>
 
-  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Javascript Modules -->
+  <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/weather_service.js"></script>
   <script src="js/mqtt_client.js"></script>

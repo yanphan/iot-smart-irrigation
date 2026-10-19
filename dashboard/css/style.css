@@ -1,29 +1,24 @@
 /* ============================================================
-   style.css - Design System phỏng theo phong cách FarmVista
-   Hệ thống tưới thông minh Smart Irrigation G11 (Cầu Đất - Đà Lạt)
+   style.css - Smart Agriculture Dashboard (IrrigVista G11)
+   Phong cách FarmVista: Tối giản, hiện đại, không lạm dụng icon
+   Hỗ trợ Bản đồ phân khu vệ tinh & 2 Khu vực Thực tế / Mô phỏng
    ============================================================ */
 
 :root {
-  /* Bảng màu chính - Lush Farm Green */
   --primary: #16a34a;
   --primary-hover: #15803d;
   --primary-light: #f0fdf4;
   --primary-border: #bbf7d0;
-  --primary-dark: #14532d;
 
-  /* Màu thứ cấp & điểm nhấn */
-  --purple: #8b5cf6;
-  --purple-light: #f5f3ff;
   --blue: #0284c7;
   --blue-light: #e0f2fe;
-  --amber: #f59e0b;
-  --amber-light: #fef3c7;
-  --red: #ef4444;
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --amber: #ea580c; /* Cam khô hạn */
+  --amber-light: #ffedd5;
+  --red: #ef4444; /* Đỏ ngập úng */
   --red-light: #fee2e2;
-  --teal: #0d9488;
-  --teal-light: #ccfbf1;
 
-  /* Bảng màu trung tính (Neutral Slate) */
   --bg-page: #f8fafc;
   --bg-card: #ffffff;
   --border-card: #f1f5f9;
@@ -32,24 +27,19 @@
   --text-muted: #64748b;
   --text-light: #94a3b8;
 
-  /* Đổ bóng (Shadows) */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
   --shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
 
-  /* Bo góc (Radius) */
   --radius-xl: 20px;
   --radius-lg: 14px;
   --radius-md: 10px;
   --radius-sm: 6px;
   --radius-full: 9999px;
 
-  /* Khoảng cách & Kích thước */
   --sidebar-width: 250px;
   --topbar-height: 72px;
 }
 
-/* Reset cơ bản */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -57,7 +47,7 @@
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-page);
   color: var(--text-main);
   line-height: 1.5;
@@ -65,14 +55,13 @@ body {
   overflow-x: hidden;
 }
 
-/* Bố cục ứng dụng (Layout Structure) */
 .app-container {
   display: flex;
   min-height: 100vh;
 }
 
 /* ------------------------------------------------------------
-   1. SIDEBAR (Thanh điều hướng bên trái)
+   1. SIDEBAR
    ------------------------------------------------------------ */
 .sidebar {
   width: var(--sidebar-width);
@@ -85,7 +74,6 @@ body {
   bottom: 0;
   left: 0;
   z-index: 40;
-  transition: all 0.3s ease;
 }
 
 .sidebar-header {
@@ -113,7 +101,7 @@ body {
   justify-content: center;
   color: #ffffff;
   font-size: 20px;
-  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
 }
 
 .brand-title {
@@ -143,7 +131,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow-y: auto;
 }
 
 .nav-item {
@@ -158,6 +145,7 @@ body {
   font-weight: 500;
   transition: all 0.2s ease;
   position: relative;
+  cursor: pointer;
 }
 
 .nav-item:hover {
@@ -183,8 +171,8 @@ body {
 }
 
 .nav-icon {
-  font-size: 18px;
-  width: 22px;
+  font-size: 17px;
+  width: 20px;
   display: flex;
   justify-content: center;
 }
@@ -195,7 +183,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   2. MAIN CONTENT & TOPBAR (Khung chính)
+   2. MAIN WRAPPER & TOPBAR
    ------------------------------------------------------------ */
 .main-wrapper {
   flex: 1;
@@ -226,13 +214,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 8px 16px;
-  width: 360px;
-  transition: border-color 0.2s ease;
-}
-
-.search-container:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+  width: 320px;
 }
 
 .search-container input {
@@ -243,14 +225,45 @@ body {
   width: 100%;
 }
 
-.search-container input::placeholder {
-  color: var(--text-light);
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+}
+
+/* Bộ chọn 2 khu vực địa hình (Real vs Simulation) */
+.area-switcher {
+  display: flex;
+  background-color: #f1f5f9;
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.area-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.area-btn.active {
+  background-color: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.area-btn.active.real {
+  color: var(--primary);
+}
+
+.area-btn.active.sim {
+  color: var(--amber);
 }
 
 .mqtt-status-pill {
@@ -283,47 +296,16 @@ body {
   animation: pulse-green 2s infinite;
 }
 
-.icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  color: var(--text-main);
-  transition: all 0.2s ease;
-}
-
-.icon-btn:hover {
-  background-color: #f8fafc;
-}
-
-.badge-dot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--primary);
-}
-
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 4px 8px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: linear-gradient(135deg, #10b981, #047857);
   display: flex;
@@ -331,19 +313,13 @@ body {
   justify-content: center;
   color: #ffffff;
   font-weight: 700;
-  font-size: 14px;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
+  font-size: 13px;
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-main);
-  line-height: 1.2;
 }
 
 .user-role {
@@ -352,13 +328,24 @@ body {
 }
 
 /* ------------------------------------------------------------
-   3. CONTENT AREA & GREETING HEADER
+   3. CONTENT AREA & VIEWS
    ------------------------------------------------------------ */
 .content-area {
   padding: 28px 32px 48px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+/* Quản lý các View chuyển tab */
+.view-panel {
+  display: none;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.view-panel.active {
+  display: flex;
 }
 
 .page-header {
@@ -400,39 +387,15 @@ body {
   font-weight: 600;
   color: var(--text-main);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .dropdown-pill:hover {
   background-color: #f8fafc;
 }
 
-.btn-primary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  background-color: var(--primary);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
 /* ------------------------------------------------------------
-   4. GRID SYSTEM (Bố cục Card phỏng theo FarmVista)
+   4. CARDS CHUNG
    ------------------------------------------------------------ */
-
-/* Card cơ bản */
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -442,11 +405,6 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-hover);
 }
 
 .card-header {
@@ -460,30 +418,231 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-main);
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.card-action {
+.card-badge-status {
   font-size: 12px;
   font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background-color: #f1f5f9;
   color: var(--text-muted);
-  background: #f8fafc;
+}
+
+.card-badge-status.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+/* ------------------------------------------------------------
+   5. BẢN ĐỒ PHÂN KHU ĐỊA HÌNH VỆ TINH (SATELLITE MAP VIEW)
+   ------------------------------------------------------------ */
+.map-card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.satellite-map-box {
+  width: 100%;
+  height: 380px;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--border-subtle);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
+  background: #0f172a;
+}
+
+/* Lớp hình ảnh vệ tinh nền */
+.map-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.65) contrast(1.15);
+  transition: all 0.5s ease;
+}
+
+/* Lớp SVG đồ họa phân khu & địa hình */
+.map-svg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+/* Các phân khu (Z1, Z2, Z3) trên bản đồ */
+.map-zone-polygon {
+  stroke-width: 2.5;
+  transition: all 0.4s ease;
   cursor: pointer;
 }
 
-/* ROW 1: Thời tiết, Gauge độ ẩm đất 3 vùng, và 2 KPI Cards */
+/* Trạng thái màu sắc theo độ ẩm đất */
+.map-zone-polygon.moist-optimal {
+  fill: rgba(22, 163, 74, 0.35); /* Xanh lá: Đủ ẩm */
+  stroke: #22c55e;
+}
+
+.map-zone-polygon.moist-dry {
+  fill: rgba(234, 88, 12, 0.45); /* Cam: Khô hạn */
+  stroke: #f97316;
+}
+
+.map-zone-polygon.moist-flood {
+  fill: rgba(239, 68, 68, 0.55); /* Đỏ: Ngập úng */
+  stroke: #ef4444;
+  animation: pulse-flood 1.5s infinite;
+}
+
+/* Mũi tên hướng nước ngấm dồn theo dốc */
+.slope-runoff-arrow {
+  stroke: #38bdf8;
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+  fill: none;
+  animation: dashRunoff 1.5s linear infinite;
+}
+
+/* Các nhãn vị trí Cảm biến và Bơm nổi trên bản đồ */
+.map-marker {
+  position: absolute;
+  z-index: 20;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+/* Marker cảm biến độ ẩm */
+.sensor-badge {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.sensor-dot-state {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.sensor-dot-state.optimal { background-color: #22c55e; }
+.sensor-dot-state.dry { background-color: #f97316; }
+.sensor-dot-state.flood { background-color: #ef4444; }
+
+/* Marker máy bơm / vòi tưới */
+.pump-badge {
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Bơm TẮT: Màu xám trung tính */
+.pump-badge.off {
+  background: #334155;
+  color: #cbd5e1;
+  border: 1px solid #475569;
+}
+
+/* Bơm BẬT: Xanh dương phát sáng kèm hoạt họa sóng nước */
+.pump-badge.on {
+  background: #0284c7;
+  color: #ffffff;
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  animation: pulse-blue 1.5s infinite;
+}
+
+/* Vòng tròn sóng nước tưới */
+.water-spray-ripple {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #38bdf8;
+  opacity: 0;
+  animation: waterRipple 2s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Chú giải bản đồ (Map Legend) */
+.map-legend-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.legend-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.legend-color-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color-box.optimal { background-color: var(--primary); }
+.legend-color-box.dry { background-color: var(--amber); }
+.legend-color-box.flood { background-color: var(--red); }
+.legend-color-box.pump-on { background-color: var(--blue); }
+.legend-color-box.pump-off { background-color: #64748b; }
+
+/* ------------------------------------------------------------
+   6. GRID LAYOUTS
+   ------------------------------------------------------------ */
 .grid-row-1 {
   display: grid;
   grid-template-columns: 1.1fr 1.3fr 0.9fr;
   gap: 20px;
 }
 
-/* --- Card 1: Thời tiết thực tế & Vi khí hậu --- */
+.grid-row-2 {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+}
+
+/* Thẻ thời tiết tối giản */
 .weather-card {
   display: flex;
   flex-direction: column;
@@ -494,16 +653,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
 }
 
 .location-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   background-color: var(--primary);
   color: #ffffff;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
@@ -511,7 +666,6 @@ body {
 
 .unit-toggle {
   display: flex;
-  align-items: center;
   background-color: #f1f5f9;
   border-radius: var(--radius-full);
   padding: 2px;
@@ -528,7 +682,6 @@ body {
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
-  transition: all 0.2s ease;
 }
 
 .unit-opt.active {
@@ -540,58 +693,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0;
-}
-
-.weather-temp-block .weather-day {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.weather-temp-block .weather-date {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  margin: 12px 0;
 }
 
 .weather-temp-big {
   font-size: 40px;
   font-weight: 800;
   color: var(--text-main);
-  letter-spacing: -1px;
   line-height: 1;
-}
-
-.weather-high-low {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-.weather-icon-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.weather-big-icon {
-  font-size: 48px;
-  line-height: 1;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-}
-
-.weather-condition-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin-top: 4px;
-}
-
-.weather-feels {
-  font-size: 11px;
-  color: var(--text-muted);
 }
 
 .microclimate-strip {
@@ -602,93 +711,19 @@ body {
   border: 1px solid var(--border-card);
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  margin-top: 12px;
   font-size: 12px;
 }
 
 .microclimate-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   color: var(--text-muted);
 }
 
 .microclimate-item strong {
   color: var(--text-main);
+  margin-left: 4px;
 }
 
-/* --- Card 2: Semicircle Gauge Độ ẩm đất 3 vùng (Production Overview style) --- */
-.gauge-card {
-  align-items: center;
-  text-align: center;
-  justify-content: space-between;
-}
-
-.gauge-visual-container {
-  position: relative;
-  width: 220px;
-  height: 120px;
-  margin: 8px auto 0;
-  display: flex;
-  justify-content: center;
-}
-
-.semicircle-svg {
-  width: 220px;
-  height: 110px;
-  overflow: visible;
-}
-
-.gauge-center-info {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-}
-
-.gauge-center-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.1;
-}
-
-.gauge-center-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.gauge-zones-legend {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 12px;
-  width: 100%;
-}
-
-.legend-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.legend-dot.z1 { background-color: var(--primary); }
-.legend-dot.z2 { background-color: var(--purple); }
-.legend-dot.z3 { background-color: var(--blue); }
-
-/* --- Top-right Stack: 2 KPI Cards --- */
+/* KPI Stack */
 .kpi-stack {
   display: flex;
   flex-direction: column;
@@ -715,205 +750,19 @@ body {
   color: var(--text-muted);
 }
 
-.kpi-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.kpi-icon-wrap.green {
-  background-color: var(--primary-light);
-  color: var(--primary);
-}
-
-.kpi-icon-wrap.purple {
-  background-color: var(--purple-light);
-  color: var(--purple);
-}
-
-.kpi-value-row {
+.kpi-fsm-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
   margin-top: 6px;
 }
 
-.kpi-value {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text-main);
-  letter-spacing: -0.5px;
-}
-
-.kpi-badge-trend {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--primary);
-  margin-top: 2px;
-}
-
-.kpi-fsm-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 4px;
-}
-
-/* ------------------------------------------------------------
-   5. ROW 2: BIỂU ĐỒ LỊCH SỬ & THẺ HÌNH ẢNH NÔNG TRƯỜNG DỐC
-   ------------------------------------------------------------ */
-.grid-row-2 {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 20px;
-}
-
-/* Card biểu đồ */
-.chart-container-box {
-  width: 100%;
-  height: 230px;
-  position: relative;
-}
-
-.chart-filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-btn {
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
-  background-color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-btn.active {
-  background-color: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
-}
-
-/* Card Hình ảnh Nông trường & Địa hình dốc */
-.field-card {
-  padding: 0;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.field-img-container {
-  height: 160px;
-  position: relative;
-  overflow: hidden;
-}
-
-.field-img-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.field-card:hover .field-img-container img {
-  transform: scale(1.04);
-}
-
-.field-img-overlay {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(4px);
-  color: #ffffff;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.field-body {
-  padding: 16px 20px;
-  background-color: #ffffff;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.field-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.field-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.field-specs-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 12px;
-  background: #f8fafc;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-card);
-}
-
-.spec-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.spec-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.spec-val {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-top: 2px;
-}
-
-/* ------------------------------------------------------------
-   6. ROW 3: STUDIO KIỂM THỬ (TASK) & DỰ BÁO 7 NGÀY / 3H
-   ------------------------------------------------------------ */
-.grid-row-3 {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 20px;
-}
-
 /* Bảng Testing Studio */
-.table-container {
-  overflow-x: auto;
-  margin-top: 4px;
-}
-
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
   font-size: 13px;
 }
 
@@ -923,23 +772,17 @@ body {
   font-weight: 600;
   font-size: 12px;
   border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
 }
 
 .custom-table td {
   padding: 12px 12px;
   border-bottom: 1px solid #f1f5f9;
-  color: var(--text-main);
   vertical-align: middle;
-}
-
-.custom-table tr:hover td {
-  background-color: #f8fafc;
 }
 
 .preset-badge {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   font-size: 11px;
@@ -969,11 +812,11 @@ body {
   border-color: var(--primary);
 }
 
-/* Card Danh sách Dự báo Thời tiết (Vegetable Summary style) */
+/* Danh sách dự báo 7 ngày */
 .forecast-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .forecast-item {
@@ -984,76 +827,9 @@ body {
   border-radius: var(--radius-md);
   background: #f8fafc;
   border: 1px solid var(--border-card);
-  transition: all 0.2s ease;
 }
 
-.forecast-item:hover {
-  background-color: #ffffff;
-  box-shadow: var(--shadow-sm);
-}
-
-.forecast-item-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.forecast-icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.forecast-day-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.forecast-day-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.forecast-item-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.forecast-temp-val {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.forecast-rain-pill {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
-  margin-top: 2px;
-}
-
-.forecast-rain-pill.high {
-  background-color: var(--blue-light);
-  color: var(--blue);
-}
-
-.forecast-rain-pill.low {
-  background-color: #f1f5f9;
-  color: var(--text-muted);
-}
-
-/* ------------------------------------------------------------
-   7. MODAL VÀ TOAST NOTIFICATIONS
-   ------------------------------------------------------------ */
+/* Toast */
 .toast-container {
   position: fixed;
   bottom: 24px;
@@ -1072,69 +848,18 @@ body {
   border-left: 4px solid var(--primary);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-size: 13px;
   font-weight: 500;
-  animation: slideInRight 0.3s ease;
   min-width: 280px;
 }
 
 .toast.alert { border-left-color: var(--red); }
 .toast.warn { border-left-color: var(--amber); }
+.toast.success { border-left-color: var(--primary); }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 99;
-}
-
-.modal-overlay.active {
-  display: flex;
-}
-
-.modal-card {
-  background: #ffffff;
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  width: 90%;
-  max-width: 480px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-/* ------------------------------------------------------------
-   8. RESPONSIVE DESIGN
-   ------------------------------------------------------------ */
 @media (max-width: 1200px) {
-  .grid-row-1 {
-    grid-template-columns: 1fr 1fr;
-  }
-  .kpi-stack {
-    grid-column: span 2;
-    flex-direction: row;
-  }
-  .grid-row-2, .grid-row-3 {
+  .grid-row-1, .grid-row-2 {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-  .main-wrapper {
-    margin-left: 0;
-  }
-  .grid-row-1 {
-    grid-template-columns: 1fr;
-  }
-  .kpi-stack {
-    grid-column: span 1;
-    flex-direction: column;
   }
 }

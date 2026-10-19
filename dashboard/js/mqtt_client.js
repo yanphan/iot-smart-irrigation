@@ -6,8 +6,9 @@ class DashboardMQTTClient {
   constructor() {
     this.client = null;
     this.isConnected = false;
-    this.isStandaloneSim = false; // Chế độ chạy thử nghiệm độc lập trên Web
+    this.isStandaloneSim = false;
     this.simTimer = null;
+    this.currentArea = 'real'; // 'real' hoặc 'sim'
 
     // Callbacks đăng ký từ UI
     this.callbacks = {
@@ -19,30 +20,38 @@ class DashboardMQTTClient {
       onPump: [],
       onWeather: [],
       onAlert: [],
-      onDeviceStatus: []
+      onDeviceStatus: [],
+      onAreaChange: []
     };
 
-    // Cache dữ liệu mới nhất
+    // Cache dữ liệu (khởi tạo null để không gán số tĩnh trước khi thiết bị gửi dữ liệu)
     this.latest = {
       soil: {
         1: { moisture: 38, raw: 1550 },
         2: { moisture: 52, raw: 2130 },
         3: { moisture: 68, raw: 2780 }
       },
-      env: { temp: 24.5, hum: 68.0 },
-      state: { state: 'S1_MONITOR', mode: 'AUTO', reason: 'Do am on dinh' },
+      env: null, // Chưa có dữ liệu thực tế từ DHT22
+      state: { state: 'S1_MONITOR', mode: 'AUTO', reason: 'Hệ thống khởi động' },
       pumps: {
         1: { status: 'OFF', runTimeMs: 0 },
         2: { status: 'OFF', runTimeMs: 0 },
         3: { status: 'OFF', runTimeMs: 0 }
       },
-      weather: { maxProb: 0, effPrecip: 0.0, heavyRain: false, temp: 22.0, hum: 75.0 },
+      weather: null,
       alerts: [],
       deviceOnline: false
     };
   }
 
-  // Đăng ký sự kiện
+  setArea(areaId) {
+    if (this.currentArea !== areaId) {
+      this.currentArea = areaId;
+      this.trigger('onAreaChange', { area: CONFIG.AREAS[areaId] });
+      console.log(`[AREA] Đã chuyển khu vực làm việc: ${CONFIG.AREAS[areaId].name}`);
+    }
+  }
+
   on(event, cb) {
     if (this.callbacks[event]) {
       this.callbacks[event].push(cb);
@@ -55,26 +64,30 @@ class DashboardMQTTClient {
     }
   }
 
-  // Kết nối tới MQTT Broker qua WebSocket
   connect() {
     if (typeof mqtt === 'undefined') {
       console.error('[MQTT] Thư viện mqtt.js chưa được tải!');
+      this.trigger('onDisconnect', { error: 'Thư viện mqtt.js chưa sẵn sàng' });
       return;
     }
 
-    const { HOST, PORT, PATH, PROTOCOL, CLIENT_ID } = CONFIG.MQTT;
-    const url = `${PROTOCOL}://${HOST}:${PORT}${PATH}`;
+    // Tự động nhận diện giao thức trang web:
+    // Nếu chạy trên https:// -> dùng wss cổng 8084
+    // Nếu chạy trên http:// hoặc file:// -> dùng ws cổng 8083 để kết nối tức thì, tránh lỗi chứng chỉ SSL
+    const isHttps = (typeof window !== 'undefined' && window.location.protocol === 'https:');
+    const protocol = isHttps ? 'wss' : 'ws';
+    const port = isHttps ? 8084 : 8083;
+    const { HOST, PATH, CLIENT_ID } = CONFIG.MQTT;
+    const url = `${protocol}://${HOST}:${port}${PATH}`;
+
     console.log(`[MQTT] Đang kết nối tới Broker: ${url} (Client ID: ${CLIENT_ID})`);
 
     const options = {
       keepalive: 30,
       clientId: CLIENT_ID,
-      protocolId: 'MQTT',
-      protocolVersion: 4,
       clean: true,
       reconnectPeriod: CONFIG.MQTT.RECONNECT_INTERVAL_MS,
-      connectTimeout: 10000,
-      rejectUnauthorized: false
+      connectTimeout: 8000
     };
 
     try {
@@ -82,7 +95,7 @@ class DashboardMQTTClient {
 
       this.client.on('connect', () => {
         this.isConnected = true;
-        console.log('[MQTT] Kết nối WebSocket thành công!');
+        console.log('[MQTT] Kết nối WebSocket thành công tới ' + url);
         this.trigger('onConnect', { url, clientId: CLIENT_ID });
         this.subscribeTopics();
       });
@@ -93,6 +106,7 @@ class DashboardMQTTClient {
 
       this.client.on('error', (err) => {
         console.warn('[MQTT] Lỗi kết nối WebSocket:', err);
+        this.trigger('onDisconnect', { error: err.message || err });
       });
 
       this.client.on('close', () => {
@@ -104,6 +118,7 @@ class DashboardMQTTClient {
       });
     } catch (e) {
       console.error('[MQTT] Ngoại lệ khi tạo kết nối:', e);
+      this.trigger('onDisconnect', { error: e.message });
     }
   }
 
@@ -121,11 +136,7 @@ class DashboardMQTTClient {
     ];
 
     topics.forEach(t => {
-      this.client.subscribe(t, { qos: 1 }, (err) => {
-        if (!err) {
-          console.log(`[MQTT] Đã subscribe topic: ${t}`);
-        }
-      });
+      this.client.subscribe(t, { qos: 1 });
     });
   }
 
@@ -137,7 +148,7 @@ class DashboardMQTTClient {
       payload = payloadStr;
     }
 
-    // 1. Dữ liệu độ ẩm đất (z1/soil, z2/soil, z3/soil)
+    // 1. Độ ẩm đất (z1/soil, z2/soil, z3/soil)
     if (topic.includes('/soil')) {
       const match = topic.match(/z(\d)\/soil/);
       const zoneId = match ? parseInt(match[1]) : (payload.zone || 1);
@@ -147,7 +158,7 @@ class DashboardMQTTClient {
       this.latest.soil[zoneId] = { moisture, raw };
       this.trigger('onSoil', { zone: zoneId, moisture, raw, timestamp: new Date() });
     }
-    // 2. Vi khí hậu tại vườn (DHT22: env)
+    // 2. Vi khí hậu vườn (DHT22: env)
     else if (topic.endsWith('/env')) {
       if (typeof payload === 'object') {
         this.latest.env = payload;
@@ -169,11 +180,18 @@ class DashboardMQTTClient {
         this.trigger('onPump', payload);
       }
     }
-    // 5. Cảnh báo (alert)
+    // 5. Cảnh báo (alert) - Phân biệt giữa CẢNH BÁO LỖI và THÔNG BÁO PHỤC HỒI
     else if (topic.endsWith('/alert')) {
       if (typeof payload === 'object') {
-        this.latest.alerts.unshift({ ...payload, time: new Date() });
-        this.trigger('onAlert', payload);
+        const alertCode = payload.alert || '';
+        const isRecovered = (alertCode === 'SYSTEM_NORMAL' || alertCode.includes('RESET') || alertCode.includes('CLEAR'));
+        const alertObj = {
+          ...payload,
+          isRecovered,
+          time: new Date()
+        };
+        this.latest.alerts.unshift(alertObj);
+        this.trigger('onAlert', alertObj);
       }
     }
     // 6. Trạng thái thiết bị Online/Offline (status LWT)
@@ -182,7 +200,7 @@ class DashboardMQTTClient {
       this.latest.deviceOnline = isOnline;
       this.trigger('onDeviceStatus', { isOnline });
     }
-    // 7. Telemetry thời tiết ESP32 gửi lên
+    // 7. Telemetry thời tiết ESP32
     else if (topic.endsWith('/weather')) {
       if (typeof payload === 'object') {
         this.latest.weather = payload;
@@ -192,17 +210,13 @@ class DashboardMQTTClient {
   }
 
   // --- CÁC HÀM PUBLISH LỆNH ---
-
-  // Gửi lệnh chuyển chế độ AUTO / MANUAL
   sendMode(mode) {
     if (!this.isConnected) return false;
     const payload = JSON.stringify({ mode: mode.toUpperCase() });
     this.client.publish(CONFIG.MQTT.TOPICS.CMD_MODE, payload, { qos: 1 });
-    console.log(`[MQTT -> ESP32] Gửi lệnh đổi chế độ: ${mode}`);
     return true;
   }
 
-  // Gửi lệnh điều khiển bơm thủ công
   sendPump(zone, action, ttlSec = 600) {
     if (!this.isConnected) return false;
     const payload = JSON.stringify({
@@ -211,11 +225,9 @@ class DashboardMQTTClient {
       ttl: ttlSec
     });
     this.client.publish(CONFIG.MQTT.TOPICS.CMD_PUMP, payload, { qos: 1 });
-    console.log(`[MQTT -> ESP32] Gửi lệnh bơm Z${zone} -> ${action} (TTL: ${ttlSec}s)`);
     return true;
   }
 
-  // Gửi cập nhật ngưỡng độ ẩm
   sendThreshold(zone, dry, wet) {
     if (!this.isConnected) return false;
     const payload = JSON.stringify({
@@ -224,36 +236,29 @@ class DashboardMQTTClient {
       wet: parseInt(wet)
     });
     this.client.publish(CONFIG.MQTT.TOPICS.CMD_THRESHOLD, payload, { qos: 1 });
-    console.log(`[MQTT -> ESP32] Cập nhật ngưỡng Z${zone}: Dry=${dry}%, Wet=${wet}%`);
     return true;
   }
 
-  // Tiêm kịch bản thời tiết giả lập (W0 - W5)
   sendSimWeather(weatherObj) {
     if (!this.isConnected) return false;
     const payload = JSON.stringify(weatherObj);
     this.client.publish(CONFIG.MQTT.TOPICS.SIM_WEATHER, payload, { qos: 1 });
-    console.log('[MQTT -> ESP32] Tiêm kịch bản thời tiết:', payload);
     return true;
   }
 
-  // Tiêm mã lỗi phần cứng giả lập (D1, D2, RESET)
   sendSimFault(faultCode) {
     if (!this.isConnected) return false;
     const payload = JSON.stringify({ fault: faultCode });
     this.client.publish(CONFIG.MQTT.TOPICS.SIM_FAULT, payload, { qos: 1 });
-    console.log(`[MQTT -> ESP32] Tiêm mã lỗi phần cứng: ${faultCode}`);
     return true;
   }
 
-  // --- CHẾ ĐỘ MÔ PHỎNG ĐỘC LẬP TRÊN WEB (STANDALONE DEMO) ---
+  // --- CHẾ ĐỘ MÔ PHỎNG ĐỘC LẬP (STANDALONE SANDBOX) ---
   toggleStandaloneSim(enable) {
     this.isStandaloneSim = enable;
     if (enable) {
-      console.log('[DEMO] Đã bật chế độ mô phỏng độc lập trên Web!');
       this.startSimLoop();
     } else {
-      console.log('[DEMO] Đã tắt chế độ mô phỏng.');
       clearInterval(this.simTimer);
     }
   }
@@ -261,26 +266,52 @@ class DashboardMQTTClient {
   startSimLoop() {
     clearInterval(this.simTimer);
     this.simTimer = setInterval(() => {
-      // Mô phỏng độ ẩm biến thiên nhẹ tự nhiên
+      const isSimArea = (this.currentArea === 'sim');
+
       [1, 2, 3].forEach(z => {
         let current = this.latest.soil[z].moisture;
-        // Nếu bơm đang bật -> độ ẩm tăng, ngược lại giảm nhẹ
         const isPumping = this.latest.pumps[z].status === 'ON';
-        let delta = isPumping ? (Math.random() * 2 + 1) : -(Math.random() * 0.4);
-        let nextMoist = Math.min(95, Math.max(15, Math.round(current + delta)));
-        
+
+        let delta = 0;
+        if (isPumping) {
+          delta = Math.random() * 2.5 + 1.5; // Đang bơm -> tăng nhanh
+        } else {
+          // Khu mô phỏng (Z1 gò khô hạn bốc hơi cực nhanh)
+          if (isSimArea && z === 1) {
+            delta = -(Math.random() * 0.8 + 0.4);
+          } else if (z === 3) {
+            // Vùng trũng Z3 nhận nước ngấm từ trên dốc xuống
+            delta = (this.latest.soil[1].moisture > 60 || this.latest.soil[2].moisture > 60)
+                    ? (Math.random() * 0.5) // Nước ngấm dồn xuống
+                    : -(Math.random() * 0.2);
+          } else {
+            delta = -(Math.random() * 0.35);
+          }
+        }
+
+        let nextMoist = Math.min(98, Math.max(12, Math.round(current + delta)));
         this.latest.soil[z].moisture = nextMoist;
         this.trigger('onSoil', { zone: z, moisture: nextMoist, raw: nextMoist * 40, timestamp: new Date() });
       });
 
-      // Cập nhật vi khí hậu
-      this.latest.env.temp = +(22 + Math.sin(Date.now() / 60000) * 3).toFixed(1);
-      this.latest.env.hum = +(65 + Math.cos(Date.now() / 60000) * 8).toFixed(1);
+      // Vi khí hậu mô phỏng
+      if (isSimArea) {
+        // Vùng khô nóng mô phỏng: 35°C - 38°C, độ ẩm < 30%
+        this.latest.env = {
+          temperature: +(35.5 + Math.sin(Date.now() / 40000) * 2.5).toFixed(1),
+          humidity: +(24.0 + Math.cos(Date.now() / 50000) * 4.0).toFixed(1)
+        };
+      } else {
+        // Cầu Đất thực tế: 22°C - 25°C, độ ẩm 65% - 75%
+        this.latest.env = {
+          temperature: +(23.0 + Math.sin(Date.now() / 60000) * 2.0).toFixed(1),
+          humidity: +(68.0 + Math.cos(Date.now() / 60000) * 6.0).toFixed(1)
+        };
+      }
       this.trigger('onEnv', this.latest.env);
 
     }, 3000);
   }
 }
 
-// Khởi tạo Singleton
 const mqttClient = new DashboardMQTTClient();

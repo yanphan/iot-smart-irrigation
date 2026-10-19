@@ -5,7 +5,6 @@
 const CONFIG = {
   // Cấu hình MQTT Broker (WebSocket)
   MQTT: {
-    // EMQX Public Broker hỗ trợ WSS (cổng 8084) và WS (cổng 8083)
     HOST: 'broker.emqx.io',
     PORT: 8084,
     PATH: '/mqtt',
@@ -14,9 +13,8 @@ const CONFIG = {
     RECONNECT_INTERVAL_MS: 3000,
     TOPIC_PREFIX: 'g11/irrig/',
     
-    // Danh sách các Topics
     TOPICS: {
-      // Nhận dữ liệu Telemetry từ ESP32
+      // Telemetry từ ESP32
       SOIL_Z1: 'g11/irrig/z1/soil',
       SOIL_Z2: 'g11/irrig/z2/soil',
       SOIL_Z3: 'g11/irrig/z3/soil',
@@ -27,7 +25,7 @@ const CONFIG = {
       ALERT: 'g11/irrig/alert',
       STATUS: 'g11/irrig/status',
 
-      // Gửi lệnh điều khiển & tiêm kịch bản tới ESP32
+      // Lệnh điều khiển & tiêm kịch bản
       CMD_MODE: 'g11/irrig/cmd/mode',
       CMD_PUMP: 'g11/irrig/cmd/pump',
       CMD_THRESHOLD: 'g11/irrig/cmd/threshold',
@@ -36,57 +34,54 @@ const CONFIG = {
     }
   },
 
-  // Địa hình nông trường Cầu Đất - Đà Lạt (Độ dốc 25°, độ cao 1500m - 1630m)
+  // 2 KHU VỰC ĐỊA HÌNH (THỰC TẾ vs MÔ PHỎNG KIỂM THỬ)
   LOCATION: {
     NAME: 'Cầu Đất - Đà Lạt (Lâm Đồng)',
-    SUBTITLE: 'Nông trường chè & cà phê đồi dốc',
     LATITUDE: 11.8500,
     LONGITUDE: 108.5300,
-    ALTITUDE: 1550 // mét
+    ALTITUDE: 1550
   },
-
-  // Cấu hình 3 vùng theo độ dốc địa hình
-  ZONES: {
-    1: {
-      id: 1,
-      name: 'Vùng 1 (Z1 - Đỉnh đồi)',
-      shortName: 'Z1 - Đỉnh đồi',
-      elevation: '1,630m',
-      slope: 'Thoát nước nhanh nhất',
-      soilType: 'Đất đỏ Bazan dốc cao',
-      dryThreshold: 40,
-      wetThreshold: 60,
-      floodThreshold: 85,
-      color: '#16a34a' // Xanh lá chủ đạo
+  AREAS: {
+    real: {
+      id: 'real',
+      name: 'Khu Vực Thực Tế',
+      locationName: 'Cầu Đất - Đà Lạt (Lâm Đồng)',
+      tagline: 'Địa hình đồi dốc tự nhiên 25°, độ cao 1,500m - 1,630m',
+      climateDesc: 'Khí hậu ôn đới mát mẻ, đất đỏ bazan, có sương mù và mưa rào chiều tối',
+      lat: 11.8500,
+      lon: 108.5300,
+      baseElevation: 1550,
+      zones: {
+        1: { name: 'Vùng 1 (Đỉnh đồi)', elevation: '1,630m', slope: 'Dốc cao, thoát nước nhanh' },
+        2: { name: 'Vùng 2 (Sườn đồi)', elevation: '1,560m', slope: 'Dốc 25°, thấm trung bình' },
+        3: { name: 'Vùng 3 (Thung lũng)', elevation: '1,500m', slope: 'Vùng trũng đọng nước' }
+      }
     },
-    2: {
-      id: 2,
-      name: 'Vùng 2 (Z2 - Sườn đồi)',
-      shortName: 'Z2 - Sườn đồi',
-      elevation: '1,560m',
-      slope: 'Độ dốc trung bình 25°',
-      soilType: 'Đất mùn dốc thoải',
-      dryThreshold: 40,
-      wetThreshold: 60,
-      floodThreshold: 85,
-      color: '#8b5cf6' // Tím hoa cà
-    },
-    3: {
-      id: 3,
-      name: 'Vùng 3 (Z3 - Thung lũng)',
-      shortName: 'Z3 - Vùng trũng',
-      elevation: '1,500m',
-      slope: 'Hứng nước dồn xuống hạ lưu',
-      soilType: 'Đất trũng giữ nước lâu',
-      dryThreshold: 35,
-      wetThreshold: 55,
-      floodThreshold: 80,
-      emergencyThreshold: 25,
-      color: '#0284c7' // Xanh lam
+    sim: {
+      id: 'sim',
+      name: 'Khu Vực Mô Phỏng Kiểm Thử',
+      locationName: 'Vùng Thử Nghiệm Sandbox (Khô Nóng & Trũng Sâu)',
+      tagline: 'Khu vực thử nghiệm kịch bản khắc nghiệt: Sốc nhiệt, khô cạn đỉnh dốc & úng ngập lòng chảo',
+      climateDesc: 'Nhiệt độ cao (35°C - 38°C), độ ẩm không khí thấp (<30%), thung lũng thoát nước kém',
+      lat: 11.8500,
+      lon: 108.5300,
+      baseElevation: 800,
+      zones: {
+        1: { name: 'Vùng 1 (Gò khô hạn)', elevation: '850m', slope: 'Khô cằn, bốc hơi nước cực nhanh' },
+        2: { name: 'Vùng 2 (Dốc xói mòn)', elevation: '820m', slope: 'Đất cát khô nóng' },
+        3: { name: 'Vùng 3 (Lòng chảo trũng)', elevation: '780m', slope: 'Đáy trũng ứ nước, dễ ngập lụt' }
+      }
     }
   },
 
-  // Máy trạng thái FSM (S0 - S99)
+  // Ngưỡng độ ẩm đất mặc định
+  THRESHOLDS: {
+    1: { dry: 40, wet: 60, flood: 85 },
+    2: { dry: 40, wet: 60, flood: 85 },
+    3: { dry: 35, wet: 55, flood: 80, emergency: 25 }
+  },
+
+  // Máy trạng thái FSM
   STATES: {
     'S0_INIT': { code: 'S0_INIT', name: 'Khởi tạo', color: '#64748b', bg: '#f1f5f9' },
     'S1_MONITOR': { code: 'S1_MONITOR', name: 'Giám sát ổn định', color: '#16a34a', bg: '#dcfce7' },
