@@ -14,9 +14,11 @@
   --blue-light: #e0f2fe;
   --purple: #8b5cf6;
   --purple-light: #f5f3ff;
-  --amber: #ea580c; /* Cam khô hạn */
+  --amber: #ea580c;
+  /* Cam khô hạn */
   --amber-light: #ffedd5;
-  --red: #ef4444; /* Đỏ ngập úng */
+  --red: #ef4444;
+  /* Đỏ ngập úng */
   --red-light: #fee2e2;
 
   --bg-page: #f8fafc;
@@ -40,7 +42,9 @@
   --topbar-height: 72px;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -451,7 +455,7 @@ body {
   overflow: hidden;
   border: 1px solid var(--border-subtle);
   background: #06111f;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Lớp hình ảnh vệ tinh nền */
@@ -483,27 +487,30 @@ body {
 
 .map-zone-polygon:hover {
   stroke-width: 3.5;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
 
 /* Trạng thái màu sắc theo độ ẩm đất từng lô */
 .map-zone-polygon.moist-optimal {
-  fill: rgba(34, 197, 94, 0.32); /* Xanh lá: Đủ ẩm */
+  fill: rgba(34, 197, 94, 0.32);
+  /* Xanh lá: Đủ ẩm */
   stroke: #22c55e;
 }
 
 .map-zone-polygon.moist-dry {
-  fill: rgba(234, 88, 12, 0.42); /* Cam: Khô hạn */
+  fill: rgba(234, 88, 12, 0.42);
+  /* Cam: Khô hạn */
   stroke: #f97316;
 }
 
 .map-zone-polygon.moist-flood {
-  fill: rgba(239, 68, 68, 0.5); /* Đỏ: Ngập úng */
+  fill: rgba(239, 68, 68, 0.5);
+  /* Đỏ: Ngập úng */
   stroke: #ef4444;
   animation: pulse-flood 1.5s infinite;
 }
 
-/* Nhãn tầng cao độ bên trái bản đồ theo độ cao sườn dốc thực tế */
+/* Nhãn tầng cao độ trắc địa theo sườn dốc */
 .map-tier-badge {
   position: absolute;
   z-index: 25;
@@ -515,7 +522,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   border-left: 3px solid #38bdf8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -532,13 +539,13 @@ body {
   font-size: 11px;
   font-weight: 700;
   border-right: 3px solid #38bdf8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* Mũi tên uốn lượn thể hiện dòng ngấm tràn tự nhiên theo trọng lực từ Đỉnh Tây Bắc -> Vùng trũng ven sông Đông Nam */
+/* Mũi tên hướng nước ngấm dồn theo dốc */
 .slope-runoff-arrow {
   stroke: #38bdf8;
   stroke-width: 2.2;
@@ -548,7 +555,88 @@ body {
   filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.6));
 }
 
-/* CÁC NỐT PHẦN CỨNG IOT (CẢM BIẾN & MÁY BƠM) ĐẶT TẠI VỊ TRÍ THỰC TẾ TRÊN BẢN ĐỒ */
+/* Bảng phân tích lô đất vi mô bên dưới bản đồ */
+.plots-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.plot-tier-card {
+  background: #f8fafc;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plot-tier-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 6px;
+}
+
+.plot-tier-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.plot-tier-elev {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.sub-plot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
+
+/* ============================================================
+   VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG CỦA CẢM BIẾN (STATUS HALO)
+   - Cam: Khô hạn cần tưới
+   - Xanh: Đủ ẩm tối ưu
+   - Đỏ: Ngập úng cần xả nước
+   ============================================================ */
+.sensor-status-halo {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 15;
+  transition: all 0.5s ease;
+}
+
+.sensor-status-halo.optimal {
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.5) 0%, rgba(34, 197, 94, 0.18) 50%, rgba(34, 197, 94, 0) 75%);
+  animation: pulse-optimal-halo 3s infinite;
+}
+
+.sensor-status-halo.dry {
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.65) 0%, rgba(249, 115, 22, 0.25) 50%, rgba(249, 115, 22, 0) 75%);
+  animation: pulse-dry-halo 1.8s infinite;
+}
+
+.sensor-status-halo.flood {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.7) 0%, rgba(239, 68, 68, 0.3) 50%, rgba(239, 68, 68, 0) 75%);
+  animation: pulse-flood-halo 1.4s infinite;
+}
+
+/* NỐT PHẦN CỨNG IOT (CẢM BIẾN & MÁY BƠM) */
 .map-node {
   position: absolute;
   z-index: 20;
@@ -561,7 +649,7 @@ body {
 }
 
 .map-node:hover {
-  transform: translate(-50%, -50%) scale(1.06);
+  transform: translate(-50%, -50%) scale(1.08);
   z-index: 26;
 }
 
@@ -584,7 +672,7 @@ body {
   justify-content: center;
   color: #38bdf8;
   font-size: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .sensor-pill {
@@ -610,9 +698,20 @@ body {
   flex-shrink: 0;
 }
 
-.sensor-dot-state.optimal { background-color: #22c55e; box-shadow: 0 0 6px #22c55e; }
-.sensor-dot-state.dry { background-color: #f97316; box-shadow: 0 0 6px #f97316; }
-.sensor-dot-state.flood { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.sensor-dot-state.optimal {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.sensor-dot-state.dry {
+  background-color: #f97316;
+  box-shadow: 0 0 6px #f97316;
+}
+
+.sensor-dot-state.flood {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
 
 /* 2. CỤM MÁY BƠM & VAN TƯỚI TỰ ĐỘNG */
 .pump-node {
@@ -634,7 +733,7 @@ body {
   justify-content: center;
   color: #94a3b8;
   font-size: 13px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: all 0.25s ease;
 }
 
@@ -750,11 +849,25 @@ body {
   border-radius: 3px;
 }
 
-.legend-color-box.optimal { background-color: var(--primary); }
-.legend-color-box.dry { background-color: var(--amber); }
-.legend-color-box.flood { background-color: var(--red); }
-.legend-color-box.pump-on { background-color: var(--blue); }
-.legend-color-box.pump-off { background-color: #64748b; }
+.legend-color-box.optimal {
+  background-color: var(--primary);
+}
+
+.legend-color-box.dry {
+  background-color: var(--amber);
+}
+
+.legend-color-box.flood {
+  background-color: var(--red);
+}
+
+.legend-color-box.pump-on {
+  background-color: var(--blue);
+}
+
+.legend-color-box.pump-off {
+  background-color: #64748b;
+}
 
 /* ------------------------------------------------------------
    6. GRID LAYOUTS
@@ -918,10 +1031,25 @@ body {
   font-weight: 700;
 }
 
-.preset-badge.rain { background-color: var(--blue-light); color: var(--blue); }
-.preset-badge.sun { background-color: var(--amber-light); color: var(--amber); }
-.preset-badge.fault { background-color: var(--red-light); color: var(--red); }
-.preset-badge.normal { background-color: var(--primary-light); color: var(--primary); }
+.preset-badge.rain {
+  background-color: var(--blue-light);
+  color: var(--blue);
+}
+
+.preset-badge.sun {
+  background-color: var(--amber-light);
+  color: var(--amber);
+}
+
+.preset-badge.fault {
+  background-color: var(--red-light);
+  color: var(--red);
+}
+
+.preset-badge.normal {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
 
 .btn-action-sm {
   padding: 5px 12px;
@@ -983,12 +1111,22 @@ body {
   min-width: 280px;
 }
 
-.toast.alert { border-left-color: var(--red); }
-.toast.warn { border-left-color: var(--amber); }
-.toast.success { border-left-color: var(--primary); }
+.toast.alert {
+  border-left-color: var(--red);
+}
+
+.toast.warn {
+  border-left-color: var(--amber);
+}
+
+.toast.success {
+  border-left-color: var(--primary);
+}
 
 @media (max-width: 1200px) {
-  .grid-row-1, .grid-row-2 {
+
+  .grid-row-1,
+  .grid-row-2 {
     grid-template-columns: 1fr;
   }
 }

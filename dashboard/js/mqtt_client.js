@@ -80,7 +80,7 @@ class DashboardMQTTClient {
     const { HOST, PATH, CLIENT_ID } = CONFIG.MQTT;
     const url = `${protocol}://${HOST}:${port}${PATH}`;
 
-    console.log(`[MQTT] Đang kết nối tới Broker: ${url} (Client ID: ${CLIENT_ID})`);
+    console.log(`[MQTT] Đang kết nối tới Broker`);
 
     const options = {
       keepalive: 30,
@@ -154,7 +154,7 @@ class DashboardMQTTClient {
       const zoneId = match ? parseInt(match[1]) : (payload.zone || 1);
       const moisture = typeof payload === 'object' ? payload.moisture : parseInt(payload);
       const raw = typeof payload === 'object' ? (payload.raw || 0) : 0;
-      
+
       this.latest.soil[zoneId] = { moisture, raw };
       this.trigger('onSoil', { zone: zoneId, moisture, raw, timestamp: new Date() });
     }
@@ -282,8 +282,8 @@ class DashboardMQTTClient {
           } else if (z === 3) {
             // Vùng trũng Z3 nhận nước ngấm từ trên dốc xuống
             delta = (this.latest.soil[1].moisture > 60 || this.latest.soil[2].moisture > 60)
-                    ? (Math.random() * 0.5) // Nước ngấm dồn xuống
-                    : -(Math.random() * 0.2);
+              ? (Math.random() * 0.5) // Nước ngấm dồn xuống
+              : -(Math.random() * 0.2);
           } else {
             delta = -(Math.random() * 0.35);
           }

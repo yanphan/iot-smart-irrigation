@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,8 @@
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Chart.js & MQTT.js qua CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,6 +20,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/animations.css">
 </head>
+
 <body>
 
   <div class="app-container">
@@ -93,7 +96,8 @@
           </div>
 
           <!-- Nút bật mô phỏng dữ liệu độc lập khi chưa bật Wokwi -->
-          <button class="dropdown-pill" id="standaloneSimBtn" title="Chạy tự sinh dữ liệu kiểm thử nếu chưa mở Wokwi" style="font-size: 12px; padding: 6px 12px;">
+          <button class="dropdown-pill" id="standaloneSimBtn" title="Chạy tự sinh dữ liệu kiểm thử nếu chưa mở Wokwi"
+            style="font-size: 12px; padding: 6px 12px;">
             Mô phỏng Web: TẮT
           </button>
 
@@ -150,23 +154,24 @@
             <!-- Khung ảnh bản đồ vệ tinh & các lớp SVG phân khu -->
             <div class="satellite-map-box" id="mapBox">
               <!-- Ảnh vệ tinh trực giao trắc địa độ cao thật của Cầu Đất - Đà Lạt -->
-              <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image" id="mapBgImg">
+              <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image"
+                id="mapBgImg">
 
-              <!-- Các nhãn tầng cao độ bố trí theo sườn dốc địa hình tự nhiên (Tây Bắc -> Đông Nam) -->
+              <!-- Các nhãn tầng cao độ trắc địa theo sườn dốc tự nhiên -->
               <div class="map-tier-badge" style="top: 14px; left: 16px;">
-                ⛰️ TẦNG 1: ĐỈNH ĐỒI (1,630m)
+                ⛰️ TẦNG 1: ĐỈNH ĐỒI (1,630m - 1,650m)
               </div>
               <div class="map-tier-badge" style="top: 36%; left: 16px;">
-                🌱 TẦNG 2: SƯỜN DỐC 25° (1,560m)
+                🌱 TẦNG 2: SƯỜN DỐC 25° (1,540m - 1,590m)
               </div>
               <div class="map-tier-badge" style="top: 70%; left: 16px;">
-                🌾 TẦNG 3: VÙNG TRŨNG THUNG LŨNG (1,500m)
+                🌾 TẦNG 3: VÙNG TRŨNG (1,480m - 1,530m)
               </div>
               <div class="map-river-badge" style="bottom: 12px; right: 16px;">
-                🌊 Sông Đa Nhim & Đường DT723 (1,480m)
+                🌊 Sông Đa Nhim & Lộ DT723 (1,480m)
               </div>
 
-              <!-- Lớp SVG vẽ 6 phân khu lô đất vi mô uốn lượn tự nhiên theo sườn đồi dốc chéo -->
+              <!-- Lớp SVG đồ họa đường đồng mức và 3 tuyến dòng chảy nước tự chảy theo trọng lực -->
               <svg class="map-svg-overlay" viewBox="0 0 1000 550" preserveAspectRatio="none">
                 <defs>
                   <marker id="arrowRunoff" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -174,54 +179,44 @@
                   </marker>
                 </defs>
 
-                <!-- Đường đồng mức tự nhiên uốn lượn theo sườn dốc đồi trà (1,630m, 1,560m, 1,500m) -->
-                <path d="M 10 230 C 180 200, 320 170, 520 80 C 600 45, 680 20, 760 10" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
-                <path d="M 10 410 C 180 390, 360 360, 580 280 C 760 220, 890 160, 990 110" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
-                <path d="M 110 540 C 260 480, 460 430, 680 370 C 820 330, 910 300, 990 280" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/>
+                <!-- Đường đồng mức trắc địa đồi chè (1,630m, 1,560m, 1,500m) -->
+                <path d="M 10 230 C 180 200, 320 170, 520 80 C 600 45, 680 20, 760 10" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+                <path d="M 10 410 C 180 390, 360 360, 580 280 C 760 220, 890 160, 990 110" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+                <path d="M 110 540 C 260 480, 460 430, 680 370 C 820 330, 910 300, 990 280" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
 
-                <!-- ======================================================== -->
-                <!-- 6 LÔ CANH TÁC VI MÔ ĐA GIÁC ĐỊA HÌNH KHÔNG ĐỒNG ĐỀU     -->
-                <!-- ======================================================== -->
-                <!-- TẦNG 1 (Đỉnh đồi dốc Tây Bắc - Cao độ 1,600m - 1,630m) -->
-                <!-- Lô 1A: Chỏm đỉnh đồi cao nhất, gió lộng, thoát nước cực nhanh, cần tưới cục bộ -->
-                <polygon id="polyPlot1A" class="map-zone-polygon moist-optimal" points="20,20 435,15 390,140 220,195 20,190" />
-                <!-- Lô 1B: Dải sườn gò Đông Bắc đỉnh đồi, có bóng cây râm mát -->
-                <polygon id="polyPlot1B" class="map-zone-polygon moist-optimal" points="445,15 750,10 680,120 540,165 395,140" />
-
-                <!-- TẦNG 2 (Sườn dốc trung tâm 25° - Cao độ 1,540m - 1,580m) -->
-                <!-- Lô 2A: Sườn bậc thang phía Tây đón nước ngấm từ 1A -->
-                <polygon id="polyPlot2A" class="map-zone-polygon moist-optimal" points="20,198 218,202 388,148 330,370 170,410 20,395" />
-                <!-- Lô 2B: Vạt trà sườn thoải trung tâm rộng lớn, hấp thụ nước ổn định -->
-                <polygon id="polyPlot2B" class="map-zone-polygon moist-optimal" points="395,148 545,170 685,125 985,120 985,270 820,320 560,345 338,370" />
-
-                <!-- TẦNG 3 (Vùng trũng chân đồi ven sông - Cao độ 1,480m - 1,520m) -->
-                <!-- Lô 3A: Lòng máng tụ thủy chân dốc gom nước tràn từ 2A & 2B -->
-                <polygon id="polyPlot3A" class="map-zone-polygon moist-optimal" points="165,418 325,378 555,352 510,540 120,540" />
-                <!-- Lô 3B: Lòng chảo ven sông Đa Nhim & lộ DT723, nguy cơ ứ nước, có bơm xả tràn -->
-                <polygon id="polyPlot3B" class="map-zone-polygon moist-optimal" points="562,352 825,325 985,275 985,540 515,540" />
-
-                <!-- HƯỚNG DÒNG NGẤM TRÀN THEO TRỌNG LỰC: Chảy chéo từ Tây Bắc (Đỉnh) -> Đông Nam (Ven sông) -->
-                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 140 100 C 190 220, 240 320, 330 460" />
-                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 460 70 C 560 190, 680 300, 800 450" />
-                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 620 40 C 750 160, 860 260, 930 420" />
+                <!-- 3 TUYẾN DÒNG CHẢY TRỌNG LỰC TỰ NHIÊN (TÂY BẮC -> ĐÔNG NAM) -->
+                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 370 70 C 480 90, 600 130, 720 180" />
+                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 290 160 C 380 250, 480 340, 580 440" />
+                <path class="slope-runoff-arrow" marker-end="url(#arrowRunoff)" d="M 180 180 C 220 280, 270 400, 360 540" />
 
                 <text x="210" y="270" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="1" opacity="0.9" transform="rotate(50 210 270)">DÒNG NGẤM TRÀN DỐC 25° ↘</text>
                 <text x="560" y="230" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="1" opacity="0.9" transform="rotate(42 560 230)">DÒNG HỘI TỤ VEN SÔNG ↘</text>
               </svg>
 
               <!-- ======================================================== -->
-              <!-- CÁC TRẠM CẢM BIẾN IOT ĐỘ ẨM ĐẤT (PHÂN BỔ TẠI ĐIỂM ĐO)    -->
+              <!-- VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG CỦA CẢM BIẾN (STATUS HALO) -->
+              <!-- Cam: Khô hạn cần tưới • Xanh: Đủ ẩm • Đỏ: Ngập úng        -->
               <!-- ======================================================== -->
-              <!-- Trạm Cảm Biến S1-A (Chỏm đỉnh đồi Tây Bắc - 1,630m) -->
+              <div class="sensor-status-halo dry" id="halo1A" style="top: 20%; left: 14%;"></div>
+              <div class="sensor-status-halo optimal" id="halo1B" style="top: 14%; left: 52%;"></div>
+              <div class="sensor-status-halo optimal" id="halo2A" style="top: 50%; left: 15%;"></div>
+              <div class="sensor-status-halo optimal" id="halo2B" style="top: 42%; left: 63%;"></div>
+              <div class="sensor-status-halo optimal" id="halo3A" style="top: 80%; left: 28%;"></div>
+              <div class="sensor-status-halo optimal" id="halo3B" style="top: 76%; left: 74%;"></div>
+
+              <!-- ======================================================== -->
+              <!-- CÁC TRẠM CẢM BIẾN ĐỘ ẨM ĐẤT IOT (ĐẶT TẠI TIM VÒNG TRÒN)   -->
+              <!-- ======================================================== -->
+              <!-- Trạm Cảm Biến S1-A (Đỉnh đồi - Điểm TWI Cực khô) -->
               <div class="map-node sensor-node" style="top: 20%; left: 14%;" id="nodeSensor1A">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-A (Đỉnh đồi)">📡</div>
                 <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor1A"></span>
-                  <span id="lblSensor1A">S1-A: 42% (Đủ ẩm)</span>
+                  <span class="sensor-dot-state dry" id="dotSensor1A"></span>
+                  <span id="lblSensor1A">S1-A: 36% (Khô hạn)</span>
                 </div>
               </div>
 
-              <!-- Trạm Cảm Biến S1-B (Dải sườn gò Đông Bắc - 1,615m) -->
+              <!-- Trạm Cảm Biến S1-B (Dải gò Đông Bắc đỉnh đồi) -->
               <div class="map-node sensor-node" style="top: 14%; left: 52%;" id="nodeSensor1B">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-B (Gò Đông Bắc)">📡</div>
                 <div class="sensor-pill">
@@ -230,7 +225,7 @@
                 </div>
               </div>
 
-              <!-- Trạm Cảm Biến S2-A (Sườn bậc thang Tây - 1,560m) -->
+              <!-- Trạm Cảm Biến S2-A (Sườn bậc thang Tây 25°) -->
               <div class="map-node sensor-node" style="top: 50%; left: 15%;" id="nodeSensor2A">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-A (Sườn Tây)">📡</div>
                 <div class="sensor-pill">
@@ -239,7 +234,7 @@
                 </div>
               </div>
 
-              <!-- Trạm Cảm Biến S2-B (Vạt trà trung tâm - 1,545m) -->
+              <!-- Trạm Cảm Biến S2-B (Vạt trà sườn trung tâm) -->
               <div class="map-node sensor-node" style="top: 42%; left: 63%;" id="nodeSensor2B">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-B (Sườn Đông)">📡</div>
                 <div class="sensor-pill">
@@ -248,7 +243,7 @@
                 </div>
               </div>
 
-              <!-- Trạm Cảm Biến S3-A (Lòng máng chân dốc - 1,510m) -->
+              <!-- Trạm Cảm Biến S3-A (Lòng máng chân dốc) -->
               <div class="map-node sensor-node" style="top: 80%; left: 28%;" id="nodeSensor3A">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-A (Chân dốc)">📡</div>
                 <div class="sensor-pill">
@@ -257,7 +252,7 @@
                 </div>
               </div>
 
-              <!-- Trạm Cảm Biến S3-B (Lòng chảo ven sông - 1,495m) -->
+              <!-- Trạm Cảm Biến S3-B (Lòng chảo ven sông Đa Nhim - Điểm tụ thủy) -->
               <div class="map-node sensor-node" style="top: 76%; left: 74%;" id="nodeSensor3B">
                 <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-B (Ven sông)">📡</div>
                 <div class="sensor-pill">
@@ -333,36 +328,36 @@
             <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) -->
             <div class="map-legend-bar">
               <div class="legend-group">
-                <span style="font-weight: 700; color: var(--text-main);">Độ ẩm đất theo lô:</span>
+                <span style="font-weight: 700; color: var(--text-main);">Vòng tròn trạng thái độ ẩm:</span>
                 <div class="legend-item">
                   <span class="legend-color-box optimal"></span>
-                  <span>Đủ ẩm (40% - 60%)</span>
+                  <span>🟢 Đủ ẩm (40% - 60%)</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box dry"></span>
-                  <span>Khô hạn (< 40% Cần tưới cục bộ)</span>
+                  <span>🟠 Khô hạn (< 40% Cần tưới)</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box flood"></span>
-                  <span>Nguy cơ ngập úng (> 80%)</span>
+                  <span>🔴 Ngập úng (> 80% Cần xả)</span>
                 </div>
               </div>
 
               <div class="legend-group">
                 <span style="font-weight: 700; color: var(--text-main);">Phần cứng IoT:</span>
                 <div class="legend-item">
-                  <span>📡 Trạm cảm biến độ ẩm</span>
+                  <span>📡 Trạm cảm biến</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box pump-on"></span>
-                  <span>💧 Bơm đang tưới (Có sóng nước)</span>
+                  <span>💧 Bơm tưới phun</span>
                 </div>
                 <div class="legend-item">
                   <span class="legend-color-box pump-off"></span>
-                  <span>⚙️ Van/Bơm đóng</span>
+                  <span>⚙️ Bơm tiêu úng</span>
                 </div>
                 <div class="legend-item" style="color: #0284c7; font-weight: 600;">
-                  <span>↘ Dòng ngấm tràn trọng lực</span>
+                  <span>↘ Dòng nước ngấm dồn dốc</span>
                 </div>
               </div>
             </div>
@@ -378,14 +373,16 @@
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 1A</strong> (Cảm biến S1-A)
-                    <div style="font-size: 11px; color: var(--amber); font-weight: 600;" id="subTxt1A">Độ ẩm: 37% • Khô hạn</div>
+                    <div style="font-size: 11px; color: var(--amber); font-weight: 600;" id="subTxt1A">Độ ẩm: 37% • Khô
+                      hạn</div>
                   </div>
                   <span class="preset-badge rain" id="subBadgePump1A">Van P1-A: BẬT</span>
                 </div>
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 1B</strong> (Cảm biến S1-B)
-                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt1B">Độ ẩm: 54% • Đủ ẩm</div>
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt1B">Độ ẩm: 54% • Đủ
+                      ẩm</div>
                   </div>
                   <span class="preset-badge normal" id="subBadgePump1B">Van P1-B: TẮT</span>
                 </div>
@@ -400,14 +397,16 @@
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 2A</strong> (Cảm biến S2-A)
-                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2A">Độ ẩm: 48% • Đủ ẩm</div>
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2A">Độ ẩm: 48% • Đủ
+                      ẩm</div>
                   </div>
                   <span class="preset-badge normal" id="subBadgePump2A">Van P2-A: TẮT</span>
                 </div>
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 2B</strong> (Cảm biến S2-B)
-                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2B">Độ ẩm: 56% • Đủ ẩm</div>
+                    <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2B">Độ ẩm: 56% • Đủ
+                      ẩm</div>
                   </div>
                   <span class="preset-badge normal" id="subBadgePump2B">Van P2-B: TẮT</span>
                 </div>
@@ -422,14 +421,16 @@
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 3A</strong> (Cảm biến S3-A)
-                    <div style="font-size: 11px; color: var(--blue); font-weight: 600;" id="subTxt3A">Độ ẩm: 62% • Đủ nước</div>
+                    <div style="font-size: 11px; color: var(--blue); font-weight: 600;" id="subTxt3A">Độ ẩm: 62% • Đủ
+                      nước</div>
                   </div>
                   <span class="preset-badge normal" id="subBadgePump3A">Van P3-A: TẮT</span>
                 </div>
                 <div class="sub-plot-item">
                   <div>
                     <strong>Lô 3B</strong> (Cảm biến S3-B)
-                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="subTxt3B">Độ ẩm: 68% • Bình thường</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="subTxt3B">Độ ẩm: 68% •
+                      Bình thường</div>
                   </div>
                   <span class="preset-badge normal" id="subBadgePump3B">Xả tràn: SẴN SÀNG</span>
                 </div>
@@ -498,10 +499,14 @@
               <!-- Semicircle SVG Gauge -->
               <div style="position: relative; width: 220px; height: 110px; margin: 4px auto 0;">
                 <svg viewBox="0 0 200 110" style="width: 220px; height: 110px; overflow: visible;">
-                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16" stroke-linecap="round"/>
-                  <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7" stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3"/>
-                  <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3"/>
-                  <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a" stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3"/>
+                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16"
+                    stroke-linecap="round" />
+                  <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7"
+                    stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3" />
+                  <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6"
+                    stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3" />
+                  <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a"
+                    stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3" />
                 </svg>
 
                 <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center;">
@@ -511,9 +516,12 @@
               </div>
 
               <div style="display: flex; gap: 12px; margin-top: 10px; justify-content: center; flex-wrap: wrap;">
-                <span id="legendZ1Val" style="font-size: 12px; font-weight: 600; color: var(--primary);">Z1: 38% (Đỉnh)</span>
-                <span id="legendZ2Val" style="font-size: 12px; font-weight: 600; color: var(--purple);">Z2: 52% (Sườn)</span>
-                <span id="legendZ3Val" style="font-size: 12px; font-weight: 600; color: var(--blue);">Z3: 68% (Trũng)</span>
+                <span id="legendZ1Val" style="font-size: 12px; font-weight: 600; color: var(--primary);">Z1: 38%
+                  (Đỉnh)</span>
+                <span id="legendZ2Val" style="font-size: 12px; font-weight: 600; color: var(--purple);">Z2: 52%
+                  (Sườn)</span>
+                <span id="legendZ3Val" style="font-size: 12px; font-weight: 600; color: var(--blue);">Z3: 68%
+                  (Trũng)</span>
               </div>
             </div>
 
@@ -620,7 +628,8 @@
               <span class="preset-badge normal" id="simViewModeBadge">Chế độ: AUTO</span>
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-              Bấm nút <strong>"Chạy Ngay ⚡"</strong> để gửi lệnh qua MQTT trực tiếp tới vi điều khiển ESP32 và quan sát phản xạ của thuật toán <code>decide()</code>.
+              Bấm nút <strong>"Chạy Ngay ⚡"</strong> để gửi lệnh qua MQTT trực tiếp tới vi điều khiển ESP32 và quan sát
+              phản xạ của thuật toán <code>decide()</code>.
             </p>
 
             <table class="custom-table">
@@ -637,37 +646,43 @@
                   <td><span class="preset-badge sun">W0 - Nắng Ráo</span></td>
                   <td>P_eff = 0mm</td>
                   <td>Kích hoạt chu trình tưới tuần tự Z1 -> Z2 -> Z3</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button>
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="preset-badge rain">W1 - Mưa Dông Lớn</span></td>
                   <td>P_max 85%, P_eff 15mm</td>
                   <td>Kích hoạt S3_RAIN_DELAY (Lập tức ngắt bơm hoãn tưới)</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button>
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="preset-badge rain">W2 - Mưa Phùn Nhẹ</span></td>
                   <td>P_eff = 2.0mm</td>
                   <td>Lượng mưa không đủ thấm -> Bỏ qua, tiếp tục tưới</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button>
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="preset-badge fault">D1 - Đứt Dây Cảm Biến</span></td>
                   <td>Hỏng ADC1 Zone 1</td>
                   <td>Kích hoạt còi báo, khóa van khẩn cấp S99_SAFE</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button>
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="preset-badge fault">D2 - Kẹt Van Bơm</span></td>
                   <td>Mô phỏng hỏng bơm</td>
                   <td>Cảnh báo kẹt van PUMP_JAM</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button>
+                  </td>
                 </tr>
                 <tr>
                   <td><span class="preset-badge normal">Khôi Phục Hệ Thống</span></td>
                   <td>Xóa cờ lỗi RESET</td>
                   <td>Phục hồi về trạng thái S1_MONITOR bình thường</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="RESET" style="color:var(--primary); border-color:var(--primary);">Khôi Phục 🔄</button></td>
+                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="RESET"
+                      style="color:var(--primary); border-color:var(--primary);">Khôi Phục 🔄</button></td>
                 </tr>
               </tbody>
             </table>
@@ -680,10 +695,13 @@
             <div class="card-header">
               <div class="card-title">Cấu Hình Ngưỡng Độ Ẩm Từng Vùng Dốc</div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px;">
-              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px;">
+              <div
+                style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
                 <h4 style="color: var(--primary); margin-bottom: 8px;">Vùng 1 (Đỉnh đồi)</h4>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Đất khô nhanh nhất, thoát nước mạnh.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Đất khô nhanh nhất, thoát
+                  nước mạnh.</p>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
                   <span>Ngưỡng khô (Bật bơm):</span><strong>40%</strong>
                 </div>
@@ -692,9 +710,11 @@
                 </div>
               </div>
 
-              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+              <div
+                style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
                 <h4 style="color: var(--purple); margin-bottom: 8px;">Vùng 2 (Sườn đồi)</h4>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Độ dốc 25°, thời gian ngấm trung bình.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Độ dốc 25°, thời gian ngấm
+                  trung bình.</p>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
                   <span>Ngưỡng khô:</span><strong>40%</strong>
                 </div>
@@ -703,9 +723,11 @@
                 </div>
               </div>
 
-              <div style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
+              <div
+                style="background:#f8fafc; padding: 16px; border-radius: var(--radius-md); border:1px solid var(--border-subtle);">
                 <h4 style="color: var(--blue); margin-bottom: 8px;">Vùng 3 (Thung lũng)</h4>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Hứng nước dồn xuống, cần chống ngập úng.</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Hứng nước dồn xuống, cần
+                  chống ngập úng.</p>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
                   <span>Ngưỡng khô:</span><strong>35%</strong>
                 </div>
@@ -734,4 +756,5 @@
   <script src="js/mqtt_client.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

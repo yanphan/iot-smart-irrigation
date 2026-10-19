@@ -126,10 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & 6 LÔ CANH TÁC VI MÔ
+  // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & CẢM BIẾN / MÁY BƠM
   // ------------------------------------------------------------
   const subplotsState = {
-    '1A': { moisture: 42, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '1A': { moisture: 36, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '1B': { moisture: 54, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '2A': { moisture: 48, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '2B': { moisture: 56, isPumpOn: false, pulseRemaining: 0, timerId: null },
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '3B': { moisture: 68, isPumpOn: false, pulseRemaining: 0, timerId: null }
   };
 
-  // Hàm kích hoạt chu kỳ tưới có điểm dừng an toàn
+  // Kích hoạt chu kỳ tưới thông minh (có điểm dừng tự ngắt khi đủ ẩm 60% hoặc hết xung 20s)
   function startPlotWatering(plotKey, durationSec = 20) {
     const data = subplotsState[plotKey];
     if (!data) return;
@@ -148,18 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const tierNum = parseInt(plotKey.charAt(0));
     const th = CONFIG.THRESHOLDS[tierNum];
 
-    // Phát lệnh MQTT nếu là lô chính kết nối ESP32
+    // Phát lệnh điều khiển sang MQTT nếu là lô chính kết nối ESP32
     if (plotKey.endsWith('A')) {
       mqttClient.sendPump(tierNum, 'ON', durationSec);
     }
 
     updateTopographicMap();
-    showToast(`Bật van tưới Lô ${plotKey} (Xung tưới tối đa: ${durationSec}s)`, 'normal');
+    showToast(`Bật van tưới Lô ${plotKey} (Thời gian xung: ${durationSec}s)`, 'normal');
 
-    // Vòng lặp mô phỏng ngấm nước vào đất: độ ẩm tăng dần đến khi đủ ẩm thì TỰ NGẮT
+    // Vòng lặp mô phỏng ngấm nước vào đất: độ ẩm tăng dần đến khi đủ ẩm thì TỰ ĐỘNG TẮT
     data.timerId = setInterval(() => {
       data.pulseRemaining--;
-      // Nước ngấm làm ẩm đất tăng dần
+      // Nước tưới làm ẩm đất tăng dần
       if (data.moisture < 80) {
         data.moisture += 2;
       }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  // Hàm ngắt tưới an toàn cho từng lô
+  // Ngắt van bơm an toàn cho từng lô
   function stopPlotWatering(plotKey, reason = 'Thủ công') {
     const data = subplotsState[plotKey];
     if (!data) return;
@@ -221,13 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Cập nhật từng lô đất vi mô trên bản đồ vệ tinh trắc địa
+    // Cập nhật từng trạm cảm biến và máy bơm trên bản đồ vệ tinh
     Object.keys(subplotsState).forEach(plotKey => {
       const data = subplotsState[plotKey];
       const tierNum = parseInt(plotKey.charAt(0));
       const th = CONFIG.THRESHOLDS[tierNum];
 
-      const poly = document.getElementById(`polyPlot${plotKey}`);
+      const halo = document.getElementById(`halo${plotKey}`);
       const dot = document.getElementById(`dotSensor${plotKey}`);
       const lblSensor = document.getElementById(`lblSensor${plotKey}`);
       const pumpNode = document.getElementById(`nodePump${plotKey}`);
@@ -249,9 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
         stateClass = 'dry';
       }
 
-      // 1. Đổi màu mảng lô đất theo địa hình thực tế
-      if (poly) {
-        poly.className.baseVal = `map-zone-polygon moist-${stateClass}`;
+      // 1. CẬP NHẬT VÒNG TRÒN HÀO QUANG TRẠNG THÁI MÔI TRƯỜNG QUANH CẢM BIẾN (HALO)
+      // Cam = Khô hạn, Xanh = Đủ ẩm, Đỏ = Ngập úng
+      if (halo) {
+        halo.className = `sensor-status-halo ${stateClass}`;
       }
 
       // 2. Nhãn trạm cảm biến IoT độc lập

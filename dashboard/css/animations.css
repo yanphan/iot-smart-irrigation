@@ -36,3 +36,23 @@
     stroke-dashoffset: -20;
   }
 }
+
+/* Hiệu ứng vòng tròn hào quang trạng thái môi trường quanh cảm biến */
+@keyframes pulse-dry-halo {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.75; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.75; }
+}
+
+@keyframes pulse-flood-halo {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+}
+
+@keyframes pulse-optimal-halo {
+  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.6; }
+}
+
