@@ -791,7 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const card = document.createElement('div');
           card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
           const isRainy = d.rainProb >= 50;
-          const rainLabel = d.rainSum > 0 ? `${d.rainProb}% (${d.rainSum}mm)` : `${d.rainProb}%`;
+          const rainBadgeHtml = d.rainSum > 0
+            ? `<div>Mưa ${d.rainProb}%</div><span class="rain-mm">(${d.rainSum}mm)</span>`
+            : `<div>Mưa ${d.rainProb}%</div>`;
 
           card.innerHTML = `
             <div class="forecast-day-name">${d.dayLabel}</div>
@@ -799,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="forecast-day-icon">${d.icon}</div>
             <div class="forecast-day-desc">${d.text}</div>
             <div class="forecast-day-temp">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
-            <span class="preset-badge ${isRainy ? 'rain' : 'normal'} forecast-day-rain">Mưa ${rainLabel}</span>
+            <span class="preset-badge ${isRainy ? 'rain' : 'normal'} forecast-day-rain">${rainBadgeHtml}</span>
           `;
           listEl.appendChild(card);
         });
