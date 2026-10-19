@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartIrrig G11 - Hệ Thống Tưới Thông Minh Đồi Dốc & Dự Báo Thời Tiết</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js & MQTT.js qua CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ============================================================
+         1. SIDEBAR (Điều hướng bên trái phong cách FarmVista)
+         ============================================================ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand-logo">
+          <div class="brand-icon">🌱</div>
+          <div class="brand-title">Irrig<span>Vista</span><span class="brand-badge">G11</span></div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="#soil" class="nav-item">
+          <span class="nav-icon">💧</span>
+          <span>Độ ẩm & Tưới dốc 3 vùng</span>
+        </a>
+        <a href="#weather" class="nav-item">
+          <span class="nav-icon">⛅</span>
+          <span>Dự báo thời tiết 7 ngày</span>
+        </a>
+        <a href="#terrain" class="nav-item">
+          <span class="nav-icon">🏔️</span>
+          <span>Địa hình Cầu Đất (1500m)</span>
+        </a>
+        <a href="#simulation" class="nav-item">
+          <span class="nav-icon">🧪</span>
+          <span>Studio kiểm thử kịch bản</span>
+        </a>
+        <a href="#analytics" class="nav-item">
+          <span class="nav-icon">📈</span>
+          <span>Thống kê tiết kiệm nước</span>
+        </a>
+        <a href="#settings" class="nav-item">
+          <span class="nav-icon">⚙️</span>
+          <span>Cấu hình ngưỡng Z1-Z3</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" style="color: #ef4444;">
+          <span class="nav-icon">🚪</span>
+          <span>Đăng xuất</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         2. MAIN WRAPPER (Khung nội dung chính)
+         ============================================================ -->
+    <div class="main-wrapper">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="search-container">
+          <span style="color: #94a3b8; font-size: 16px;">🔍</span>
+          <input type="text" placeholder="Tìm kiếm cảm biến, vùng tưới, kịch bản...">
+        </div>
+
+        <div class="topbar-right">
+          <!-- Trạng thái kết nối MQTT -->
+          <div class="mqtt-status-pill" id="mqttStatusPill">
+            <span class="status-dot"></span>
+            <span id="mqttStatusText">Đang kết nối MQTT...</span>
+          </div>
+
+          <!-- Nút bật/tắt chạy thử mô phỏng độc lập trên Web -->
+          <button class="dropdown-pill" id="standaloneSimBtn" title="Chạy tự sinh dữ liệu kiểm thử nếu chưa mở Wokwi">
+            🧪 Mô phỏng Web: TẮT
+          </button>
+
+          <!-- Chuông thông báo -->
+          <button class="icon-btn" title="Cảnh báo hệ thống">
+            🔔
+            <span class="badge-dot"></span>
+          </button>
+
+          <!-- Thông tin người dùng -->
+          <div class="user-profile">
+            <div class="user-avatar">G11</div>
+            <div class="user-info">
+              <span class="user-name">Nhóm 11 - IoT</span>
+              <span class="user-role">Smart Agriculture Admin</span>
+            </div>
+            <span style="font-size: 11px; color: #94a3b8; margin-left: 4px;">▼</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- GREETING & PAGE HEADER -->
+        <section class="page-header">
+          <div class="header-text">
+            <h1>Good Morning !</h1>
+            <p>Tối ưu hóa vận hành tưới tiêu đồi dốc & dự báo thời tiết thực tế (Nông trường Cầu Đất - Đà Lạt 1,500m)</p>
+          </div>
+
+          <div class="header-actions">
+            <!-- Nút lọc ngày -->
+            <button class="dropdown-pill">
+              📅 Hôm nay (19 Th10, 2026) ▾
+            </button>
+
+            <!-- Chế độ AUTO / MANUAL -->
+            <button class="dropdown-pill" id="toggleModeBtn" data-mode="AUTO">
+              🤖 Chế độ: AUTO
+            </button>
+
+            <!-- Nút xuất báo cáo -->
+            <button class="btn-primary" onclick="window.print()">
+              <span>Export</span> 📤
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             ROW 1: THỜI TIẾT, GAUGE ĐỘ ẨM 3 VÙNG & 2 KPI CARDS
+             ============================================================ -->
+        <section class="grid-row-1">
+
+          <!-- CARD 1: THỜI TIẾT THỰC TẾ & VI KHÍ HẬU -->
+          <div class="card weather-card">
+            <div class="weather-location-row">
+              <span class="location-badge">📍 Cầu Đất - Đà Lạt</span>
+              <div class="unit-toggle" id="unitToggle" title="Chuyển đổi độ C / độ F">
+                <div class="unit-opt active" data-unit="C">C</div>
+                <div class="unit-opt" data-unit="F">F</div>
+              </div>
+            </div>
+
+            <div class="weather-main-row">
+              <div class="weather-temp-block">
+                <div class="weather-day">Thứ Hai</div>
+                <div class="weather-date">19 Th10, 2026</div>
+                <div class="weather-temp-big" id="curWeatherTemp">22°C</div>
+                <div class="weather-high-low" id="curWeatherHighLow">Cao: 25°C  Thấp: 15°C</div>
+              </div>
+
+              <div class="weather-icon-block">
+                <div class="weather-big-icon" id="curWeatherIcon">⛅</div>
+                <div class="weather-condition-text" id="curWeatherDesc">Mây rải rác</div>
+                <div class="weather-feels" id="curWeatherFeels">Cảm giác như 23°C</div>
+              </div>
+            </div>
+
+            <!-- Vi khí hậu thực tế tại vườn (từ cảm biến DHT22 trên ESP32) -->
+            <div class="microclimate-strip">
+              <div class="microclimate-item">
+                🌡️ Vườn: <strong id="gardenTemp">24.5°C</strong>
+              </div>
+              <div class="microclimate-item">
+                💧 Độ ẩm KK: <strong id="gardenHum">68.0%</strong>
+              </div>
+              <div class="microclimate-item">
+                🏔️ Độ cao: <strong>1,550m</strong>
+              </div>
+            </div>
+
+            <!-- Quyết định hoãn tưới 3 giờ tới -->
+            <div id="rainDecisionBadge" style="margin-top: 10px;">
+              <span class="preset-badge normal">☀️ Nắng ráo: Tưới bình thường</span>
+            </div>
+          </div>
+
+          <!-- CARD 2: GAUGE VÒNG CUNG ĐỘ ẨM ĐẤT 3 VÙNG DỐC (Production Overview Style) -->
+          <div class="card gauge-card">
+            <div class="card-header" style="width: 100%;">
+              <div class="card-title">Độ Ẩm Đất 3 Vùng Dốc</div>
+              <span class="card-action">Thời gian thực ▾</span>
+            </div>
+
+            <!-- Semicircle SVG Gauge -->
+            <div class="gauge-visual-container">
+              <svg class="semicircle-svg" viewBox="0 0 200 110">
+                <!-- Nền nửa vòng tròn mờ -->
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16" stroke-linecap="round"/>
+                <!-- Vòng cung Z3 (Xanh lam - Vùng trũng) -->
+                <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7" stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3"/>
+                <!-- Vòng cung Z2 (Tím - Sườn đồi) -->
+                <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3"/>
+                <!-- Vòng cung Z1 (Xanh lá - Đỉnh đồi) -->
+                <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a" stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3"/>
+              </svg>
+
+              <div class="gauge-center-info">
+                <div class="gauge-center-value" id="gaugeCenterVal">52%</div>
+                <div class="gauge-center-label">Độ ẩm trung bình</div>
+              </div>
+            </div>
+
+            <!-- Chú thích 3 vùng -->
+            <div class="gauge-zones-legend">
+              <div class="legend-pill">
+                <span class="legend-dot z1"></span>
+                <span id="legendZ1Val">Z1: 38%</span>
+                <span style="font-size:10px; color:#94a3b8;">(Đỉnh đồi)</span>
+              </div>
+              <div class="legend-pill">
+                <span class="legend-dot z2"></span>
+                <span id="legendZ2Val">Z2: 52%</span>
+                <span style="font-size:10px; color:#94a3b8;">(Sườn đồi)</span>
+              </div>
+              <div class="legend-pill">
+                <span class="legend-dot z3"></span>
+                <span id="legendZ3Val">Z3: 68%</span>
+                <span style="font-size:10px; color:#94a3b8;">(Vùng trũng)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOP-RIGHT STACK: 2 KPI STAT CARDS -->
+          <div class="kpi-stack">
+            <!-- KPI 1: Trạng thái FSM -->
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Trạng Thái Hệ Thống (FSM)</span>
+                <div class="kpi-icon-wrap green">⚙️</div>
+              </div>
+              <div class="kpi-value-row">
+                <div class="kpi-fsm-badge" id="kpiFsmState" style="background:#dcfce7; color:#16a34a;">
+                  S1_MONITOR
+                </div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 4px;" id="kpiFsmReason">
+                  Giám sát ổn định - Core 1 decide()
+                </div>
+              </div>
+            </div>
+
+            <!-- KPI 2: Nước tiết kiệm -->
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Lượng Nước Tiết Kiệm</span>
+                <div class="kpi-icon-wrap purple">💧</div>
+              </div>
+              <div class="kpi-value-row">
+                <div class="kpi-value">42.5%</div>
+                <div class="kpi-badge-trend">
+                  <span>▲ +12.8%</span>
+                  <span style="color:#64748b; font-weight:normal;">nhờ hoãn tưới đón mưa</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================================
+             ROW 2: BIỂU ĐỒ LỊCH SỬ & THẺ HÌNH ẢNH NÔNG TRƯỜNG DỐC
+             ============================================================ -->
+        <section class="grid-row-2">
+
+          <!-- CARD LEFT: BIỂU ĐỒ ĐỘ ẨM & LƯỢNG MƯA DỰ BÁO (Monthly Yield Analysis style) -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Biểu Đồ Độ Ẩm 3 Vùng & Lượng Mưa Dự Báo</div>
+              <div class="chart-filters">
+                <button class="filter-btn active">24 Giờ</button>
+                <button class="filter-btn">3 Giờ tới</button>
+                <button class="filter-btn">7 Ngày</button>
+              </div>
+            </div>
+
+            <div class="chart-container-box">
+              <canvas id="yieldChart"></canvas>
+            </div>
+          </div>
+
+          <!-- CARD RIGHT: HÌNH ẢNH NÔNG TRƯỜNG & ĐẶC TÍNH ĐỊA HÌNH (Corn Field style) -->
+          <div class="card field-card">
+            <div class="field-img-container">
+              <img src="assets/farm_field.jpg" alt="Nông trường Cầu Đất">
+              <div class="field-img-overlay">🌲 Nông Trường Cầu Đất - Đà Lạt</div>
+            </div>
+
+            <div class="field-body">
+              <div class="field-header-row">
+                <div class="field-title">Khay Đất Địa Hình Dốc 3 Vùng</div>
+                <span class="card-action">Chi Tiết Digital Twin ></span>
+              </div>
+
+              <!-- Bảng thông số kỹ thuật địa hình -->
+              <div class="field-specs-grid">
+                <div class="spec-item">
+                  <span class="spec-label">Độ Dốc</span>
+                  <span class="spec-val">25° Nghiêng</span>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-label">Cơ Chế Ngấm</span>
+                  <span class="spec-val">Soak-Wait 120s</span>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-label">Bảo Vệ Z3</span>
+                  <span class="spec-val">Chống Ngập Úng</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ============================================================
+             ROW 3: STUDIO KIỂM THỬ (TASK) & DỰ BÁO 7 NGÀY / 3H
+             ============================================================ -->
+        <section class="grid-row-3">
+
+          <!-- CARD LEFT: STUDIO KIỂM THỬ & TIÊM KỊCH BẢN (Task Management style) -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🧪 Studio Kiểm Thử & Tiêm Kịch Bản Mô Phỏng</div>
+              <span class="preset-badge normal" id="systemModeBadge">AUTO</span>
+            </div>
+
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Kịch Bản Test</th>
+                    <th>Mục Tiêu Thử Nghiệm</th>
+                    <th>Hiện Tượng Kỳ Vọng</th>
+                    <th style="text-align: right;">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- W0 -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge sun">W0 - Nắng Ráo</span>
+                    </td>
+                    <td>P_eff = 0mm</td>
+                    <td>Z1 khô -> Bơm tự bật theo xung 20s</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button>
+                    </td>
+                  </tr>
+
+                  <!-- W1 -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge rain">W1 - Mưa Dông Lớn</span>
+                    </td>
+                    <td>P_max 85%, P_eff 15mm</td>
+                    <td>Kích hoạt S3_RAIN_DELAY (Hoãn tưới)</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button>
+                    </td>
+                  </tr>
+
+                  <!-- W2 -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge rain">W2 - Mưa Phùn Nhẹ</span>
+                    </td>
+                    <td>P_eff = 2.0mm</td>
+                    <td>Không đủ thấm -> Bỏ qua, vẫn tưới</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button>
+                    </td>
+                  </tr>
+
+                  <!-- D1 -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge fault">D1 - Đứt Cảm Biến</span>
+                    </td>
+                    <td>Hỏng ADC1 Zone 1</td>
+                    <td>Khóa van an toàn khẩn cấp S99_SAFE</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button>
+                    </td>
+                  </tr>
+
+                  <!-- D2 -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge fault">D2 - Kẹt Van Bơm</span>
+                    </td>
+                    <td>Mô phỏng hỏng bơm</td>
+                    <td>Cảnh báo kẹt van PUMP_JAM</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button>
+                    </td>
+                  </tr>
+
+                  <!-- RESET -->
+                  <tr>
+                    <td>
+                      <span class="preset-badge normal">Khôi Phục Hệ Thống</span>
+                    </td>
+                    <td>Reset toàn bộ cờ lỗi</td>
+                    <td>Hệ thống trở về S1_MONITOR ổn định</td>
+                    <td style="text-align: right;">
+                      <button class="btn-action-sm" data-preset="RESET" style="color:#16a34a; border-color:#16a34a;">Khôi Phục 🔄</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CARD RIGHT: DỰ BÁO THỜI TIẾT 7 NGÀY (Vegetable Harvest Summary style) -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Dự Báo Thời Tiết 7 Ngày (Open-Meteo)</div>
+              <span class="card-action">Cầu Đất ▾</span>
+            </div>
+
+            <!-- Danh sách 7 ngày được nạp động từ Open-Meteo -->
+            <div class="forecast-list" id="forecastListContainer">
+              <!-- Placeholder trong khi tải dữ liệu -->
+              <div class="forecast-item">
+                <div class="forecast-item-left">
+                  <div class="forecast-icon-circle">⛅</div>
+                  <div>
+                    <div class="forecast-day-title">Đang kết nối Open-Meteo...</div>
+                    <div class="forecast-day-sub">Tọa độ 11.85°N, 108.53°E</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Javascript Modules -->
+  <script src="js/config.js"></script>
+  <script src="js/weather_service.js"></script>
+  <script src="js/mqtt_client.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
