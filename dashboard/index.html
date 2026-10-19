@@ -664,30 +664,35 @@
 
         </section>
 
-        <!-- ROW 2: BIỂU ĐỒ ĐỘ ẨM THEO VÙNG & LƯỢNG MƯA DỰ BÁO (HÀNG RIÊNG) -->
-        <section class="card" style="margin-top: 14px;">
-          <div class="card-header">
-            <div class="card-title">Biểu Đồ Độ Ẩm Theo Vùng & Lượng Mưa Dự Báo</div>
-            <div style="display: flex; gap: 6px;">
-              <span class="card-badge-status active">Dự báo 3 Giờ tới</span>
-            </div>
-          </div>
-          <div style="width: 100%; height: 260px;">
-            <canvas id="yieldChart"></canvas>
-          </div>
-        </section>
+        <!-- HÀNG HỢP NHẤT: BIỂU ĐỒ ĐỘ ẨM & DỰ BÁO THỜI TIẾT 7 NGÀY (CÙNG 1 ROW) -->
+        <section class="grid-row-charts-weather" style="margin-top: 14px;">
 
-        <!-- ROW 3: DỰ BÁO THỜI TIẾT 7 NGÀY (HÀNG RIÊNG) -->
-        <section class="card" style="margin-top: 14px;">
-          <div class="card-header">
-            <div class="card-title">Dự Báo Thời Tiết 7 Ngày</div>
-            <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất - Open-Meteo</span>
-          </div>
-          <div class="forecast-grid-7d" id="forecastListContainer">
-            <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
-              Đang đồng bộ dữ liệu dự báo 7 ngày...
+          <!-- BOX 1: BIỂU ĐỒ ĐỘ ẨM THEO VÙNG & LƯỢNG MƯA DỰ BÁO -->
+          <div class="card chart-forecast-card">
+            <div class="card-header">
+              <div class="card-title">Biểu Đồ Độ Ẩm Theo Vùng & Lượng Mưa Dự Báo</div>
+              <div style="display: flex; gap: 6px;">
+                <span class="card-badge-status active">Dự báo 3 Giờ tới</span>
+              </div>
+            </div>
+            <div style="width: 100%; height: 240px;">
+              <canvas id="yieldChart"></canvas>
             </div>
           </div>
+
+          <!-- BOX 2: DỰ BÁO THỜI TIẾT 7 NGÀY -->
+          <div class="card chart-forecast-card">
+            <div class="card-header">
+              <div class="card-title">Dự Báo Thời Tiết 7 Ngày</div>
+              <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất - Open-Meteo</span>
+            </div>
+            <div class="forecast-grid-7d" id="forecastListContainer">
+              <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                Đang đồng bộ dữ liệu dự báo 7 ngày...
+              </div>
+            </div>
+          </div>
+
         </section>
 
       </main>

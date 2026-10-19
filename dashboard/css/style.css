@@ -1380,24 +1380,49 @@ body {
 }
 
 /* Hiển thị dự báo thời tiết 7 ngày theo dạng Grid ngang trên 1 hàng riêng */
+
+/* Hàng hợp nhất: Biểu đồ độ ẩm & Dự báo thời tiết 7 ngày trên cùng 1 hàng */
+.grid-row-charts-weather {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .grid-row-charts-weather {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-forecast-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .forecast-grid-7d {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
+  gap: 6px;
   width: 100%;
+  align-items: stretch;
+  flex: 1;
 }
 
 .forecast-card-day {
   background: #f8fafc;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 14px 8px;
+  border-radius: var(--radius-sm);
+  padding: 10px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 4px;
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 .forecast-card-day:hover {
@@ -1413,42 +1438,47 @@ body {
 }
 
 .forecast-day-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
 }
 
 .forecast-day-date {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-light);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .forecast-day-icon {
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .forecast-day-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
   font-weight: 600;
-  min-height: 28px;
+  min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .forecast-day-temp {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
 }
 
 .forecast-day-rain {
-  font-size: 11px;
-  padding: 2px 8px;
+  font-size: 10px;
+  padding: 2px 5px;
   border-radius: var(--radius-sm);
   font-weight: 700;
   white-space: nowrap;
