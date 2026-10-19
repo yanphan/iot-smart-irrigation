@@ -81,15 +81,23 @@ const CONFIG = {
     3: { dry: 35, wet: 55, flood: 80, emergency: 25 }
   },
 
-  // PHÂN KHU LÔ CANH TÁC VI MÔ TRÊN TỪNG TẦNG ĐỘ DỐC (SUB-PLOTS)
-  // Mỗi tầng độ dốc có nhiều cụm cảm biến và van bơm riêng biệt
+  // PHÂN KHU LÔ CANH TÁC VI MÔ TRÊN TỪNG TẦNG ĐỘ DỐC (SUB-PLOTS: 2 - 3 - 4)
+  // Tầng 1: 2 cặp • Tầng 2: 3 cặp • Tầng 3: 4 cặp
   SUBPLOTS: {
-    '1A': { id: '1A', tier: 1, name: 'Lô 1A (Tây Bắc đỉnh đồi)', elevation: '1,630m', sensorId: 'S1-A', pumpId: 'P1-A', isPrimary: true },
-    '1B': { id: '1B', tier: 1, name: 'Lô 1B (Đông Bắc đỉnh đồi)', elevation: '1,615m', sensorId: 'S1-B', pumpId: 'P1-B', isPrimary: false },
-    '2A': { id: '2A', tier: 2, name: 'Lô 2A (Tây sườn dốc 25°)', elevation: '1,560m', sensorId: 'S2-A', pumpId: 'P2-A', isPrimary: true },
-    '2B': { id: '2B', tier: 2, name: 'Lô 2B (Đông sườn dốc 25°)', elevation: '1,545m', sensorId: 'S2-B', pumpId: 'P2-B', isPrimary: false },
-    '3A': { id: '3A', tier: 3, name: 'Lô 3A (Đáy dốc ven suối)', elevation: '1,510m', sensorId: 'S3-A', pumpId: 'P3-A', isPrimary: true },
-    '3B': { id: '3B', tier: 3, name: 'Lô 3B (Lòng chảo đọng nước)', elevation: '1,495m', sensorId: 'S3-B', pumpId: 'P3-Xả', isPrimary: false }
+    // TẦNG 1: ĐỈNH ĐỒI (2 cặp: S1-A/P1-A, S1-B/P1-B)
+    '1A': { id: '1A', tier: 1, name: 'Lô 1A (Chóp đỉnh đồi Tây Bắc)', elevation: '1,630m', sensorId: 'S1-A', pumpId: 'P1-A', isPrimary: true },
+    '1B': { id: '1B', tier: 1, name: 'Lô 1B (Gò đỉnh đồi phía Bắc)', elevation: '1,615m', sensorId: 'S1-B', pumpId: 'P1-B', isPrimary: false },
+
+    // TẦNG 2: SƯỜN DỐC 25° (3 cặp: S2-A/P2-A, S2-B/P2-B, S2-C/P2-C)
+    '2A': { id: '2A', tier: 2, name: 'Lô 2A (Bậc thang sườn Tây 25°)', elevation: '1,560m', sensorId: 'S2-A', pumpId: 'P2-A', isPrimary: true },
+    '2B': { id: '2B', tier: 2, name: 'Lô 2B (Vạt chè lòng sườn trung tâm)', elevation: '1,550m', sensorId: 'S2-B', pumpId: 'P2-B', isPrimary: false },
+    '2C': { id: '2C', tier: 2, name: 'Lô 2C (Vạt chè thoải sườn Đông)', elevation: '1,540m', sensorId: 'S2-C', pumpId: 'P2-C', isPrimary: false },
+
+    // TẦNG 3: VÙNG TRŨNG THUNG LŨNG (4 cặp: S3-A/P3-A, S3-B/P3-B, S3-C/P3-C, S3-D/P3-Xả)
+    '3A': { id: '3A', tier: 3, name: 'Lô 3A (Lòng máng chân dốc Tây Nam)', elevation: '1,510m', sensorId: 'S3-A', pumpId: 'P3-A', isPrimary: true },
+    '3B': { id: '3B', tier: 3, name: 'Lô 3B (Lòng thung lũng đáy phía Nam)', elevation: '1,500m', sensorId: 'S3-B', pumpId: 'P3-B', isPrimary: false },
+    '3C': { id: '3C', tier: 3, name: 'Lô 3C (Vùng trũng tụ thủy Đa Nhim)', elevation: '1,490m', sensorId: 'S3-C', pumpId: 'P3-C', isPrimary: false },
+    '3D': { id: '3D', tier: 3, name: 'Lô 3D (Trạm bơm tiêu úng ven sông)', elevation: '1,480m', sensorId: 'S3-D', pumpId: 'P3-Xả', isPrimary: false }
   },
 
   // Máy trạng thái FSM

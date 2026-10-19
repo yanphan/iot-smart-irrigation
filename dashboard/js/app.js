@@ -101,51 +101,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
+    // Phân bổ 9 cặp: Tầng 1 (2 cặp) • Tầng 2 (3 cặp) • Tầng 3 (4 cặp)
     if (areaKey === 'sim') {
       // MÔI TRƯỜNG MÔ PHỎNG: Thể hiện đầy đủ 3 trạng thái rõ rệt (Khô - Đủ ẩm - Ngập úng)
-      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh (S1-A 28% -> Vòng tròn Cam, Bật van P1-A)
-      subplotsState['1A'].moisture = 28;
+      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh (2 cặp: 1A, 1B)
+      subplotsState['1A'].moisture = 26;
       subplotsState['1A'].isPumpOn = true;
       subplotsState['1A'].pulseRemaining = 18;
-      subplotsState['1B'].moisture = 38;
+      subplotsState['1B'].moisture = 36;
       subplotsState['1B'].isPumpOn = false;
       subplotsState['1B'].pulseRemaining = 0;
 
-      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng (S2-A 50%, S2-B 54% -> Vòng tròn Xanh)
-      subplotsState['2A'].moisture = 50;
+      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng (3 cặp: 2A, 2B, 2C)
+      subplotsState['2A'].moisture = 48;
       subplotsState['2A'].isPumpOn = false;
       subplotsState['2A'].pulseRemaining = 0;
-      subplotsState['2B'].moisture = 54;
+      subplotsState['2B'].moisture = 52;
       subplotsState['2B'].isPumpOn = false;
       subplotsState['2B'].pulseRemaining = 0;
+      subplotsState['2C'].moisture = 55;
+      subplotsState['2C'].isPumpOn = false;
+      subplotsState['2C'].pulseRemaining = 0;
 
-      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc (S3-B 90% -> Vòng tròn Đỏ, Bơm P3-Xả ĐANG XẢ!)
-      subplotsState['3A'].moisture = 72;
+      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc (4 cặp: 3A, 3B, 3C, 3D)
+      subplotsState['3A'].moisture = 68;
       subplotsState['3A'].isPumpOn = false;
       subplotsState['3A'].pulseRemaining = 0;
-      subplotsState['3B'].moisture = 90;
-      subplotsState['3B'].isPumpOn = true;
+      subplotsState['3B'].moisture = 76;
+      subplotsState['3B'].isPumpOn = false;
       subplotsState['3B'].pulseRemaining = 0;
+      subplotsState['3C'].moisture = 84;
+      subplotsState['3C'].isPumpOn = false;
+      subplotsState['3C'].pulseRemaining = 0;
+      subplotsState['3D'].moisture = 92;
+      subplotsState['3D'].isPumpOn = true; // Bơm tiêu úng P3-Xả đang xả
+      subplotsState['3D'].pulseRemaining = 0;
     } else {
       // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
+      // Tầng 1 (2 cặp)
       subplotsState['1A'].moisture = 42;
       subplotsState['1A'].isPumpOn = false;
       subplotsState['1A'].pulseRemaining = 0;
       subplotsState['1B'].moisture = 54;
       subplotsState['1B'].isPumpOn = false;
       subplotsState['1B'].pulseRemaining = 0;
+
+      // Tầng 2 (3 cặp)
       subplotsState['2A'].moisture = 48;
       subplotsState['2A'].isPumpOn = false;
       subplotsState['2A'].pulseRemaining = 0;
-      subplotsState['2B'].moisture = 56;
+      subplotsState['2B'].moisture = 54;
       subplotsState['2B'].isPumpOn = false;
       subplotsState['2B'].pulseRemaining = 0;
+      subplotsState['2C'].moisture = 56;
+      subplotsState['2C'].isPumpOn = false;
+      subplotsState['2C'].pulseRemaining = 0;
+
+      // Tầng 3 (4 cặp)
       subplotsState['3A'].moisture = 62;
       subplotsState['3A'].isPumpOn = false;
       subplotsState['3A'].pulseRemaining = 0;
-      subplotsState['3B'].moisture = 68;
+      subplotsState['3B'].moisture = 66;
       subplotsState['3B'].isPumpOn = false;
       subplotsState['3B'].pulseRemaining = 0;
+      subplotsState['3C'].moisture = 68;
+      subplotsState['3C'].isPumpOn = false;
+      subplotsState['3C'].pulseRemaining = 0;
+      subplotsState['3D'].moisture = 70;
+      subplotsState['3D'].isPumpOn = false;
+      subplotsState['3D'].pulseRemaining = 0;
     }
 
     updateTopographicMap();
@@ -169,14 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ------------------------------------------------------------
   // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & CẢM BIẾN / MÁY BƠM
+  // Phân bổ chuẩn: 2 (Tầng 1) - 3 (Tầng 2) - 4 (Tầng 3) = 9 cặp
   // ------------------------------------------------------------
   const subplotsState = {
+    // TẦNG 1: ĐỈNH ĐỒI (2 cặp)
     '1A': { moisture: 42, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '1B': { moisture: 54, isPumpOn: false, pulseRemaining: 0, timerId: null },
+
+    // TẦNG 2: SƯỜN DỐC (3 cặp)
     '2A': { moisture: 48, isPumpOn: false, pulseRemaining: 0, timerId: null },
-    '2B': { moisture: 56, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '2B': { moisture: 54, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '2C': { moisture: 56, isPumpOn: false, pulseRemaining: 0, timerId: null },
+
+    // TẦNG 3: VÙNG TRŨNG (4 cặp)
     '3A': { moisture: 62, isPumpOn: false, pulseRemaining: 0, timerId: null },
-    '3B': { moisture: 68, isPumpOn: false, pulseRemaining: 0, timerId: null }
+    '3B': { moisture: 66, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '3C': { moisture: 68, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '3D': { moisture: 70, isPumpOn: false, pulseRemaining: 0, timerId: null }
   };
 
   // Kích hoạt chu kỳ tưới thông minh (có điểm dừng tự ngắt khi đủ ẩm 60% hoặc hết xung 20s)
@@ -309,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (pumpBadge) {
         if (data.isPumpOn) {
           pumpBadge.className = 'pump-pill on';
-          if (lblPump) lblPump.textContent = (plotKey === '3B') ? 'P3-Xả: ĐANG XẢ' : `P${plotKey}: ĐANG TƯỚI`;
+          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'P3-Xả: ĐANG XẢ' : `P${plotKey}: ĐANG TƯỚI`;
           if (ripple) ripple.style.display = 'block';
           if (timerEl) {
             timerEl.style.display = 'inline-block';
@@ -317,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           pumpBadge.className = 'pump-pill off';
-          if (lblPump) lblPump.textContent = (plotKey === '3B') ? 'P3-Xả: SẴN SÀNG' : `P${plotKey}: TẮT`;
+          if (lblPump) lblPump.textContent = (plotKey === '3D') ? 'P3-Xả: SẴN SÀNG' : `P${plotKey}: TẮT`;
           if (ripple) ripple.style.display = 'none';
           if (timerEl) timerEl.style.display = 'none';
         }
@@ -331,16 +364,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (subBadge) {
         if (data.isPumpOn) {
           subBadge.className = 'preset-badge rain';
-          subBadge.textContent = (plotKey === '3B') ? 'Xả tràn: ĐANG BẬT' : `Van P${plotKey}: BẬT TƯỚI (${data.pulseRemaining}s)`;
+          subBadge.textContent = (plotKey === '3D') ? 'Xả tràn: ĐANG BẬT' : `Van P${plotKey}: BẬT TƯỚI (${data.pulseRemaining}s)`;
         } else {
           subBadge.className = 'preset-badge normal';
-          subBadge.textContent = (plotKey === '3B') ? 'Xả tràn: SẴN SÀNG' : `Van P${plotKey}: TẮT`;
+          subBadge.textContent = (plotKey === '3D') ? 'Xả tràn: SẴN SÀNG' : `Van P${plotKey}: TẮT`;
         }
       }
     });
 
-    // Cập nhật Semicircle Gauge
-    renderSemicircleGauge(subplotsState['1A'].moisture, subplotsState['2A'].moisture, subplotsState['3A'].moisture);
+    // Cập nhật Semicircle Gauge theo giá trị trung bình 3 Tầng độ dốc (T1: 2 lô, T2: 3 lô, T3: 4 lô)
+    const z1Avg = Math.round((subplotsState['1A'].moisture + subplotsState['1B'].moisture) / 2);
+    const z2Avg = Math.round((subplotsState['2A'].moisture + subplotsState['2B'].moisture + subplotsState['2C'].moisture) / 3);
+    const z3Avg = Math.round((subplotsState['3A'].moisture + subplotsState['3B'].moisture + subplotsState['3C'].moisture + subplotsState['3D'].moisture) / 4);
+    renderSemicircleGauge(z1Avg, z2Avg, z3Avg);
   }
 
   // Tương tác bấm trực tiếp vào Cụm Bơm trên bản đồ
