@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AgriFlow G11 - Hệ Thống Tưới Thông Minh Đồi Dốc & Dự Báo Thời Tiết</title>
+  <title>IrrigVista G11 - Hệ Thống Tưới Tiêu Thông Minh Đồi Dốc & Dự Báo Thời Tiết</title>
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,62 +26,34 @@
   <div class="app-container">
 
     <!-- ============================================================
-         1. SIDEBAR (Điều hướng đa màn hình)
-         ============================================================ -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <a href="#dashboard" class="brand-logo" data-view="dashboard">
-          <div class="brand-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2.5C7.5 8 4.5 12 4.5 15.5C4.5 19.64 7.86 23 12 23C16.14 23 19.5 19.64 19.5 15.5C19.5 12 16.5 8 12 2.5Z" fill="url(#brandGrad)" />
-              <path d="M12 7V17M12 12L15.5 9.5M12 14.5L8.5 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="12" cy="7" r="1.5" fill="#ffffff"/>
-              <circle cx="15.5" cy="9.5" r="1.2" fill="#ffffff"/>
-              <circle cx="8.5" cy="12" r="1.2" fill="#ffffff"/>
-              <defs>
-                <linearGradient id="brandGrad" x1="4.5" y1="2.5" x2="19.5" y2="23" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#34d399"/>
-                  <stop offset="1" stop-color="#0284c7"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div class="brand-title">Agri<span>Flow</span><span class="brand-badge">IoT G11</span></div>
-        </a>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a class="nav-item active" data-view="dashboard">
-          <span class="nav-icon">📊</span>
-          <span>Dashboard</span>
-        </a>
-        <a class="nav-item" data-view="map">
-          <span class="nav-icon">🗺️</span>
-          <span>Bản đồ vệ tinh</span>
-        </a>
-        <a class="nav-item" data-view="simulation">
-          <span class="nav-icon">🧪</span>
-          <span>Studio kiểm thử kịch bản</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div style="font-size: 11px; color: #94a3b8; text-align: center;">
-          AgriFlow IoT G11 • v2.0
-        </div>
-      </div>
-    </aside>
-
-    <!-- ============================================================
-         2. MAIN WRAPPER
+         MAIN WRAPPER (Toàn màn hình - Loại bỏ cột bên trái Sidebar)
          ============================================================ -->
     <div class="main-wrapper">
 
-      <!-- TOPBAR -->
+      <!-- TOPBAR: Logo + Brand + Switcher + Chế độ + Kịch bản kiểm thử (Hover) + MQTT Status -->
       <header class="topbar">
-        <div style="font-size: 13px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
-          <span>🌱</span>
-          <span>Hệ Thống Tưới Thông Minh Độ Dốc & Tiết Kiệm Nước</span>
+        <div class="topbar-left">
+          <div class="brand-logo">
+            <div class="brand-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2.5C7.5 8 4.5 12 4.5 15.5C4.5 19.64 7.86 23 12 23C16.14 23 19.5 19.64 19.5 15.5C19.5 12 16.5 8 12 2.5Z" fill="url(#brandGrad)" />
+                <path d="M12 7V17M12 12L15.5 9.5M12 14.5L8.5 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="1.5" fill="#ffffff"/>
+                <circle cx="15.5" cy="9.5" r="1.2" fill="#ffffff"/>
+                <circle cx="8.5" cy="12" r="1.2" fill="#ffffff"/>
+                <defs>
+                  <linearGradient id="brandGrad" x1="4.5" y1="2.5" x2="19.5" y2="23" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#34d399"/>
+                    <stop offset="1" stop-color="#0284c7"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="brand-title">Irrig<span>Vista</span><span class="brand-badge">IoT G11</span></div>
+          </div>
+          <div class="topbar-tagline">
+            🌱 Hệ Thống Tưới Thông Minh Độ Dốc & Tiết Kiệm Nước
+          </div>
         </div>
 
         <div class="topbar-right">
@@ -95,10 +67,64 @@
             </button>
           </div>
 
-          <!-- Nút chọn chế độ AUTO / MANUAL đưa lên cùng hàng với MQTT Online -->
+          <!-- Nút chọn chế độ AUTO / MANUAL -->
           <button class="dropdown-pill" id="toggleModeBtn" data-mode="AUTO" title="Bấm để chuyển đổi giữa chế độ Tự động và Thủ công">
             Chế độ: AUTO
           </button>
+
+          <!-- KỊCH BẢN KIỂM THỬ: DI CHUỘT VÀO THÌ HIỆN DANH SÁCH LỰA CHỌN (HOVER DROPDOWN) -->
+          <div class="scenario-dropdown" id="scenarioDropdown">
+            <button class="dropdown-pill scenario-trigger-btn" id="scenarioTriggerBtn" title="Di chuột để xem và chọn kịch bản kiểm thử">
+              <span>🧪 Kịch Bản Kiểm Thử</span>
+              <span class="dropdown-arrow">▾</span>
+            </button>
+            <div class="scenario-dropdown-menu">
+              <div class="scenario-menu-header">Kịch Bản Thử Nghiệm IoT</div>
+              <button class="scenario-menu-item" data-preset="W0">
+                <span class="preset-badge sun">W0</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Nắng Ráo (P_eff = 0mm)</div>
+                  <div class="scenario-item-desc">Tưới tuần tự đồi dốc Z1 → Z2 → Z3</div>
+                </div>
+              </button>
+              <button class="scenario-menu-item" data-preset="W1">
+                <span class="preset-badge rain">W1</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Mưa Dông Lớn (15mm)</div>
+                  <div class="scenario-item-desc">Ngắt bơm hoãn tưới đón mưa tự nhiên</div>
+                </div>
+              </button>
+              <button class="scenario-menu-item" data-preset="W2">
+                <span class="preset-badge rain">W2</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Mưa Phùn Nhẹ (2.0mm)</div>
+                  <div class="scenario-item-desc">Lượng mưa thấp không đủ thấm, tiếp tục tưới</div>
+                </div>
+              </button>
+              <div class="scenario-menu-divider"></div>
+              <button class="scenario-menu-item" data-preset="D1">
+                <span class="preset-badge fault">D1</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Đứt Dây Cảm Biến</div>
+                  <div class="scenario-item-desc">Hỏng ADC1 Z1 → Khóa van an toàn S99_SAFE</div>
+                </div>
+              </button>
+              <button class="scenario-menu-item" data-preset="D2">
+                <span class="preset-badge fault">D2</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Kẹt Van Bơm</div>
+                  <div class="scenario-item-desc">Mô phỏng hỏng bơm → Cảnh báo PUMP_JAM</div>
+                </div>
+              </button>
+              <button class="scenario-menu-item" data-preset="RESET">
+                <span class="preset-badge normal">RESET</span>
+                <div class="scenario-item-info">
+                  <div class="scenario-item-title">Khôi Phục Bình Thường</div>
+                  <div class="scenario-item-desc">Xóa cờ lỗi, phục hồi giám sát tự động</div>
+                </div>
+              </button>
+            </div>
+          </div>
 
           <!-- Trạng thái kết nối MQTT -->
           <div class="mqtt-status-pill" id="mqttStatusPill">
@@ -118,627 +144,558 @@
       </header>
 
       <!-- ============================================================
-           CONTENT AREA (CÁC VIEW TƯƠNG ỨNG VỚI SIDEBAR)
+           CONTENT AREA (GỘP GIAO DIỆN BẢN ĐỒ VỆ TINH & DASHBOARD LÀM 1)
+           BỐ CỤC: BẢN ĐỒ VỆ TINH LÀM CHÍNH (TRÊN), CÁC BOX DASHBOARD (DƯỚI)
            ============================================================ -->
       <main class="content-area">
 
-        <!-- VIEW 1: DASHBOARD (TỔNG QUAN) -->
-        <div class="view-panel active" id="view-dashboard">
+        <!-- ============================================================
+             1. BỐ CỤC CHÍNH BẢN ĐỒ VỆ TINH: SPLIT 2 CỘT (HÌNH 1)
+             - Cột Trái: Bản Đồ Vệ Tinh & Địa Hình Độ Dốc + Chú giải 2 hàng song song
+             - Cột Phải: Chi Tiết Lô Canh Tác (9 Cặp Bơm - Cảm Biến)
+             ============================================================ -->
+        <div class="satellite-split-layout">
 
-          <!-- ============================================================
-               BẢN ĐỒ PHÂN KHU ĐỊA HÌNH VỆ TINH (SATELLITE TOPOGRAPHIC MAP)
-               ============================================================ -->
-          <div class="card map-card-container">
-            <div class="card-header" style="margin-bottom: 8px;">
-              <div class="map-header-title-box">
-                <div class="card-title">Bản Đồ Vệ Tinh & Địa Hình Độ Dốc</div>
-                <div class="map-subtitle" id="mapSubtitleText">Khu Vực Thực Tế • Cầu Đất - Đà Lạt</div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <button id="btnMapAllOff" class="btn-emergency-stop" title="Ngắt khẩn cấp tất cả máy bơm ngay lập tức">
-                  Tắt Khẩn Cấp Mọi Bơm
-                </button>
-                <div class="card-badge-status active">Thời gian thực</div>
-              </div>
-            </div>
-
-            <!-- Khung ảnh bản đồ vệ tinh & các lớp SVG phân khu -->
-            <div class="satellite-map-box" id="mapBox">
-              <!-- Ảnh vệ tinh trực giao trắc địa độ cao thật của Cầu Đất - Đà Lạt -->
-              <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image"
-                id="mapBgImg">
-
-              <!-- Các nhãn tầng cao độ trắc địa theo sườn dốc tự nhiên -->
-              <div class="map-tier-badge" style="top: 14px; left: 16px;">
-                TẦNG 1: ĐỈNH ĐỒI
-              </div>
-              <div class="map-tier-badge" style="top: 36%; left: 16px;">
-                TẦNG 2: SƯỜN DỐC
-              </div>
-              <div class="map-tier-badge" style="top: 70%; left: 16px;">
-                TẦNG 3: VÙNG TRŨNG
-              </div>
-
-              <!-- Lớp SVG đồ họa đường đồng mức và 3 tuyến dòng chảy nước tự chảy theo trọng lực -->
-              <svg class="map-svg-overlay" viewBox="0 0 1000 550" preserveAspectRatio="none">
-                <defs>
-                  <marker id="arrowRunoff" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6"
-                    orient="auto-start-reverse">
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
-                  </marker>
-                </defs>
-
-                <!-- Đường đồng mức trắc địa đồi chè (1,630m, 1,560m, 1,500m) -->
-                <path d="M 10 230 C 180 200, 320 170, 520 80 C 600 45, 680 20, 760 10" stroke="rgba(255,255,255,0.25)"
-                  stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
-                <path d="M 10 410 C 180 390, 360 360, 580 280 C 760 220, 890 160, 990 110"
-                  stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
-                <path d="M 110 540 C 260 480, 460 430, 680 370 C 820 330, 910 300, 990 280"
-                  stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
-              </svg>
-
-              <!-- ======================================================== -->
-              <!-- ======================================================== -->
-              <!-- VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG CỦA CẢM BIẾN (STATUS HALO) -->
-              <!-- Phân bổ 2 - 3 - 4: Tầng 1 (2) • Tầng 2 (3) • Tầng 3 (4)   -->
-              <!-- ======================================================== -->
-              <!-- TẦNG 1: ĐỈNH ĐỒI (2 cặp) -->
-              <div class="sensor-status-halo dry" id="halo1A" style="top: 26%; left: 18%;"></div>
-              <div class="sensor-status-halo optimal" id="halo1B" style="top: 23%; left: 38%;"></div>
-
-              <!-- TẦNG 2: SƯỜN DỐC (3 cặp) -->
-              <div class="sensor-status-halo optimal" id="halo2A" style="top: 49%; left: 19%;"></div>
-              <div class="sensor-status-halo optimal" id="halo2B" style="top: 46%; left: 42%;"></div>
-              <div class="sensor-status-halo optimal" id="halo2C" style="top: 43%; left: 63%;"></div>
-
-              <!-- TẦNG 3: VÙNG TRŨNG (4 cặp) -->
-              <div class="sensor-status-halo optimal" id="halo3A" style="top: 69%; left: 31%;"></div>
-              <div class="sensor-status-halo optimal" id="halo3B" style="top: 82%; left: 42%;"></div>
-              <div class="sensor-status-halo optimal" id="halo3C" style="top: 74%; left: 58%;"></div>
-              <div class="sensor-status-halo optimal" id="halo3D" style="top: 82%; left: 74%;"></div>
-
-              <!-- ======================================================== -->
-              <!-- CÁC TRẠM CẢM BIẾN ĐỘ ẨM ĐẤT IOT (ĐẶT TẠI TIM VÒNG TRÒN)   -->
-              <!-- ======================================================== -->
-              <!-- TẦNG 1: ĐỈNH ĐỒI (2 cảm biến) -->
-              <div class="map-node sensor-node" style="top: 26%; left: 18%;" id="nodeSensor1A">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-A (Đỉnh đồi Tây Bắc)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state dry" id="dotSensor1A"></span>
-                  <span id="lblSensor1A">Khô hạn</span>
+          <!-- CỘT TRÁI: BẢN ĐỒ VỆ TINH & ĐỊA HÌNH ĐỘ DỐC -->
+          <div class="map-left-col">
+            <div class="card map-card-container">
+              <div class="card-header" style="margin-bottom: 8px;">
+                <div class="map-header-title-box">
+                  <div class="card-title">Bản Đồ Vệ Tinh & Địa Hình Độ Dốc</div>
+                  <div class="map-subtitle" id="mapSubtitleText">Khu Vực Thực Tế • Cầu Đất - Đà Lạt</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <button id="btnMapAllOff" class="btn-emergency-stop" title="Ngắt khẩn cấp tất cả máy bơm ngay lập tức">
+                    Tắt Khẩn Cấp Mọi Bơm
+                  </button>
+                  <div class="card-badge-status active">Thời gian thực</div>
                 </div>
               </div>
 
-              <div class="map-node sensor-node" style="top: 23%; left: 38%;" id="nodeSensor1B">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-B (Đỉnh đồi phía Bắc)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor1B"></span>
-                  <span id="lblSensor1B">Đủ ẩm</span>
+              <!-- Khung ảnh bản đồ vệ tinh & các lớp SVG phân khu -->
+              <div class="satellite-map-box" id="mapBox">
+                <!-- Ảnh vệ tinh trực giao trắc địa độ cao thật của Cầu Đất - Đà Lạt -->
+                <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image"
+                  id="mapBgImg">
+
+                <!-- Các nhãn tầng cao độ trắc địa theo sườn dốc tự nhiên -->
+                <div class="map-tier-badge" style="top: 14px; left: 16px;">
+                  TẦNG 1: ĐỈNH ĐỒI
                 </div>
-              </div>
-
-              <!-- TẦNG 2: SƯỜN DỐC (3 cảm biến) -->
-              <div class="map-node sensor-node" style="top: 49%; left: 19%;" id="nodeSensor2A">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-A (Sườn bậc thang Tây)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor2A"></span>
-                  <span id="lblSensor2A">Đủ ẩm</span>
+                <div class="map-tier-badge" style="top: 36%; left: 16px;">
+                  TẦNG 2: SƯỜN DỐC
                 </div>
-              </div>
-
-              <div class="map-node sensor-node" style="top: 46%; left: 42%;" id="nodeSensor2B">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-B (Sườn trung tâm)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor2B"></span>
-                  <span id="lblSensor2B">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <div class="map-node sensor-node" style="top: 43%; left: 63%;" id="nodeSensor2C">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-C (Sườn phía Đông)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor2C"></span>
-                  <span id="lblSensor2C">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <!-- TẦNG 3: VÙNG TRŨNG (4 cảm biến) -->
-              <div class="map-node sensor-node" style="top: 69%; left: 31%;" id="nodeSensor3A">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-A (Lòng máng chân dốc Tây Nam)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor3A"></span>
-                  <span id="lblSensor3A">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <div class="map-node sensor-node" style="top: 82%; left: 42%;" id="nodeSensor3B">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-B (Lòng thung lũng phía Nam)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor3B"></span>
-                  <span id="lblSensor3B">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <div class="map-node sensor-node" style="top: 74%; left: 58%;" id="nodeSensor3C">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-C (Vùng trũng tụ thủy Đa Nhim)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor3C"></span>
-                  <span id="lblSensor3C">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <div class="map-node sensor-node" style="top: 82%; left: 74%;" id="nodeSensor3D">
-                <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-D (Ven sông Đa Nhim)">📡</div>
-                <div class="sensor-pill">
-                  <span class="sensor-dot-state optimal" id="dotSensor3D"></span>
-                  <span id="lblSensor3D">Đủ ẩm</span>
-                </div>
-              </div>
-
-              <!-- ======================================================== -->
-              <!-- CÁC CỤM MÁY BƠM & VAN TƯỚI TỰ ĐỘNG (ĐI KÈM CẢM BIẾN TRONG LÔ) -->
-              <!-- ======================================================== -->
-              <!-- TẦNG 1: ĐỈNH ĐỒI (2 bơm) -->
-              <div class="map-node pump-node" style="top: 23%; left: 24%;" id="nodePump1A" data-plot="1A"
-                title="Bấm để bật/tắt van bơm P1-A">
-                <div class="water-spray-ripple" id="ripple1A" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge1A">
-                  <span id="lblPump1A">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer1A" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <div class="map-node pump-node" style="top: 20%; left: 44%;" id="nodePump1B" data-plot="1B"
-                title="Bấm để bật/tắt van bơm P1-B">
-                <div class="water-spray-ripple" id="ripple1B" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge1B">
-                  <span id="lblPump1B">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer1B" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <!-- TẦNG 2: SƯỜN DỐC (3 bơm) -->
-              <div class="map-node pump-node" style="top: 46%; left: 25%;" id="nodePump2A" data-plot="2A"
-                title="Bấm để bật/tắt van bơm P2-A">
-                <div class="water-spray-ripple" id="ripple2A" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge2A">
-                  <span id="lblPump2A">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer2A" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <div class="map-node pump-node" style="top: 43%; left: 48%;" id="nodePump2B" data-plot="2B"
-                title="Bấm để bật/tắt van bơm P2-B">
-                <div class="water-spray-ripple" id="ripple2B" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge2B">
-                  <span id="lblPump2B">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer2B" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <div class="map-node pump-node" style="top: 40%; left: 69%;" id="nodePump2C" data-plot="2C"
-                title="Bấm để bật/tắt van bơm P2-C">
-                <div class="water-spray-ripple" id="ripple2C" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge2C">
-                  <span id="lblPump2C">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer2C" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <!-- TẦNG 3: VÙNG TRŨNG (4 bơm) -->
-              <div class="map-node pump-node" style="top: 66%; left: 37%;" id="nodePump3A" data-plot="3A"
-                title="Bấm để bật/tắt van bơm P3-A">
-                <div class="water-spray-ripple" id="ripple3A" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge3A">
-                  <span id="lblPump3A">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer3A" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <div class="map-node pump-node" style="top: 79%; left: 48%;" id="nodePump3B" data-plot="3B"
-                title="Bấm để bật/tắt van bơm P3-B">
-                <div class="water-spray-ripple" id="ripple3B" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge3B">
-                  <span id="lblPump3B">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer3B" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <div class="map-node pump-node" style="top: 71%; left: 64%;" id="nodePump3C" data-plot="3C"
-                title="Bấm để bật/tắt van bơm P3-C">
-                <div class="water-spray-ripple" id="ripple3C" style="display:none;"></div>
-                <div class="pump-pin-icon">💧</div>
-                <div class="pump-pill off" id="pumpBadge3C">
-                  <span id="lblPump3C">Tắt</span>
-                  <span class="pump-pulse-timer" id="timer3C" style="display:none;">20s</span>
-                </div>
-              </div>
-
-              <!-- Bơm Xả Tràn P3-Xả (Trạm bơm tiêu úng ven sông Lô 3D - Đi kèm cảm biến S3-D) -->
-              <div class="map-node pump-node" style="top: 84%; left: 81%;" id="nodePump3D" data-plot="3D"
-                title="Bấm để kích hoạt bơm xả tràn P3-Xả">
-                <div class="water-spray-ripple" id="ripple3D" style="display:none;"></div>
-                <div class="pump-pin-icon">⚙️</div>
-                <div class="pump-pill off" id="pumpBadge3D">
-                  <span id="lblPump3D">Sẵn sàng</span>
-                  <span class="pump-pulse-timer" id="timer3D" style="display:none;">Xả</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) - 2 HÀNG RÕ RÀNG (TIÊU ĐỀ RIÊNG, CHÚ THÍCH RIÊNG) -->
-            <div class="map-legend-bar">
-              <div class="legend-block">
-                <div class="legend-title">Vòng tròn trạng thái độ ẩm:</div>
-                <div class="legend-items-row">
-                  <div class="legend-item">🟢 Đủ ẩm (40% - 60%)</div>
-                  <div class="legend-item">🟠 Khô hạn (&lt; 40% Cần tưới)</div>
-                  <div class="legend-item">🔴 Ngập úng (&gt; 80% Cần xả)</div>
-                </div>
-              </div>
-
-              <div class="legend-block">
-                <div class="legend-title">Phần cứng IoT:</div>
-                <div class="legend-items-row">
-                  <div class="legend-item">📡 Trạm cảm biến</div>
-                  <div class="legend-item">💧 Bơm tưới phun</div>
-                  <div class="legend-item">⚙️ Bơm tiêu úng</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- ============================================================
-               ROW 1: THỜI TIẾT THỰC TẾ & CÁC CHỈ SỐ KPI
-               ============================================================ -->
-          <section class="grid-row-1">
-
-            <!-- CARD 1: THỜI TIẾT HIỆN TẠI & VI KHÍ HẬU VƯỜN -->
-            <div class="card weather-card">
-              <div class="weather-location-row">
-                <span class="location-badge" id="weatherLocationBadge">Cầu Đất - Đà Lạt</span>
-                <div class="unit-toggle" id="unitToggle">
-                  <div class="unit-opt active" data-unit="C">C</div>
-                  <div class="unit-opt" data-unit="F">F</div>
-                </div>
-              </div>
-
-              <div class="weather-main-row">
-                <div>
-                  <div style="font-size: 15px; font-weight: 700;" id="curDayText">Thứ Hai</div>
-                  <div style="font-size: 11px; color: var(--text-muted);" id="curDateText">19 Th10, 2026</div>
-                  <div class="weather-temp-big" id="curWeatherTemp">22°C</div>
-                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;" id="curWeatherHighLow">
-                    Cao: 25°C • Thấp: 15°C
-                  </div>
+                <div class="map-tier-badge" style="top: 70%; left: 16px;">
+                  TẦNG 3: VÙNG TRŨNG
                 </div>
 
-                <div style="text-align: center;">
-                  <div style="font-size: 38px; line-height: 1;" id="curWeatherIcon">⛅</div>
-                  <div style="font-size: 12px; font-weight: 600; margin-top: 4px;" id="curWeatherDesc">Mây rải rác</div>
-                  <div style="font-size: 11px; color: var(--text-muted);" id="curWeatherFeels">Cảm giác như 23°C</div>
-                </div>
-              </div>
-
-              <!-- Vi khí hậu thực tế tại vườn (từ cảm biến DHT22 trên ESP32) -->
-              <div class="microclimate-strip">
-                <div class="microclimate-item">
-                  Nhiệt độ vườn: <strong id="gardenTemp">--°C</strong>
-                </div>
-                <div class="microclimate-item">
-                  Độ ẩm: <strong id="gardenHum">--%</strong>
-                </div>
-                <div class="microclimate-item">
-                  Độ cao: <strong id="gardenElevation">1,550m</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- CARD 2: TỈ LỆ ĐỘ ẨM ĐẤT & BÁO TRẠNG THÁI KHUYẾN NGHỊ -->
-            <div class="card" style="align-items: center; text-align: center; justify-content: space-between;">
-              <div class="card-header" style="width: 100%;">
-                <div class="card-title">Tỉ Lệ Độ Ẩm Đất</div>
-                <div class="card-badge-status active">Cảm biến ADC1</div>
-              </div>
-
-              <!-- Semicircle SVG Gauge -->
-              <div style="position: relative; width: 220px; height: 105px; margin: 2px auto 0;">
-                <svg viewBox="0 0 200 110" style="width: 220px; height: 105px; overflow: visible;">
-                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16"
-                    stroke-linecap="round" />
-                  <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7"
-                    stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3" />
-                  <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6"
-                    stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3" />
-                  <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a"
-                    stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3" />
+                <!-- Lớp SVG đồ họa đường đồng mức trắc địa -->
+                <svg class="map-svg-overlay" viewBox="0 0 1000 550" preserveAspectRatio="none">
+                  <path d="M 10 230 C 180 200, 320 170, 520 80 C 600 45, 680 20, 760 10" stroke="rgba(255,255,255,0.25)"
+                    stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
+                  <path d="M 10 410 C 180 390, 360 360, 580 280 C 760 220, 890 160, 990 110"
+                    stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
+                  <path d="M 110 540 C 260 480, 460 430, 680 370 C 820 330, 910 300, 990 280"
+                    stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
                 </svg>
 
-                <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center;">
-                  <div style="font-size: 24px; font-weight: 800; color: var(--text-main);" id="gaugeCenterVal">52%</div>
-                  <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Trung bình 3 tầng</div>
+                <!-- VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG CỦA CẢM BIẾN (HALO) -->
+                <!-- TẦNG 1: ĐỈNH ĐỒI (2 cặp) -->
+                <div class="sensor-status-halo dry" id="halo1A" data-plot="1A" style="top: 26%; left: 18%;"></div>
+                <div class="sensor-status-halo optimal" id="halo1B" data-plot="1B" style="top: 23%; left: 38%;"></div>
+
+                <!-- TẦNG 2: SƯỜN DỐC (3 cặp) -->
+                <div class="sensor-status-halo optimal" id="halo2A" data-plot="2A" style="top: 49%; left: 19%;"></div>
+                <div class="sensor-status-halo optimal" id="halo2B" data-plot="2B" style="top: 46%; left: 42%;"></div>
+                <div class="sensor-status-halo optimal" id="halo2C" data-plot="2C" style="top: 43%; left: 63%;"></div>
+
+                <!-- TẦNG 3: VÙNG TRŨNG (4 cặp) -->
+                <div class="sensor-status-halo optimal" id="halo3A" data-plot="3A" style="top: 69%; left: 31%;"></div>
+                <div class="sensor-status-halo optimal" id="halo3B" data-plot="3B" style="top: 82%; left: 42%;"></div>
+                <div class="sensor-status-halo optimal" id="halo3C" data-plot="3C" style="top: 74%; left: 58%;"></div>
+                <div class="sensor-status-halo optimal" id="halo3D" data-plot="3D" style="top: 82%; left: 74%;"></div>
+
+                <!-- CÁC TRẠM CẢM BIẾN IOT ĐÃ BỔ SUNG ĐỊNH DANH (ID BADGE) 1A, 1B, 2A... -->
+                <!-- TẦNG 1: ĐỈNH ĐỒI (2 cảm biến) -->
+                <div class="map-node sensor-node" style="top: 26%; left: 18%;" id="nodeSensor1A" data-plot="1A">
+                  <div class="plot-badge-tag">1A</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-A (Đỉnh đồi Tây Bắc)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state dry" id="dotSensor1A"></span>
+                    <span id="lblSensor1A">Khô hạn</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 23%; left: 38%;" id="nodeSensor1B" data-plot="1B">
+                  <div class="plot-badge-tag">1B</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S1-B (Đỉnh đồi phía Bắc)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor1B"></span>
+                    <span id="lblSensor1B">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <!-- TẦNG 2: SƯỜN DỐC (3 cảm biến) -->
+                <div class="map-node sensor-node" style="top: 49%; left: 19%;" id="nodeSensor2A" data-plot="2A">
+                  <div class="plot-badge-tag">2A</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-A (Sườn bậc thang Tây)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor2A"></span>
+                    <span id="lblSensor2A">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 46%; left: 42%;" id="nodeSensor2B" data-plot="2B">
+                  <div class="plot-badge-tag">2B</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-B (Sườn trung tâm)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor2B"></span>
+                    <span id="lblSensor2B">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 43%; left: 63%;" id="nodeSensor2C" data-plot="2C">
+                  <div class="plot-badge-tag">2C</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S2-C (Sườn phía Đông)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor2C"></span>
+                    <span id="lblSensor2C">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <!-- TẦNG 3: VÙNG TRŨNG (4 cảm biến) -->
+                <div class="map-node sensor-node" style="top: 69%; left: 31%;" id="nodeSensor3A" data-plot="3A">
+                  <div class="plot-badge-tag">3A</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-A (Lòng máng chân dốc Tây Nam)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor3A"></span>
+                    <span id="lblSensor3A">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 82%; left: 42%;" id="nodeSensor3B" data-plot="3B">
+                  <div class="plot-badge-tag">3B</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-B (Lòng thung lũng phía Nam)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor3B"></span>
+                    <span id="lblSensor3B">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 74%; left: 58%;" id="nodeSensor3C" data-plot="3C">
+                  <div class="plot-badge-tag">3C</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-C (Vùng trũng tụ thủy Đa Nhim)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor3C"></span>
+                    <span id="lblSensor3C">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <div class="map-node sensor-node" style="top: 82%; left: 74%;" id="nodeSensor3D" data-plot="3D">
+                  <div class="plot-badge-tag">3D</div>
+                  <div class="sensor-pin-icon" title="Trạm cảm biến IoT S3-D (Ven sông Đa Nhim)">📡</div>
+                  <div class="sensor-pill">
+                    <span class="sensor-dot-state optimal" id="dotSensor3D"></span>
+                    <span id="lblSensor3D">Đủ ẩm</span>
+                  </div>
+                </div>
+
+                <!-- CÁC CỤM MÁY BƠM & VAN TƯỚI TỰ ĐỘNG -->
+                <!-- TẦNG 1: ĐỈNH ĐỒI (2 bơm) -->
+                <div class="map-node pump-node" style="top: 23%; left: 24%;" id="nodePump1A" data-plot="1A"
+                  title="Bấm để bật/tắt van bơm P1-A">
+                  <div class="water-spray-ripple" id="ripple1A" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge1A">
+                    <span id="lblPump1A">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer1A" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <div class="map-node pump-node" style="top: 20%; left: 44%;" id="nodePump1B" data-plot="1B"
+                  title="Bấm để bật/tắt van bơm P1-B">
+                  <div class="water-spray-ripple" id="ripple1B" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge1B">
+                    <span id="lblPump1B">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer1B" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <!-- TẦNG 2: SƯỜN DỐC (3 bơm) -->
+                <div class="map-node pump-node" style="top: 46%; left: 25%;" id="nodePump2A" data-plot="2A"
+                  title="Bấm để bật/tắt van bơm P2-A">
+                  <div class="water-spray-ripple" id="ripple2A" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge2A">
+                    <span id="lblPump2A">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer2A" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <div class="map-node pump-node" style="top: 43%; left: 48%;" id="nodePump2B" data-plot="2B"
+                  title="Bấm để bật/tắt van bơm P2-B">
+                  <div class="water-spray-ripple" id="ripple2B" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge2B">
+                    <span id="lblPump2B">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer2B" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <div class="map-node pump-node" style="top: 40%; left: 69%;" id="nodePump2C" data-plot="2C"
+                  title="Bấm để bật/tắt van bơm P2-C">
+                  <div class="water-spray-ripple" id="ripple2C" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge2C">
+                    <span id="lblPump2C">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer2C" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <!-- TẦNG 3: VÙNG TRŨNG (4 bơm) -->
+                <div class="map-node pump-node" style="top: 66%; left: 37%;" id="nodePump3A" data-plot="3A"
+                  title="Bấm để bật/tắt van bơm P3-A">
+                  <div class="water-spray-ripple" id="ripple3A" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge3A">
+                    <span id="lblPump3A">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer3A" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <div class="map-node pump-node" style="top: 79%; left: 48%;" id="nodePump3B" data-plot="3B"
+                  title="Bấm để bật/tắt van bơm P3-B">
+                  <div class="water-spray-ripple" id="ripple3B" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge3B">
+                    <span id="lblPump3B">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer3B" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <div class="map-node pump-node" style="top: 71%; left: 64%;" id="nodePump3C" data-plot="3C"
+                  title="Bấm để bật/tắt van bơm P3-C">
+                  <div class="water-spray-ripple" id="ripple3C" style="display:none;"></div>
+                  <div class="pump-pin-icon">💧</div>
+                  <div class="pump-pill off" id="pumpBadge3C">
+                    <span id="lblPump3C">Tắt</span>
+                    <span class="pump-pulse-timer" id="timer3C" style="display:none;">20s</span>
+                  </div>
+                </div>
+
+                <!-- Bơm Xả Tràn P3-Xả (Trạm bơm tiêu úng ven sông Lô 3D) -->
+                <div class="map-node pump-node" style="top: 84%; left: 81%;" id="nodePump3D" data-plot="3D"
+                  title="Bấm để kích hoạt bơm xả tràn P3-Xả">
+                  <div class="water-spray-ripple" id="ripple3D" style="display:none;"></div>
+                  <div class="pump-pin-icon">⚙️</div>
+                  <div class="pump-pill off" id="pumpBadge3D">
+                    <span id="lblPump3D">Sẵn sàng</span>
+                    <span class="pump-pulse-timer" id="timer3D" style="display:none;">Xả</span>
+                  </div>
                 </div>
               </div>
 
-              <div style="display: flex; gap: 10px; margin-top: 6px; justify-content: center; flex-wrap: wrap;">
-                <span id="legendZ1Val" style="font-size: 11px; font-weight: 700; color: var(--primary);">Z1: 38% (Đỉnh)</span>
-                <span id="legendZ2Val" style="font-size: 11px; font-weight: 700; color: var(--purple);">Z2: 52% (Sườn)</span>
-                <span id="legendZ3Val" style="font-size: 11px; font-weight: 700; color: var(--blue);">Z3: 68% (Trũng)</span>
+              <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) - 2 HÀNG SONG SONG -->
+              <div class="map-legend-bar">
+                <div class="legend-block">
+                  <div class="legend-title">Vòng tròn trạng thái độ ẩm:</div>
+                  <div class="legend-items-row">
+                    <div class="legend-item">🟢 Đủ ẩm (40% - 60%)</div>
+                    <div class="legend-item">🟠 Khô hạn (&lt; 40% Cần tưới)</div>
+                    <div class="legend-item">🔴 Ngập úng (&gt; 80% Cần xả)</div>
+                  </div>
+                </div>
+
+                <div class="legend-block">
+                  <div class="legend-title">Phần cứng IoT:</div>
+                  <div class="legend-items-row">
+                    <div class="legend-item">📡 Trạm cảm biến</div>
+                    <div class="legend-item">💧 Bơm tưới phun</div>
+                    <div class="legend-item">⚙️ Bơm tiêu úng</div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Báo trạng thái khuyến nghị tưới chuyển sang box Tỉ Lệ Độ Ẩm Đất -->
-              <div id="rainDecisionBadge" style="margin-top: 8px; width: 100%;">
-                <span class="preset-badge normal">Đang nạp dữ liệu dự báo...</span>
-              </div>
             </div>
+          </div> <!-- HẾT CỘT TRÁI -->
 
-            <!-- CARD 3: 2 THẺ CHỈ SỐ KPI -->
-            <div class="kpi-stack">
-              <div class="card kpi-card">
-                <div class="kpi-header">
-                  <span class="kpi-label">Trạng Thái Vận Hành</span>
-                  <span style="font-size: 16px;">⚙️</span>
-                </div>
-                <div style="margin-top: 4px;">
-                  <div class="kpi-fsm-badge" id="kpiFsmState" style="background:#dcfce7; color:#16a34a;">
-                    Đang giám sát tự động
-                  </div>
-                  <div style="font-size: 11px; color: #64748b; margin-top: 3px;" id="kpiFsmReason">
-                    Cảm biến & máy bơm hoạt động ổn định
-                  </div>
-                </div>
-              </div>
-
-              <!-- KPI LƯỢNG NƯỚC ĐÃ TƯỚI / BỂ CHỨA CÒN LẠI -->
-              <div class="card kpi-card">
-                <div class="kpi-header">
-                  <span class="kpi-label">Bể Chứa & Lượng Nước Tưới</span>
-                  <span style="font-size: 16px;">💧</span>
-                </div>
-                <div style="margin-top: 4px;">
-                  <div style="display: flex; align-items: baseline; justify-content: space-between;">
-                    <div style="font-size: 19px; font-weight: 800; color: var(--text-main);" id="waterTankLevel">7,850 L</div>
-                    <div style="font-size: 11px; font-weight: 600; color: var(--text-muted);">/ 10,000 L</div>
-                  </div>
-                  <div class="tank-progress-track">
-                    <div id="tankProgressBar" class="tank-progress-fill" style="width: 78.5%;"></div>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
-                    <span style="color: var(--blue);" id="waterUsedToday">Đã tưới: <strong>2,150 L</strong></span>
-                    <span style="color: var(--primary);" id="tankPercent">Còn 78.5%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </section>
-
-          <!-- ============================================================
-               ROW 2: BIỂU ĐỒ ĐỘ ẨM THEO VÙNG & LƯỢNG MƯA DỰ BÁO (HÀNG RIÊNG)
-               ============================================================ -->
-          <section class="card" style="margin-top: 14px;">
+          <!-- CỘT PHẢI: CHI TIẾT 3 TẦNG ĐỘ DỐC (9 CẶP THIẾT BỊ) -->
+          <div class="card subplots-detail-panel">
             <div class="card-header">
-              <div class="card-title">Biểu Đồ Độ Ẩm Theo Vùng & Lượng Mưa Dự Báo</div>
-              <div style="display: flex; gap: 6px;">
-                <span class="card-badge-status active">Dự báo 3 Giờ tới</span>
-              </div>
-            </div>
-            <div style="width: 100%; height: 260px;">
-              <canvas id="yieldChart"></canvas>
-            </div>
-          </section>
-
-          <!-- ============================================================
-               ROW 3: DỰ BÁO THỜI TIẾT 7 NGÀY (HÀNG RIÊNG)
-               ============================================================ -->
-          <section class="card" style="margin-top: 14px;">
-            <div class="card-header">
-              <div class="card-title">Dự Báo Thời Tiết 7 Ngày</div>
-              <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất - Open-Meteo</span>
-            </div>
-            <div class="forecast-grid-7d" id="forecastListContainer">
-              <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
-                Đang đồng bộ dữ liệu dự báo 7 ngày...
-              </div>
-            </div>
-          </section>
-
-        </div> <!-- HẾT VIEW DASHBOARD -->
-
-        <!-- VIEW 2: BẢN ĐỒ VỆ TINH & PHÂN KHU CHI TIẾT -->
-        <div class="view-panel" id="view-map">
-          <div class="satellite-split-layout">
-            <!-- CỘT TRÁI: BẢN ĐỒ VỆ TINH GỌN GÀNG (Không bị lồng box thừa) -->
-            <div id="satelliteMapMount" class="map-left-col">
-              <!-- Bản đồ vệ tinh (.map-card-container) sẽ tự động chuyển sang đây khi mở tab -->
-            </div>
-
-            <!-- CỘT PHẢI: CHI TIẾT 3 TẦNG ĐỘ DỐC (9 CẶP THIẾT BỊ) -->
-            <div class="card subplots-detail-panel">
-              <div class="card-header">
+              <div>
                 <div class="card-title">Chi Tiết Lô Canh Tác (9 Cặp Bơm - Cảm Biến)</div>
-                <span class="card-badge-status">Tầng 1 • 2 • 3</span>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                  Di chuột vào lô để làm sáng vị trí trên bản đồ
+                </div>
               </div>
-              <div class="subplots-vertical-list">
-                <!-- TẦNG 1: ĐỈNH ĐỒI (2 CẶP) -->
-                <div class="tier-section">
-                  <div class="tier-section-header">
-                    <span class="tier-name">TẦNG 1: ĐỈNH ĐỒI (2 Cặp)</span>
-                    <span class="tier-elevation">1,615m - 1,630m</span>
+              <span class="card-badge-status">Tầng 1 • 2 • 3</span>
+            </div>
+
+            <div class="subplots-vertical-list">
+
+              <!-- TẦNG 1: ĐỈNH ĐỒI (2 CẶP) -->
+              <div class="tier-section">
+                <div class="tier-section-header">
+                  <span class="tier-name">TẦNG 1: ĐỈNH ĐỒI (2 Cặp)</span>
+                  <span class="tier-elevation">1,615m - 1,630m</span>
+                </div>
+                <div class="tier-items-grid">
+                  <div class="sub-plot-item" data-plot="1A">
+                    <div>
+                      <strong>Lô 1A</strong> (Cảm biến S1-A)
+                      <div class="sub-plot-status-txt" id="subTxt1A">Độ ẩm: 42% • Đủ ẩm</div>
+                    </div>
+                    <button class="btn-action-sm" id="subBtnPump1A" data-plot="1A">Bật Tưới</button>
                   </div>
-                  <div class="tier-items-grid">
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 1A</strong> (Cảm biến S1-A)
-                        <div style="font-size: 11px; color: var(--amber); font-weight: 600;" id="subTxt1A">Độ ẩm: 38% • Khô hạn</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump1A" data-plot="1A">Bật Tưới</button>
+
+                  <div class="sub-plot-item" data-plot="1B">
+                    <div>
+                      <strong>Lô 1B</strong> (Cảm biến S1-B)
+                      <div class="sub-plot-status-txt" id="subTxt1B">Độ ẩm: 54% • Đủ ẩm</div>
                     </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 1B</strong> (Cảm biến S1-B)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt1B">Độ ẩm: 54% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump1B" data-plot="1B">Bật Tưới</button>
-                    </div>
+                    <button class="btn-action-sm" id="subBtnPump1B" data-plot="1B">Bật Tưới</button>
                   </div>
                 </div>
+              </div>
 
-                <!-- TẦNG 2: SƯỜN DỐC 25° (3 CẶP) -->
-                <div class="tier-section">
-                  <div class="tier-section-header">
-                    <span class="tier-name">TẦNG 2: SƯỜN DỐC (3 Cặp)</span>
-                    <span class="tier-elevation">1,540m - 1,560m</span>
+              <!-- TẦNG 2: SƯỜN DỐC 25° (3 CẶP) -->
+              <div class="tier-section">
+                <div class="tier-section-header">
+                  <span class="tier-name">TẦNG 2: SƯỜN DỐC (3 Cặp)</span>
+                  <span class="tier-elevation">1,540m - 1,560m</span>
+                </div>
+                <div class="tier-items-grid">
+                  <div class="sub-plot-item" data-plot="2A">
+                    <div>
+                      <strong>Lô 2A</strong> (Cảm biến S2-A)
+                      <div class="sub-plot-status-txt" id="subTxt2A">Độ ẩm: 48% • Đủ ẩm</div>
+                    </div>
+                    <button class="btn-action-sm" id="subBtnPump2A" data-plot="2A">Bật Tưới</button>
                   </div>
-                  <div class="tier-items-grid">
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 2A</strong> (Cảm biến S2-A)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2A">Độ ẩm: 48% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump2A" data-plot="2A">Bật Tưới</button>
+
+                  <div class="sub-plot-item" data-plot="2B">
+                    <div>
+                      <strong>Lô 2B</strong> (Cảm biến S2-B)
+                      <div class="sub-plot-status-txt" id="subTxt2B">Độ ẩm: 54% • Đủ ẩm</div>
                     </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 2B</strong> (Cảm biến S2-B)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2B">Độ ẩm: 54% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump2B" data-plot="2B">Bật Tưới</button>
+                    <button class="btn-action-sm" id="subBtnPump2B" data-plot="2B">Bật Tưới</button>
+                  </div>
+
+                  <div class="sub-plot-item" data-plot="2C">
+                    <div>
+                      <strong>Lô 2C</strong> (Cảm biến S2-C)
+                      <div class="sub-plot-status-txt" id="subTxt2C">Độ ẩm: 56% • Đủ ẩm</div>
                     </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 2C</strong> (Cảm biến S2-C)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt2C">Độ ẩm: 56% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump2C" data-plot="2C">Bật Tưới</button>
-                    </div>
+                    <button class="btn-action-sm" id="subBtnPump2C" data-plot="2C">Bật Tưới</button>
                   </div>
                 </div>
+              </div>
 
-                <!-- TẦNG 3: VÙNG TRŨNG THUNG LŨNG (4 CẶP) -->
-                <div class="tier-section">
-                  <div class="tier-section-header">
-                    <span class="tier-name">TẦNG 3: VÙNG TRŨNG (4 Cặp)</span>
-                    <span class="tier-elevation">1,480m - 1,510m</span>
+              <!-- TẦNG 3: VÙNG TRŨNG THUNG LŨNG (4 CẶP) -->
+              <div class="tier-section">
+                <div class="tier-section-header">
+                  <span class="tier-name">TẦNG 3: VÙNG TRŨNG (4 Cặp)</span>
+                  <span class="tier-elevation">1,480m - 1,510m</span>
+                </div>
+                <div class="tier-items-grid">
+                  <div class="sub-plot-item" data-plot="3A">
+                    <div>
+                      <strong>Lô 3A</strong> (Cảm biến S3-A)
+                      <div class="sub-plot-status-txt" id="subTxt3A">Độ ẩm: 62% • Đủ ẩm</div>
+                    </div>
+                    <button class="btn-action-sm" id="subBtnPump3A" data-plot="3A">Bật Tưới</button>
                   </div>
-                  <div class="tier-items-grid">
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 3A</strong> (Cảm biến S3-A)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt3A">Độ ẩm: 62% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump3A" data-plot="3A">Bật Tưới</button>
+
+                  <div class="sub-plot-item" data-plot="3B">
+                    <div>
+                      <strong>Lô 3B</strong> (Cảm biến S3-B)
+                      <div class="sub-plot-status-txt" id="subTxt3B">Độ ẩm: 66% • Đủ ẩm</div>
                     </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 3B</strong> (Cảm biến S3-B)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt3B">Độ ẩm: 66% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump3B" data-plot="3B">Bật Tưới</button>
-                    </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 3C</strong> (Cảm biến S3-C)
-                        <div style="font-size: 11px; color: var(--primary); font-weight: 600;" id="subTxt3C">Độ ẩm: 68% • Đủ ẩm</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump3C" data-plot="3C">Bật Tưới</button>
-                    </div>
-                    <div class="sub-plot-item">
-                      <div>
-                        <strong>Lô 3D</strong> (Cảm biến S3-D)
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" id="subTxt3D">Độ ẩm: 70% • Ổn định</div>
-                      </div>
-                      <button class="btn-action-sm" id="subBtnPump3D" data-plot="3D">Bật Xả Tràn</button>
-                    </div>
+                    <button class="btn-action-sm" id="subBtnPump3B" data-plot="3B">Bật Tưới</button>
                   </div>
+
+                  <div class="sub-plot-item" data-plot="3C">
+                    <div>
+                      <strong>Lô 3C</strong> (Cảm biến S3-C)
+                      <div class="sub-plot-status-txt" id="subTxt3C">Độ ẩm: 68% • Đủ ẩm</div>
+                    </div>
+                    <button class="btn-action-sm" id="subBtnPump3C" data-plot="3C">Bật Tưới</button>
+                  </div>
+
+                  <div class="sub-plot-item" data-plot="3D">
+                    <div>
+                      <strong>Lô 3D</strong> (Cảm biến S3-D)
+                      <div class="sub-plot-status-txt" id="subTxt3D">Độ ẩm: 70% • Ổn định</div>
+                    </div>
+                    <button class="btn-action-sm" id="subBtnPump3D" data-plot="3D">Bật Xả Tràn</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div> <!-- HẾT CỘT PHẢI -->
+
+        </div> <!-- HẾT SATELLITE-SPLIT-LAYOUT -->
+
+        <!-- ============================================================
+             2. CÁC BOX GIAO DIỆN TỪ DASHBOARD ĐƯỢC GỘP XUỐNG DƯỚI (HÌNH 2)
+             ============================================================ -->
+        <!-- ROW 1: THỜI TIẾT THỰC TẾ & CÁC CHỈ SỐ KPI -->
+        <section class="grid-row-1" style="margin-top: 14px;">
+
+          <!-- CARD 1: THỜI TIẾT HIỆN TẠI & VI KHÍ HẬU VƯỜN -->
+          <div class="card weather-card">
+            <div class="weather-location-row">
+              <span class="location-badge" id="weatherLocationBadge">Cầu Đất - Đà Lạt</span>
+              <div class="unit-toggle" id="unitToggle">
+                <div class="unit-opt active" data-unit="C">C</div>
+                <div class="unit-opt" data-unit="F">F</div>
+              </div>
+            </div>
+
+            <div class="weather-main-row">
+              <div>
+                <div style="font-size: 15px; font-weight: 700;" id="curDayText">Thứ Hai</div>
+                <div style="font-size: 11px; color: var(--text-muted);" id="curDateText">19 Th10, 2026</div>
+                <div class="weather-temp-big" id="curWeatherTemp">22°C</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;" id="curWeatherHighLow">
+                  Cao: 25°C • Thấp: 15°C
+                </div>
+              </div>
+
+              <div style="text-align: center;">
+                <div style="font-size: 38px; line-height: 1;" id="curWeatherIcon">⛅</div>
+                <div style="font-size: 12px; font-weight: 600; margin-top: 4px;" id="curWeatherDesc">Mây rải rác</div>
+                <div style="font-size: 11px; color: var(--text-muted);" id="curWeatherFeels">Cảm giác như 23°C</div>
+              </div>
+            </div>
+
+            <!-- Vi khí hậu thực tế tại vườn (từ cảm biến DHT22 trên ESP32) -->
+            <div class="microclimate-strip">
+              <div class="microclimate-item">
+                Nhiệt độ vườn: <strong id="gardenTemp">--°C</strong>
+              </div>
+              <div class="microclimate-item">
+                Độ ẩm: <strong id="gardenHum">--%</strong>
+              </div>
+              <div class="microclimate-item">
+                Độ cao: <strong id="gardenElevation">1,550m</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: TỈ LỆ ĐỘ ẨM ĐẤT & BÁO TRẠNG THÁI KHUYẾN NGHỊ -->
+          <div class="card" style="align-items: center; text-align: center; justify-content: space-between;">
+            <div class="card-header" style="width: 100%;">
+              <div class="card-title">Tỉ Lệ Độ Ẩm Đất</div>
+              <div class="card-badge-status active">Cảm biến ADC1</div>
+            </div>
+
+            <!-- Semicircle SVG Gauge -->
+            <div style="position: relative; width: 220px; height: 105px; margin: 2px auto 0;">
+              <svg viewBox="0 0 200 110" style="width: 220px; height: 105px; overflow: visible;">
+                <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f1f5f9" stroke-width="16"
+                  stroke-linecap="round" />
+                <path id="gaugeArcZ3" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#0284c7"
+                  stroke-width="16" stroke-linecap="round" stroke-dasharray="160 251.3" />
+                <path id="gaugeArcZ2" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#8b5cf6"
+                  stroke-width="16" stroke-linecap="round" stroke-dasharray="120 251.3" />
+                <path id="gaugeArcZ1" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#16a34a"
+                  stroke-width="16" stroke-linecap="round" stroke-dasharray="85 251.3" />
+              </svg>
+
+              <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center;">
+                <div style="font-size: 24px; font-weight: 800; color: var(--text-main);" id="gaugeCenterVal">52%</div>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Trung bình 3 tầng</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 6px; justify-content: center; flex-wrap: wrap;">
+              <span id="legendZ1Val" style="font-size: 11px; font-weight: 700; color: var(--primary);">Z1: 38% (Đỉnh)</span>
+              <span id="legendZ2Val" style="font-size: 11px; font-weight: 700; color: var(--purple);">Z2: 52% (Sườn)</span>
+              <span id="legendZ3Val" style="font-size: 11px; font-weight: 700; color: var(--blue);">Z3: 68% (Trũng)</span>
+            </div>
+
+            <!-- Báo trạng thái khuyến nghị tưới -->
+            <div id="rainDecisionBadge" style="margin-top: 8px; width: 100%;">
+              <span class="preset-badge normal">Đang nạp dữ liệu dự báo...</span>
+            </div>
+          </div>
+
+          <!-- CARD 3: 2 THẺ CHỈ SỐ KPI -->
+          <div class="kpi-stack">
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Trạng Thái Vận Hành</span>
+                <span style="font-size: 16px;">⚙️</span>
+              </div>
+              <div style="margin-top: 4px;">
+                <div class="kpi-fsm-badge" id="kpiFsmState" style="background:#dcfce7; color:#16a34a;">
+                  Đang giám sát tự động
+                </div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 3px;" id="kpiFsmReason">
+                  Cảm biến & máy bơm hoạt động ổn định
+                </div>
+              </div>
+            </div>
+
+            <!-- KPI LƯỢNG NƯỚC ĐÃ TƯỚI / BỂ CHỨA CÒN LẠI -->
+            <div class="card kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-label">Bể Chứa & Lượng Nước Tưới</span>
+                <span style="font-size: 16px;">💧</span>
+              </div>
+              <div style="margin-top: 4px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                  <div style="font-size: 19px; font-weight: 800; color: var(--text-main);" id="waterTankLevel">7,850 L</div>
+                  <div style="font-size: 11px; font-weight: 600; color: var(--text-muted);">/ 10,000 L</div>
+                </div>
+                <div class="tank-progress-track">
+                  <div id="tankProgressBar" class="tank-progress-fill" style="width: 78.5%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                  <span style="color: var(--blue);" id="waterUsedToday">Đã tưới: <strong>2,150 L</strong></span>
+                  <span style="color: var(--primary);" id="tankPercent">Còn 78.5%</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- VIEW 4: STUDIO KIỂM THỬ KỊCH BẢN (TESTING STUDIO) -->
-        <div class="view-panel" id="view-simulation">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Studio Kiểm Thử Kịch Bản & Tiêm Lỗi (Testing Studio)</div>
-              <span class="preset-badge normal" id="simViewModeBadge">Chế độ: AUTO</span>
+        </section>
+
+        <!-- ROW 2: BIỂU ĐỒ ĐỘ ẨM THEO VÙNG & LƯỢNG MƯA DỰ BÁO (HÀNG RIÊNG) -->
+        <section class="card" style="margin-top: 14px;">
+          <div class="card-header">
+            <div class="card-title">Biểu Đồ Độ Ẩm Theo Vùng & Lượng Mưa Dự Báo</div>
+            <div style="display: flex; gap: 6px;">
+              <span class="card-badge-status active">Dự báo 3 Giờ tới</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-              Bấm nút <strong>"Kiểm tra"</strong> để gửi lệnh qua MQTT trực tiếp tới vi điều khiển ESP32 và quan sát
-              phản xạ của thuật toán <code>decide()</code>.
-            </p>
-
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Kịch Bản Thử Nghiệm</th>
-                  <th>Tham Số Đầu Vào</th>
-                  <th>Phản Xạ Kỳ Vọng Của Hệ Thống</th>
-                  <th style="text-align: right;">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><span class="preset-badge sun">W0 - Nắng Ráo</span></td>
-                  <td>P_eff = 0mm</td>
-                  <td>Kích hoạt chu trình tưới tuần tự Z1 -> Z2 -> Z3</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W0">Chạy Ngay ⚡</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="preset-badge rain">W1 - Mưa Dông Lớn</span></td>
-                  <td>P_max 85%, P_eff 15mm</td>
-                  <td>Kích hoạt S3_RAIN_DELAY (Lập tức ngắt bơm hoãn tưới)</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W1">Chạy Ngay ⚡</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="preset-badge rain">W2 - Mưa Phùn Nhẹ</span></td>
-                  <td>P_eff = 2.0mm</td>
-                  <td>Lượng mưa không đủ thấm -> Bỏ qua, tiếp tục tưới</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="W2">Chạy Ngay ⚡</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="preset-badge fault">D1 - Đứt Dây Cảm Biến</span></td>
-                  <td>Hỏng ADC1 Zone 1</td>
-                  <td>Kích hoạt còi báo, khóa van khẩn cấp S99_SAFE</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D1">Chạy Ngay ⚡</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="preset-badge fault">D2 - Kẹt Van Bơm</span></td>
-                  <td>Mô phỏng hỏng bơm</td>
-                  <td>Cảnh báo kẹt van PUMP_JAM</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="D2">Chạy Ngay ⚡</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="preset-badge normal">Khôi Phục Hệ Thống</span></td>
-                  <td>Xóa cờ lỗi RESET</td>
-                  <td>Phục hồi về trạng thái S1_MONITOR bình thường</td>
-                  <td style="text-align: right;"><button class="btn-action-sm" data-preset="RESET"
-                      style="color:var(--primary); border-color:var(--primary);">Khôi Phục 🔄</button></td>
-                </tr>
-              </tbody>
-            </table>
           </div>
-        </div>
+          <div style="width: 100%; height: 260px;">
+            <canvas id="yieldChart"></canvas>
+          </div>
+        </section>
+
+        <!-- ROW 3: DỰ BÁO THỜI TIẾT 7 NGÀY (HÀNG RIÊNG) -->
+        <section class="card" style="margin-top: 14px;">
+          <div class="card-header">
+            <div class="card-title">Dự Báo Thời Tiết 7 Ngày</div>
+            <span class="card-badge-status" id="weatherSourceBadge">Cầu Đất - Open-Meteo</span>
+          </div>
+          <div class="forecast-grid-7d" id="forecastListContainer">
+            <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+              Đang đồng bộ dữ liệu dự báo 7 ngày...
+            </div>
+          </div>
+        </section>
+
       </main>
-    </div>
+    </div> <!-- HẾT MAIN WRAPPER -->
 
-  </div>
+  </div> <!-- HẾT APP CONTAINER -->
 
-  <!-- TOAST CONTAINER -->
+  <!-- TOAST CONTAINER (GIỚI HẠN TỐI ĐA 2 THÔNG BÁO GỌN GÀNG, KHÔNG CHE GIAO DIỆN) -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->

@@ -1,7 +1,7 @@
 // ============================================================
 // app.js - Điều phối giao diện Web Dashboard Smart Irrigation G11
 // Hỗ trợ: Bản đồ địa hình vệ tinh, Phân khu Thực tế vs Mô phỏng,
-//         Multi-tab Sidebar và xử lý sự kiện chuẩn xác
+//         Giao diện hợp nhất 1 màn hình, Kịch bản hover dropdown
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,48 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ------------------------------------------------------------
-  // 1. CHUYỂN ĐỔI TAB TRÊN SIDEBAR (MULTI-VIEW NAVIGATION)
-  // ------------------------------------------------------------
-  // 1. CHUYỂN ĐỔI TAB TRÊN SIDEBAR (MULTI-VIEW NAVIGATION)
-  // ------------------------------------------------------------
-  const navItems = document.querySelectorAll('.nav-item[data-view]');
-  const viewPanels = document.querySelectorAll('.view-panel');
-
-  navItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const targetView = item.dataset.view;
-
-      navItems.forEach(n => n.classList.remove('active'));
-      item.classList.add('active');
-
-      viewPanels.forEach(panel => {
-        panel.classList.remove('active');
-      });
-
-      const activePanel = document.getElementById(`view-${targetView}`);
-      if (activePanel) {
-        activePanel.classList.add('active');
-      }
-
-      // Xử lý chuyển đổi bản đồ giữa Dashboard và Bản đồ vệ tinh
-      const mapCard = document.querySelector('.map-card-container');
-      if (targetView === 'map') {
-        const satMount = document.getElementById('satelliteMapMount');
-        if (satMount && mapCard && !satMount.contains(mapCard)) {
-          satMount.appendChild(mapCard);
-        }
-      } else if (targetView === 'dashboard') {
-        const dashView = document.getElementById('view-dashboard');
-        if (dashView && mapCard && !dashView.contains(mapCard)) {
-          dashView.insertBefore(mapCard, dashView.firstChild);
-        }
-      }
-    });
-  });
-
-  // ------------------------------------------------------------
-  // 2. THEO DÕI LƯỢNG NƯỚC ĐÃ TƯỚI & DUNG TÍCH BỂ CHỨA (ĐỘNG)
+  // 1. THEO DÕI LƯỢNG NƯỚC ĐÃ TƯỚI & DUNG TÍCH BỂ CHỨA (ĐỘNG)
   // ------------------------------------------------------------
   const waterState = {
     tankCapacity: 10000, // 10,000 L
@@ -79,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 3. TRẠNG THÁI BẢN ĐỒ VỆ TINH & 9 CẶP THIẾT BỊ ĐỒI DỐC
+  // 2. TRẠNG THÁI BẢN ĐỒ VỆ TINH & 9 CẶP THIẾT BỊ ĐỒI DỐC
   // Phân bổ chuẩn: 2 (Tầng 1) - 3 (Tầng 2) - 4 (Tầng 3) = 9 cặp
   // ------------------------------------------------------------
   const subplotsState = {
@@ -144,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTopographicMap();
     if (isDrain) {
       updateSystemStateUI('Đang Tiêu Úng Lô 3D', `Phát hiện ngập úng (${data.moisture}% > 80%) -> Bơm tiêu úng P3-Xả đang hút nước dồn dốc về bể`, 'flood');
-      showToast('⚙️ Kích hoạt trạm bơm tiêu úng P3-Xả: Đang bơm thu hồi nước ngập dồn dốc về bể chứa', 'normal');
+      showToast('⚙️ Kích hoạt trạm bơm tiêu úng P3-Xả: Đang bơm hút nước ngập dồn dốc về bể chứa', 'normal');
     } else {
       updateSystemStateUI(`Đang Tưới Lô ${plotKey}`, `Cấp nước đồi dốc (Độ ẩm hiện tại: ${data.moisture}%)`, 'water');
       showToast(`Bật van tưới Lô ${plotKey} (Thời gian xung: ${durationSec}s)`, 'normal');
@@ -170,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ĐIỀU KIỆN DỪNG TIÊU ÚNG: Đất đã hết ngập úng (đạt ngưỡng an toàn <= 58%)
         if (data.moisture <= 58) {
           stopPlotWatering(plotKey, `Đã tiêu úng an toàn (${data.moisture}%)`);
-          showToast(`⚙️ Lô ${plotKey} đã tiêu úng an toàn (${data.moisture}%) -> Nước đã được bơm thu hồi về bể chứa!`, 'success');
+          showToast(`⚙️ Lô ${plotKey} đã tiêu úng an toàn (${data.moisture}%) -> Nước đã được thu hồi về bể chứa!`, 'success');
           return;
         }
       } else {
@@ -237,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // ĐỘNG CƠ MÔ PHỎNG CẢM BIẾN & TỰ ĐỘNG XẢ ÚNG / TƯỚI (SIM ENGINE)
+  // 3. ĐỘNG CƠ MÔ PHỎNG CẢM BIẾN & TỰ ĐỘNG XẢ ÚNG / TƯỚI (SIM ENGINE)
   // ------------------------------------------------------------
   let simDynamicsTimer = null;
 
@@ -263,40 +222,38 @@ document.addEventListener('DOMContentLoaded', () => {
           startPlotWatering('3D', 20);
           updateSystemStateUI('Tự Động Tiêu Úng Lô 3D', `Phát hiện ngập úng chân dốc (${subplotsState['3D'].moisture}% > 80%) -> Tự động kích hoạt bơm P3-Xả hút nước về bể`, 'flood');
         }
-        // Tự động tưới nếu Lô 1A (đỉnh đồi) bị khô hạn < 40%
+
+        // Tự động tưới ĐỒNG THỜI cho tất cả các lô khô hạn ở Tầng 1 (1A và 1B)
+        const dryPlotsToWater = [];
         if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
-          startPlotWatering('1A', 20);
-          updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
+          dryPlotsToWater.push('1A');
+        }
+        if (subplotsState['1B'].moisture < 40 && !subplotsState['1B'].isPumpOn) {
+          dryPlotsToWater.push('1B');
+        }
+
+        if (dryPlotsToWater.length > 0) {
+          dryPlotsToWater.forEach(pk => startPlotWatering(pk, 20));
+          updateSystemStateUI(`Tự Động Tưới Lô ${dryPlotsToWater.join(' & ')}`, `Phát hiện khô hạn đỉnh đồi (< 40%) -> Tự động bật van tưới bù ẩm đồng thời`, 'dry');
         }
       }
 
-      // 2. MÔ PHỎNG BIẾN THIÊN CẢM BIẾN THEO THỜI GIAN THỰC (KHÔNG GÁN CỨNG)
-      const idlePlots = ['1B', '2A', '2B', '2C', '3A', '3B', '3C'];
+      // 2. MÔ PHỎNG BIẾN THIÊN CẢM BIẾN NHẸ (DAO ĐỘNG TỰ NHIÊN ±0.2%)
+      const idlePlots = ['2A', '2B', '2C', '3A', '3B', '3C'];
       idlePlots.forEach(pk => {
         const d = subplotsState[pk];
         if (!d.isPumpOn) {
-          // Dao động tự nhiên ±0.3% - ±0.5%
-          const delta = (Math.random() * 0.8 - 0.4);
-          d.moisture = Math.max(15, Math.min(95, Math.round((d.moisture + delta) * 10) / 10));
+          const delta = (Math.random() * 0.4 - 0.2);
+          d.moisture = Math.max(45, Math.min(75, Math.round((d.moisture + delta) * 10) / 10));
         }
       });
-
-      // Hiệu ứng ngấm dồn dốc: Nếu 3D đang xả, Lô 3C bên cạnh cũng rút bớt ngập
-      if (subplotsState['3D'].isPumpOn && subplotsState['3C'].moisture > 65) {
-        subplotsState['3C'].moisture = Math.round((subplotsState['3C'].moisture - 0.4) * 10) / 10;
-      }
-
-      // Hiệu ứng ngấm dồn dốc: Nếu 1A đang tưới, Lô 1B nhận thêm chút ẩm
-      if (subplotsState['1A'].isPumpOn && subplotsState['1B'].moisture < 58) {
-        subplotsState['1B'].moisture = Math.round((subplotsState['1B'].moisture + 0.3) * 10) / 10;
-      }
 
       updateTopographicMap();
     }, 2500);
   }
 
   // ------------------------------------------------------------
-  // BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
+  // 4. BỘ CHUYỂN ĐỔI 2 KHU VỰC (THỰC TẾ vs MÔ PHỎNG)
   // ------------------------------------------------------------
   const btnReal = document.getElementById('btnAreaReal');
   const btnSim = document.getElementById('btnAreaSim');
@@ -305,8 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const area = CONFIG.AREAS[areaKey];
     if (!area) return;
 
-    btnReal.classList.toggle('active', areaKey === 'real');
-    btnSim.classList.toggle('active', areaKey === 'sim');
+    if (btnReal) btnReal.classList.toggle('active', areaKey === 'real');
+    if (btnSim) btnSim.classList.toggle('active', areaKey === 'sim');
 
     // Cập nhật tiêu đề và mô tả
     const mapSubtitle = document.getElementById('mapSubtitleText');
@@ -356,40 +313,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
     if (areaKey === 'sim') {
       // MÔI TRƯỜNG MÔ PHỎNG: Thể hiện đầy đủ 3 trạng thái rõ rệt (Khô - Đủ ẩm - Ngập úng)
-      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh
+      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh (CẢ 1A VÀ 1B ĐỀU KHÔ HẠN)
       subplotsState['1A'].moisture = 26;
-      subplotsState['1B'].moisture = 36;
+      subplotsState['1B'].moisture = 32;
 
-      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng
+      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng lý tưởng
       subplotsState['2A'].moisture = 48;
       subplotsState['2B'].moisture = 52;
       subplotsState['2C'].moisture = 55;
 
-      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc
-      subplotsState['3A'].moisture = 68;
-      subplotsState['3B'].moisture = 76;
-      subplotsState['3C'].moisture = 84;
-      subplotsState['3D'].moisture = 92;
+      // 3. Vùng trũng Z3: 3A, 3B, 3C an toàn; Riêng Lô 3D ven sông tụ thủy bị Ngập úng (> 80%)
+      subplotsState['3A'].moisture = 60;
+      subplotsState['3B'].moisture = 64;
+      subplotsState['3C'].moisture = 68;
+      subplotsState['3D'].moisture = 92; // Lô duy nhất có trạm bơm tiêu úng P3-Xả
 
       // Bật động cơ mô phỏng thời gian thực
       startSimDynamics();
 
-      // Trong chế độ AUTO: Tự động kích hoạt xả ngập Lô 3D và tưới Lô 1A ngay khi vào kịch bản!
+      // Trong chế độ AUTO: Tự động kích hoạt xả ngập Lô 3D và tưới ĐỒNG THỜI cả 1A và 1B!
       const modeBtn = document.getElementById('toggleModeBtn');
       const isAuto = (modeBtn?.dataset.mode || 'AUTO') === 'AUTO';
       if (isAuto) {
         setTimeout(() => {
+          // Xả úng Lô 3D
           if (subplotsState['3D'].moisture >= 80 && !subplotsState['3D'].isPumpOn) {
             startPlotWatering('3D', 20);
             updateSystemStateUI('Tự Động Tiêu Úng Lô 3D', `Phát hiện ngập úng chân dốc (${subplotsState['3D'].moisture}% > 80%) -> Tự động kích hoạt bơm P3-Xả hút nước về bể`, 'flood');
-            showToast('🚨 [AUTO] Cảm biến S3-D báo ngập úng (92% > 80%) -> Hệ thống tự động chuyển sang chế độ XẢ ÚNG (Bơm P3-Xả)!', 'alert');
+            showToast('🚨 [AUTO] Cảm biến S3-D báo ngập úng (92% > 80%) -> Kích hoạt bơm tiêu úng P3-Xả!', 'alert');
           }
+          // Tưới đồng thời cả 1A và 1B
           if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
             startPlotWatering('1A', 20);
-            updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
-            showToast('💧 [AUTO] Cảm biến S1-A báo khô hạn (26% < 40%) -> Hệ thống tự động bật van tưới bù ẩm!', 'normal');
           }
-        }, 400);
+          if (subplotsState['1B'].moisture < 40 && !subplotsState['1B'].isPumpOn) {
+            startPlotWatering('1B', 20);
+          }
+          updateSystemStateUI('Tự Động Tưới Lô 1A & 1B', `Phát hiện khô hạn đỉnh đồi (1A: 26%, 1B: 32%) -> Kích hoạt van tưới bù ẩm đồng thời`, 'dry');
+          showToast('💧 [AUTO] Tầng 1 khô hạn (1A: 26%, 1B: 32%) -> Kích hoạt van tưới bù ẩm đồng thời!', 'normal');
+        }, 300);
       }
     } else {
       // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
@@ -424,9 +386,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ------------------------------------------------------------
+  // 5. ĐỒNG BỘ VÀ HIỂN THỊ BẢN ĐỒ VỆ TINH & BẢNG CHI TIẾT
+  // ------------------------------------------------------------
   function updateTopographicMap() {
     const { soil, pumps } = mqttClient.latest;
-    const area = CONFIG.AREAS[mqttClient.currentArea];
 
     // Đồng bộ các lô chính (1A, 2A, 3A) trực tiếp từ cảm biến phần cứng ESP32 khi có tin MQTT
     if (soil[1] && typeof soil[1].moisture === 'number') subplotsState['1A'].moisture = soil[1].moisture;
@@ -442,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Cập nhật từng trạm cảm biến và máy bơm trên bản đồ vệ tinh
+    // Cập nhật từng trạm cảm biến và máy bơm trên bản đồ vệ tinh & cột bên phải
     Object.keys(subplotsState).forEach(plotKey => {
       const data = subplotsState[plotKey];
       const tierNum = parseInt(plotKey.charAt(0));
@@ -472,7 +436,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 1. CẬP NHẬT VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG (HALO)
       if (halo) {
-        halo.className = `sensor-status-halo ${stateClass}`;
+        const isHighlight = halo.classList.contains('highlight-halo');
+        halo.className = `sensor-status-halo ${stateClass}` + (isHighlight ? ' highlight-halo' : '');
       }
 
       // 2. Nhãn trạm cảm biến IoT độc lập: hiển thị trạng thái ngắn gọn
@@ -501,11 +466,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 4. Bảng chi tiết bên giao diện Bản đồ vệ tinh
+      // 4. Bảng chi tiết bên cột bên phải: KHẮC PHỤC TRIỆT ĐỂ LỖI NGƯỢC MÀU
       if (subTxt) {
         const color = (stateClass === 'dry') ? 'var(--amber)' : (stateClass === 'flood' ? 'var(--red)' : 'var(--primary)');
-        subTxt.innerHTML = `Độ ẩm: <strong>${data.moisture}%</strong> • <span style="color:${color}">${stateText}</span>`;
+        subTxt.style.color = color;
+        subTxt.innerHTML = `Độ ẩm: <strong>${data.moisture}%</strong> • ${stateText}`;
       }
+
       if (subBtn) {
         if (data.isPumpOn) {
           subBtn.textContent = (plotKey === '3D') ? 'Dừng Xả' : 'Đang Tưới';
@@ -532,6 +499,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ------------------------------------------------------------
+  // 6. HIỆU ỨNG HIGHLIGHT SÁNG 2 CHIỀU GIỮA BẢN ĐỒ VÀ THẺ BÊN PHẢI
+  // ------------------------------------------------------------
+  // Di chuột vào thẻ Lô bên phải -> Làm sáng cụm cảm biến + bơm + halo trên bản đồ
+  document.querySelectorAll('.sub-plot-item[data-plot]').forEach(item => {
+    const plot = item.dataset.plot;
+    item.addEventListener('mouseenter', () => {
+      const sensorNode = document.getElementById(`nodeSensor${plot}`);
+      const pumpNode = document.getElementById(`nodePump${plot}`);
+      const halo = document.getElementById(`halo${plot}`);
+      if (sensorNode) sensorNode.classList.add('highlight-node');
+      if (pumpNode) pumpNode.classList.add('highlight-node');
+      if (halo) halo.classList.add('highlight-halo');
+    });
+
+    item.addEventListener('mouseleave', () => {
+      const sensorNode = document.getElementById(`nodeSensor${plot}`);
+      const pumpNode = document.getElementById(`nodePump${plot}`);
+      const halo = document.getElementById(`halo${plot}`);
+      if (sensorNode) sensorNode.classList.remove('highlight-node');
+      if (pumpNode) pumpNode.classList.remove('highlight-node');
+      if (halo) halo.classList.remove('highlight-halo');
+    });
+  });
+
+  // Di chuột vào trạm cảm biến hoặc máy bơm trên bản đồ -> Làm sáng thẻ ở cột bên phải
+  document.querySelectorAll('.map-node[data-plot]').forEach(node => {
+    const plot = node.dataset.plot;
+    node.addEventListener('mouseenter', () => {
+      const card = document.querySelector(`.sub-plot-item[data-plot="${plot}"]`);
+      if (card) {
+        card.classList.add('highlight-card');
+      }
+    });
+
+    node.addEventListener('mouseleave', () => {
+      const card = document.querySelector(`.sub-plot-item[data-plot="${plot}"]`);
+      if (card) {
+        card.classList.remove('highlight-card');
+      }
+    });
+  });
+
   // Tương tác bấm trực tiếp vào Cụm Bơm trên bản đồ
   document.querySelectorAll('.pump-node').forEach(node => {
     node.addEventListener('click', () => {
@@ -546,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Tương tác nút Bật/Tắt trong Bảng chi tiết lô canh tác (view-map)
+  // Tương tác nút Bật/Tắt trong Bảng chi tiết lô canh tác
   document.querySelectorAll('[id^="subBtnPump"]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const plot = e.currentTarget.dataset.plot;
@@ -574,21 +584,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const btnMapAllOff2 = document.getElementById('btnMapAllOff2');
-  if (btnMapAllOff2) {
-    btnMapAllOff2.addEventListener('click', () => {
-      Object.keys(subplotsState).forEach(plot => {
-        stopPlotWatering(plot, 'Ngắt khẩn cấp');
-      });
-      mqttClient.sendPump(1, 'OFF', 0);
-      mqttClient.sendPump(2, 'OFF', 0);
-      mqttClient.sendPump(3, 'OFF', 0);
-      showToast('⏹️ Đã ngắt khẩn cấp toàn bộ các máy bơm & van tưới!', 'warn');
-    });
-  }
-
   // ------------------------------------------------------------
-  // 4. KHỞI TẠO BIỂU ĐỒ (CHART.JS)
+  // 7. KHỞI TẠO BIỂU ĐỒ (CHART.JS)
   // ------------------------------------------------------------
   function initChart() {
     const ctx = document.getElementById('yieldChart');
@@ -680,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 5. GAUGE VÒNG CUNG ĐỘ ẨM
+  // 8. GAUGE VÒNG CUNG ĐỘ ẨM
   // ------------------------------------------------------------
   function renderSemicircleGauge(z1, z2, z3) {
     const avg = Math.round((z1 + z2 + z3) / 3);
@@ -705,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 6. THỜI TIẾT ĐỘNG: HỖ TRỢ CẢ KHU VỰC THỰC TẾ & MÔ PHỎNG
+  // 9. THỜI TIẾT ĐỘNG: HỖ TRỢ CẢ KHU VỰC THỰC TẾ & MÔ PHỎNG
   // ------------------------------------------------------------
   function renderWeatherCard() {
     const isSim = (mqttClient.currentArea === 'sim');
@@ -828,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 7. LẮNG NGHE MQTT & SỬA LỖI TOAST PHỤC HỒI
+  // 10. LẮNG NGHE MQTT BROKER
   // ------------------------------------------------------------
   mqttClient.on('onConnect', () => {
     const pill = document.getElementById('mqttStatusPill');
@@ -869,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fsmConf = CONFIG.STATES[d.state] || { name: 'Đang giám sát tự động', desc: 'Cảm biến & máy bơm hoạt động ổn định', color: '#16a34a', bg: '#dcfce7' };
 
     if (fsmEl) {
-      fsmEl.textContent = fsmConf.name; // Tên hiển thị rõ ràng, không dùng mã S
+      fsmEl.textContent = fsmConf.name;
       fsmEl.style.backgroundColor = fsmConf.bg;
       fsmEl.style.color = fsmConf.color;
     }
@@ -884,7 +881,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // SỬA LỖI: PHÂN BIỆT THÀNH CÔNG/PHỤC HỒI VS CẢNH BÁO LỖI
   mqttClient.on('onAlert', (d) => {
     if (d.isRecovered || d.alert === 'SYSTEM_NORMAL') {
       showToast(`Hệ thống đã phục hồi bình thường: ${d.detail || 'Hoạt động ổn định'}`, 'success');
@@ -894,7 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ------------------------------------------------------------
-  // 8. TESTING STUDIO (TIÊM KỊCH BẢN)
+  // 11. KỊCH BẢN KIỂM THỬ TRÊN THANH TOPBAR (HOVER DROPDOWN)
   // ------------------------------------------------------------
   document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -905,7 +901,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
             current: { temperature_2m: 26.5, relative_humidity_2m: 55.0 }
           });
-          showToast('Đã tiêm kịch bản W0: Nắng ráo -> Chuẩn bị tưới tuần tự Z1 -> Z2 -> Z3', 'normal');
+          showToast('Đã tiêm W0: Nắng ráo -> Chuẩn bị tưới tuần tự Z1 -> Z2 -> Z3', 'normal');
           break;
 
         case 'W1':
@@ -913,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
             current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
           });
-          showToast('Đã tiêm kịch bản W1: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa', 'normal');
+          showToast('Đã tiêm W1: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa', 'normal');
           break;
 
         case 'W2':
@@ -921,17 +917,17 @@ document.addEventListener('DOMContentLoaded', () => {
             hourly: { precipitation: [1.0, 1.0, 0.5], precipitation_probability: [75, 70, 65] },
             current: { temperature_2m: 22.0, relative_humidity_2m: 78.0 }
           });
-          showToast('Đã tiêm kịch bản W2: Mưa phùn nhẹ (2mm) -> Không đủ thấm, tiếp tục tưới', 'normal');
+          showToast('Đã tiêm W2: Mưa phùn nhẹ (2mm) -> Không đủ thấm, tiếp tục tưới', 'normal');
           break;
 
         case 'D1':
           mqttClient.sendSimFault('D1_SOIL_FAIL');
-          showToast('Đã tiêm mã lỗi D1_SOIL_FAIL -> Kích hoạt ngắt an toàn khẩn cấp!', 'alert');
+          showToast('Đã tiêm D1_SOIL_FAIL -> Khóa van ngắt an toàn khẩn cấp!', 'alert');
           break;
 
         case 'D2':
           mqttClient.sendSimFault('D2_PUMP_JAM');
-          showToast('Đã tiêm mã lỗi D2_PUMP_JAM -> Cảnh báo kẹt bơm!', 'warn');
+          showToast('Đã tiêm D2_PUMP_JAM -> Cảnh báo kẹt van bơm!', 'warn');
           break;
 
         case 'RESET':
@@ -953,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modeBtn.textContent = `Chế độ: ${target}`;
 
       if (target === 'AUTO') {
-        showToast('Đã chuyển sang chế độ TỰ ĐỘNG (AUTO): Tự động phát hiện ngập úng để xả và khô hạn để tưới!', 'success');
+        showToast('Đã chuyển sang chế độ TỰ ĐỘNG (AUTO)', 'success');
         if (mqttClient.currentArea === 'sim') {
           if (subplotsState['3D'].moisture >= 80 && !subplotsState['3D'].isPumpOn) {
             startPlotWatering('3D', 20);
@@ -961,20 +957,40 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (subplotsState['1A'].moisture < 40 && !subplotsState['1A'].isPumpOn) {
             startPlotWatering('1A', 20);
-            updateSystemStateUI('Tự Động Tưới Lô 1A', `Phát hiện khô hạn đỉnh đồi (${subplotsState['1A'].moisture}% < 40%) -> Tự động bật van tưới đồi dốc`, 'dry');
+          }
+          if (subplotsState['1B'].moisture < 40 && !subplotsState['1B'].isPumpOn) {
+            startPlotWatering('1B', 20);
           }
         }
       } else {
-        showToast('Đã chuyển sang chế độ THỦ CÔNG (MANUAL): Tắt tự động xả úng & tưới, chờ người dùng điều khiển', 'normal');
+        showToast('Đã chuyển sang chế độ THỦ CÔNG (MANUAL)', 'normal');
         updateSystemStateUI('Giám sát thủ công (MANUAL)', 'Chế độ thủ công: Chờ lệnh điều khiển trực tiếp từ người vận hành', 'normal');
       }
     });
   }
 
-  // Toast utility
+  // ------------------------------------------------------------
+  // 12. TOAST NOTIFICATION GỌN GÀNG (TỐI ĐA 2 TOAST, THỜI GIAN NGẮN)
+  // ------------------------------------------------------------
+  let lastToastTime = 0;
+  let lastToastMsg = '';
+
   function showToast(message, type = 'normal') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
+
+    const now = Date.now();
+    // Chống spam lặp thông báo giống hệt nhau trong vòng 1.5 giây
+    if (message === lastToastMsg && (now - lastToastTime < 1500)) {
+      return;
+    }
+    lastToastTime = now;
+    lastToastMsg = message;
+
+    // Giới hạn tối đa 2 toast hiển thị đồng thời (tránh che khuất màn hình)
+    while (container.children.length >= 2) {
+      container.removeChild(container.firstChild);
+    }
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -984,12 +1000,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(20px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
+      toast.style.transition = 'all 0.25s ease';
+      setTimeout(() => toast.remove(), 250);
+    }, 2200); // Tự biến mất nhanh sau 2.2 giây
   }
 
-  // Khởi chạy
+  // Khởi chạy ứng dụng
   initChart();
   updateAreaUI('real');
   updateTopographicMap();
