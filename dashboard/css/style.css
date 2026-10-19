@@ -503,103 +503,103 @@ body {
   animation: pulse-flood 1.5s infinite;
 }
 
-/* Nhãn tầng cao độ bên trái bản đồ */
+/* Nhãn tầng cao độ bên trái bản đồ theo độ cao sườn dốc thực tế */
 .map-tier-badge {
   position: absolute;
-  left: 14px;
   z-index: 25;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(6px);
   color: #f8fafc;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 700;
   border-left: 3px solid #38bdf8;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Mũi tên hướng nước ngấm dồn theo dốc */
+.map-river-badge {
+  position: absolute;
+  z-index: 25;
+  background: rgba(2, 132, 199, 0.88);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  border-right: 3px solid #38bdf8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Mũi tên uốn lượn thể hiện dòng ngấm tràn tự nhiên theo trọng lực từ Đỉnh Tây Bắc -> Vùng trũng ven sông Đông Nam */
 .slope-runoff-arrow {
   stroke: #38bdf8;
-  stroke-width: 2.5;
-  stroke-dasharray: 6 4;
+  stroke-width: 2.2;
+  stroke-dasharray: 6 5;
   fill: none;
-  animation: dashRunoff 1.5s linear infinite;
+  animation: dashRunoff 1.2s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.6));
 }
 
-/* Bảng phân tích lô đất vi mô bên dưới bản đồ */
-.plots-tier-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 12px;
-}
-
-.plot-tier-card {
-  background: #f8fafc;
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.plot-tier-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 6px;
-}
-
-.plot-tier-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.plot-tier-elev {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.sub-plot-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  background: #ffffff;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
-  font-size: 12px;
-}
-.map-marker {
+/* CÁC NỐT PHẦN CỨNG IOT (CẢM BIẾN & MÁY BƠM) ĐẶT TẠI VỊ TRÍ THỰC TẾ TRÊN BẢN ĐỒ */
+.map-node {
   position: absolute;
   z-index: 20;
   transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   pointer-events: auto;
+  user-select: none;
+  transition: transform 0.2s ease;
 }
 
-/* Marker cảm biến độ ẩm */
-.sensor-badge {
-  background: rgba(15, 23, 42, 0.88);
+.map-node:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+  z-index: 26;
+}
+
+/* 1. TRẠM CẢM BIẾN ĐỘ ẨM ĐẤT IOT */
+.sensor-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sensor-pin-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #0f172a;
+  border: 2px solid #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.sensor-pill {
+  background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(4px);
   color: #ffffff;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   white-space: nowrap;
 }
 
@@ -607,54 +607,114 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.sensor-dot-state.optimal { background-color: #22c55e; }
-.sensor-dot-state.dry { background-color: #f97316; }
-.sensor-dot-state.flood { background-color: #ef4444; }
+.sensor-dot-state.optimal { background-color: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.sensor-dot-state.dry { background-color: #f97316; box-shadow: 0 0 6px #f97316; }
+.sensor-dot-state.flood { background-color: #ef4444; box-shadow: 0 0 6px #ef4444; }
 
-/* Marker máy bơm / vòi tưới */
-.pump-badge {
-  margin-top: 6px;
-  padding: 5px 12px;
+/* 2. CỤM MÁY BƠM & VAN TƯỚI TỰ ĐỘNG */
+.pump-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.pump-pin-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 2px solid #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: all 0.25s ease;
+}
+
+.pump-node.on .pump-pin-icon {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.8);
+  animation: pulse-blue 1.5s infinite;
+}
+
+.pump-pill {
+  padding: 3px 10px;
   border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: all 0.3s ease;
-  cursor: pointer;
+  gap: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   white-space: nowrap;
+  transition: all 0.25s ease;
 }
 
-/* Bơm TẮT: Màu xám trung tính */
-.pump-badge.off {
-  background: #334155;
+.pump-pill.off {
+  background: rgba(30, 41, 59, 0.92);
   color: #cbd5e1;
   border: 1px solid #475569;
 }
 
-/* Bơm BẬT: Xanh dương phát sáng kèm hoạt họa sóng nước */
-.pump-badge.on {
+.pump-pill.on {
   background: #0284c7;
   color: #ffffff;
   border: 1px solid #38bdf8;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-  animation: pulse-blue 1.5s infinite;
 }
 
-/* Vòng tròn sóng nước tưới */
+.pump-pulse-timer {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #bae6fd;
+}
+
+/* Vòng tròn sóng nước tưới phun lan tỏa từ trạm bơm */
 .water-spray-ripple {
   position: absolute;
-  width: 50px;
-  height: 50px;
+  top: 14px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: 2px solid #38bdf8;
   opacity: 0;
-  animation: waterRipple 2s ease-out infinite;
+  animation: waterRipple 1.8s ease-out infinite;
   pointer-events: none;
+}
+
+/* Nút ngắt khẩn cấp trên thanh bản đồ */
+.btn-emergency-stop {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-emergency-stop:hover {
+  background-color: #fecaca;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
 }
 
 /* Chú giải bản đồ (Map Legend) */

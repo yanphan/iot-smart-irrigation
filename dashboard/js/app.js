@@ -129,26 +129,97 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & 6 LÔ CANH TÁC VI MÔ
   // ------------------------------------------------------------
   const subplotsState = {
-    '1A': { moisture: 37, isPumpOn: true },
-    '1B': { moisture: 54, isPumpOn: false },
-    '2A': { moisture: 48, isPumpOn: false },
-    '2B': { moisture: 56, isPumpOn: false },
-    '3A': { moisture: 62, isPumpOn: false },
-    '3B': { moisture: 68, isPumpOn: false }
+    '1A': { moisture: 42, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '1B': { moisture: 54, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '2A': { moisture: 48, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '2B': { moisture: 56, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '3A': { moisture: 62, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '3B': { moisture: 68, isPumpOn: false, pulseRemaining: 0, timerId: null }
   };
+
+  // Hàm kích hoạt chu kỳ tưới có điểm dừng an toàn
+  function startPlotWatering(plotKey, durationSec = 20) {
+    const data = subplotsState[plotKey];
+    if (!data) return;
+    if (data.timerId) clearInterval(data.timerId);
+
+    data.isPumpOn = true;
+    data.pulseRemaining = durationSec;
+    const tierNum = parseInt(plotKey.charAt(0));
+    const th = CONFIG.THRESHOLDS[tierNum];
+
+    // Phát lệnh MQTT nếu là lô chính kết nối ESP32
+    if (plotKey.endsWith('A')) {
+      mqttClient.sendPump(tierNum, 'ON', durationSec);
+    }
+
+    updateTopographicMap();
+    showToast(`Bật van tưới Lô ${plotKey} (Xung tưới tối đa: ${durationSec}s)`, 'normal');
+
+    // Vòng lặp mô phỏng ngấm nước vào đất: độ ẩm tăng dần đến khi đủ ẩm thì TỰ NGẮT
+    data.timerId = setInterval(() => {
+      data.pulseRemaining--;
+      // Nước ngấm làm ẩm đất tăng dần
+      if (data.moisture < 80) {
+        data.moisture += 2;
+      }
+
+      // ĐIỀU KIỆN DỪNG 1: Đất đã ngấm đủ ẩm (>= ngưỡng wet 60%)
+      if (data.moisture >= th.wet) {
+        stopPlotWatering(plotKey, `Đã đạt độ ẩm tối ưu (${data.moisture}%)`);
+        showToast(`💧 Lô ${plotKey} đã ngấm đủ nước (${data.moisture}%) -> Tự động dừng tưới an toàn!`, 'success');
+        return;
+      }
+
+      // ĐIỀU KIỆN DỪNG 2: Hết thời gian xung tưới an toàn (20s)
+      if (data.pulseRemaining <= 0) {
+        stopPlotWatering(plotKey, 'Hoàn thành xung tưới 20s');
+        showToast(`⏱️ Lô ${plotKey} hoàn thành xung tưới 20s -> Chuyển sang SOAK_WAIT (chờ ngấm)`, 'normal');
+        return;
+      }
+
+      updateTopographicMap();
+    }, 1000);
+  }
+
+  // Hàm ngắt tưới an toàn cho từng lô
+  function stopPlotWatering(plotKey, reason = 'Thủ công') {
+    const data = subplotsState[plotKey];
+    if (!data) return;
+
+    if (data.timerId) {
+      clearInterval(data.timerId);
+      data.timerId = null;
+    }
+
+    data.isPumpOn = false;
+    data.pulseRemaining = 0;
+    const tierNum = parseInt(plotKey.charAt(0));
+
+    if (plotKey.endsWith('A')) {
+      mqttClient.sendPump(tierNum, 'OFF', 0);
+    }
+
+    updateTopographicMap();
+  }
 
   function updateTopographicMap() {
     const { soil, pumps } = mqttClient.latest;
     const area = CONFIG.AREAS[mqttClient.currentArea];
 
-    // Đồng bộ các lô chính (1A, 2A, 3A) trực tiếp từ cảm biến phần cứng ESP32
-    if (soil[1]) subplotsState['1A'].moisture = soil[1].moisture;
-    if (soil[2]) subplotsState['2A'].moisture = soil[2].moisture;
-    if (soil[3]) subplotsState['3A'].moisture = soil[3].moisture;
+    // Đồng bộ các lô chính (1A, 2A, 3A) trực tiếp từ cảm biến phần cứng ESP32 khi có tin MQTT
+    if (soil[1] && typeof soil[1].moisture === 'number') subplotsState['1A'].moisture = soil[1].moisture;
+    if (soil[2] && typeof soil[2].moisture === 'number') subplotsState['2A'].moisture = soil[2].moisture;
+    if (soil[3] && typeof soil[3].moisture === 'number') subplotsState['3A'].moisture = soil[3].moisture;
 
-    if (pumps[1]) subplotsState['1A'].isPumpOn = (pumps[1].status === 'ON');
-    if (pumps[2]) subplotsState['2A'].isPumpOn = (pumps[2].status === 'ON');
-    if (pumps[3]) subplotsState['3A'].isPumpOn = (pumps[3].status === 'ON');
+    // Đồng bộ trạng thái bơm nếu ESP32 gửi thông điệp
+    if (pumps[1] && pumps[1].status) {
+      const on = (pumps[1].status === 'ON');
+      if (on !== subplotsState['1A'].isPumpOn && !subplotsState['1A'].timerId) {
+        if (on) startPlotWatering('1A', 20);
+        else stopPlotWatering('1A', 'Đồng bộ từ vi điều khiển');
+      }
+    }
 
     // Cập nhật từng lô đất vi mô trên bản đồ vệ tinh trắc địa
     Object.keys(subplotsState).forEach(plotKey => {
@@ -159,9 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const poly = document.getElementById(`polyPlot${plotKey}`);
       const dot = document.getElementById(`dotSensor${plotKey}`);
       const lblSensor = document.getElementById(`lblSensor${plotKey}`);
+      const pumpNode = document.getElementById(`nodePump${plotKey}`);
       const pumpBadge = document.getElementById(`pumpBadge${plotKey}`);
       const lblPump = document.getElementById(`lblPump${plotKey}`);
       const ripple = document.getElementById(`ripple${plotKey}`);
+      const timerEl = document.getElementById(`timer${plotKey}`);
       const subTxt = document.getElementById(`subTxt${plotKey}`);
       const subBadge = document.getElementById(`subBadgePump${plotKey}`);
 
@@ -176,25 +249,34 @@ document.addEventListener('DOMContentLoaded', () => {
         stateClass = 'dry';
       }
 
-      // 1. Đổi màu mảng lô đất trên bản đồ vệ tinh
+      // 1. Đổi màu mảng lô đất theo địa hình thực tế
       if (poly) {
         poly.className.baseVal = `map-zone-polygon moist-${stateClass}`;
       }
 
-      // 2. Nhãn cảm biến
+      // 2. Nhãn trạm cảm biến IoT độc lập
       if (dot) dot.className = `sensor-dot-state ${stateClass}`;
       if (lblSensor) lblSensor.textContent = `S${plotKey}: ${data.moisture}% (${stateText})`;
 
-      // 3. Trạng thái van bơm trên bản đồ
+      // 3. Trạng thái cụm máy bơm / van tưới tự động
+      if (pumpNode) {
+        pumpNode.classList.toggle('on', data.isPumpOn);
+      }
+
       if (pumpBadge) {
         if (data.isPumpOn) {
-          pumpBadge.className = 'pump-badge on';
-          if (lblPump) lblPump.textContent = `P${plotKey}: ĐANG TƯỚI`;
+          pumpBadge.className = 'pump-pill on';
+          if (lblPump) lblPump.textContent = (plotKey === '3B') ? 'P3-Xả: ĐANG XẢ' : `P${plotKey}: ĐANG TƯỚI`;
           if (ripple) ripple.style.display = 'block';
+          if (timerEl) {
+            timerEl.style.display = 'inline-block';
+            timerEl.textContent = `${data.pulseRemaining}s`;
+          }
         } else {
-          pumpBadge.className = 'pump-badge off';
+          pumpBadge.className = 'pump-pill off';
           if (lblPump) lblPump.textContent = (plotKey === '3B') ? 'P3-Xả: SẴN SÀNG' : `P${plotKey}: TẮT`;
           if (ripple) ripple.style.display = 'none';
+          if (timerEl) timerEl.style.display = 'none';
         }
       }
 
@@ -206,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (subBadge) {
         if (data.isPumpOn) {
           subBadge.className = 'preset-badge rain';
-          subBadge.textContent = `Van P${plotKey}: BẬT TƯỚI`;
+          subBadge.textContent = (plotKey === '3B') ? 'Xả tràn: ĐANG BẬT' : `Van P${plotKey}: BẬT TƯỚI (${data.pulseRemaining}s)`;
         } else {
           subBadge.className = 'preset-badge normal';
           subBadge.textContent = (plotKey === '3B') ? 'Xả tràn: SẴN SÀNG' : `Van P${plotKey}: TẮT`;
@@ -218,23 +300,33 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSemicircleGauge(subplotsState['1A'].moisture, subplotsState['2A'].moisture, subplotsState['3A'].moisture);
   }
 
-  // Tương tác bấm trực tiếp vào Bơm trên bản đồ
-  document.querySelectorAll('.pump-badge').forEach(badge => {
-    badge.addEventListener('click', () => {
-      const plot = badge.dataset.plot;
+  // Tương tác bấm trực tiếp vào Cụm Bơm trên bản đồ
+  document.querySelectorAll('.pump-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const plot = node.dataset.plot;
       if (!plot) return;
-      const tierNum = parseInt(plot.charAt(0));
-      const curOn = subplotsState[plot].isPumpOn;
-      subplotsState[plot].isPumpOn = !curOn;
-      const nextAction = subplotsState[plot].isPumpOn ? 'ON' : 'OFF';
-
-      if (plot.endsWith('A')) {
-        mqttClient.sendPump(tierNum, nextAction, 600);
+      if (subplotsState[plot].isPumpOn) {
+        stopPlotWatering(plot, 'Người dùng ngắt thủ công');
+        showToast(`Đã tắt van tưới Lô ${plot}`, 'normal');
+      } else {
+        startPlotWatering(plot, 20);
       }
-      updateTopographicMap();
-      showToast(`Đã chuyển van tưới Lô ${plot} -> ${nextAction}`, 'normal');
     });
   });
+
+  // Nút ngắt khẩn cấp tất cả máy bơm
+  const btnMapAllOff = document.getElementById('btnMapAllOff');
+  if (btnMapAllOff) {
+    btnMapAllOff.addEventListener('click', () => {
+      Object.keys(subplotsState).forEach(plot => {
+        stopPlotWatering(plot, 'Ngắt khẩn cấp');
+      });
+      mqttClient.sendPump(1, 'OFF', 0);
+      mqttClient.sendPump(2, 'OFF', 0);
+      mqttClient.sendPump(3, 'OFF', 0);
+      showToast('⏹️ Đã ngắt khẩn cấp toàn bộ các máy bơm & van tưới!', 'warn');
+    });
+  }
 
   // ------------------------------------------------------------
   // 4. KHỞI TẠO BIỂU ĐỒ (CHART.JS)
