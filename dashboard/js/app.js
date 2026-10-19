@@ -100,14 +100,56 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Cập nhật nhãn phân khu trên bản đồ
-    const s1 = document.getElementById('lblSensor1');
-    const s2 = document.getElementById('lblSensor2');
-    const s3 = document.getElementById('lblSensor3');
-    if (s1) s1.textContent = `${area.zones[1].name}: ${mqttClient.latest.soil[1].moisture}%`;
-    if (s2) s2.textContent = `${area.zones[2].name}: ${mqttClient.latest.soil[2].moisture}%`;
-    if (s3) s3.textContent = `${area.zones[3].name}: ${mqttClient.latest.soil[3].moisture}%`;
+    // KỊCH BẢN MÔI TRƯỜNG THỰC TẾ vs MÔ PHỎNG KIỂM THỬ
+    if (areaKey === 'sim') {
+      // MÔI TRƯỜNG MÔ PHỎNG: Thể hiện đầy đủ 3 trạng thái rõ rệt (Khô - Đủ ẩm - Ngập úng)
+      // 1. Khô hạn (< 40%): Tầng 1 Đỉnh đồi Z1 bốc hơi mạnh (S1-A 28% -> Vòng tròn Cam, Bật van P1-A)
+      subplotsState['1A'].moisture = 28;
+      subplotsState['1A'].isPumpOn = true;
+      subplotsState['1A'].pulseRemaining = 18;
+      subplotsState['1B'].moisture = 38;
+      subplotsState['1B'].isPumpOn = false;
+      subplotsState['1B'].pulseRemaining = 0;
 
+      // 2. Đủ ẩm (40% - 60%): Tầng 2 Sườn dốc Z2 độ ẩm cân bằng (S2-A 50%, S2-B 54% -> Vòng tròn Xanh)
+      subplotsState['2A'].moisture = 50;
+      subplotsState['2A'].isPumpOn = false;
+      subplotsState['2A'].pulseRemaining = 0;
+      subplotsState['2B'].moisture = 54;
+      subplotsState['2B'].isPumpOn = false;
+      subplotsState['2B'].pulseRemaining = 0;
+
+      // 3. Ngập úng (> 80%): Tầng 3 Thung lũng Z3 đọng nước dồn dốc (S3-B 90% -> Vòng tròn Đỏ, Bơm P3-Xả ĐANG XẢ!)
+      subplotsState['3A'].moisture = 72;
+      subplotsState['3A'].isPumpOn = false;
+      subplotsState['3A'].pulseRemaining = 0;
+      subplotsState['3B'].moisture = 90;
+      subplotsState['3B'].isPumpOn = true;
+      subplotsState['3B'].pulseRemaining = 0;
+    } else {
+      // KHU VỰC THỰC TẾ: Đồi dốc Cầu Đất - Đà Lạt tự nhiên
+      subplotsState['1A'].moisture = 42;
+      subplotsState['1A'].isPumpOn = false;
+      subplotsState['1A'].pulseRemaining = 0;
+      subplotsState['1B'].moisture = 54;
+      subplotsState['1B'].isPumpOn = false;
+      subplotsState['1B'].pulseRemaining = 0;
+      subplotsState['2A'].moisture = 48;
+      subplotsState['2A'].isPumpOn = false;
+      subplotsState['2A'].pulseRemaining = 0;
+      subplotsState['2B'].moisture = 56;
+      subplotsState['2B'].isPumpOn = false;
+      subplotsState['2B'].pulseRemaining = 0;
+      subplotsState['3A'].moisture = 62;
+      subplotsState['3A'].isPumpOn = false;
+      subplotsState['3A'].pulseRemaining = 0;
+      subplotsState['3B'].moisture = 68;
+      subplotsState['3B'].isPumpOn = false;
+      subplotsState['3B'].pulseRemaining = 0;
+    }
+
+    updateTopographicMap();
+    renderWeatherCard();
     showToast(`Đã chuyển sang ${area.name}`, 'normal');
   }
 
@@ -129,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. CẬP NHẬT TRẠNG THÁI BẢN ĐỒ VỆ TINH TRẮC ĐỊA & CẢM BIẾN / MÁY BƠM
   // ------------------------------------------------------------
   const subplotsState = {
-    '1A': { moisture: 36, isPumpOn: false, pulseRemaining: 0, timerId: null },
+    '1A': { moisture: 42, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '1B': { moisture: 54, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '2A': { moisture: 48, isPumpOn: false, pulseRemaining: 0, timerId: null },
     '2B': { moisture: 56, isPumpOn: false, pulseRemaining: 0, timerId: null },
@@ -447,61 +489,112 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ------------------------------------------------------------
-  // 6. THỜI TIẾT OPEN-METEO
+  // 6. THỜI TIẾT ĐỘNG: HỖ TRỢ CẢ KHU VỰC THỰC TẾ & MÔ PHỎNG
   // ------------------------------------------------------------
-  weatherService.subscribe((data) => {
-    const cur = data.current;
-    if (!cur) return;
-
+  function renderWeatherCard() {
+    const isSim = (mqttClient.currentArea === 'sim');
     const tempEl = document.getElementById('curWeatherTemp');
     const feelsEl = document.getElementById('curWeatherFeels');
     const descEl = document.getElementById('curWeatherDesc');
     const iconEl = document.getElementById('curWeatherIcon');
     const highLowEl = document.getElementById('curWeatherHighLow');
-
-    if (tempEl) tempEl.textContent = weatherService.formatTemp(cur.temp);
-    if (feelsEl) feelsEl.textContent = 'Cảm giác như ' + weatherService.formatTemp(cur.feelsLike);
-    if (descEl) descEl.textContent = cur.weatherText;
-    if (iconEl) iconEl.textContent = cur.icon;
-
-    if (highLowEl && data.daily.length > 0) {
-      highLowEl.textContent = `Cao: ${weatherService.formatTemp(data.daily[0].tempMax)} • Thấp: ${weatherService.formatTemp(data.daily[0].tempMin)}`;
-    }
-
     const rainStatusEl = document.getElementById('rainDecisionBadge');
-    if (rainStatusEl) {
-      if (cur.shouldDelay) {
-        rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%, P_eff: ${cur.pEff3h}mm)</span>`;
-      } else {
-        rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
+    const gardenTempEl = document.getElementById('gardenTemp');
+    const gardenHumEl = document.getElementById('gardenHum');
+    const weatherSourceBadge = document.getElementById('weatherSourceBadge');
+    const listEl = document.getElementById('forecastListContainer');
+
+    if (isSim) {
+      // 1. KỊCH BẢN THỜI TIẾT MÔ PHỎNG (SANDBOX KHÔ HẠN)
+      if (tempEl) tempEl.textContent = weatherService.formatTemp(37);
+      if (feelsEl) feelsEl.textContent = 'Cảm giác như ' + weatherService.formatTemp(40);
+      if (descEl) descEl.textContent = 'Nắng hạn gay gắt';
+      if (iconEl) iconEl.textContent = '☀️';
+      if (highLowEl) highLowEl.textContent = `Cao: ${weatherService.formatTemp(39)} • Thấp: ${weatherService.formatTemp(28)}`;
+      if (gardenTempEl) gardenTempEl.textContent = '37.5°C';
+      if (gardenHumEl) gardenHumEl.textContent = '24%';
+      if (weatherSourceBadge) weatherSourceBadge.textContent = 'Mô Phỏng Sandbox';
+
+      if (rainStatusEl) {
+        rainStatusEl.innerHTML = `<span class="preset-badge sun">Mô Phỏng Sandbox: Khô hạn gay gắt (P_max: 0%): Cần cấp nước khẩn cấp</span>`;
+      }
+
+      if (listEl) {
+        listEl.innerHTML = '';
+        const simDays = [
+          { day: 'Hôm nay', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt nhiệt đới', max: 39, min: 28, rainProb: 0, rainSum: 0 },
+          { day: 'Ngày +1', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng nóng đỉnh điểm', max: 40, min: 29, rainProb: 5, rainSum: 0 },
+          { day: 'Ngày +2', date: 'Mô phỏng', icon: '🌤️', desc: 'Nắng chói chang', max: 38, min: 28, rainProb: 10, rainSum: 0 },
+          { day: 'Ngày +3', date: 'Mô phỏng', icon: '🌤️', desc: 'Khô ráo gió cát', max: 37, min: 27, rainProb: 5, rainSum: 0 },
+          { day: 'Ngày +4', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng gắt kéo dài', max: 39, min: 28, rainProb: 0, rainSum: 0 },
+          { day: 'Ngày +5', date: 'Mô phỏng', icon: '⛅', desc: 'Mây mỏng ít gió', max: 36, min: 27, rainProb: 15, rainSum: 0.2 },
+          { day: 'Ngày +6', date: 'Mô phỏng', icon: '☀️', desc: 'Nắng hanh khô', max: 38, min: 28, rainProb: 0, rainSum: 0 }
+        ];
+        simDays.forEach((d, idx) => {
+          const card = document.createElement('div');
+          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
+          card.innerHTML = `
+            <div class="forecast-day-name">${d.day}</div>
+            <div class="forecast-day-date">${d.date}</div>
+            <div class="forecast-day-icon">${d.icon}</div>
+            <div class="forecast-day-desc">${d.desc}</div>
+            <div class="forecast-day-temp">${weatherService.formatTemp(d.max)} / ${weatherService.formatTemp(d.min)}</div>
+            <span class="preset-badge normal forecast-day-rain">Mưa 0%</span>
+          `;
+          listEl.appendChild(card);
+        });
+      }
+    } else {
+      // 2. KỊCH BẢN THỜI TIẾT THỰC TẾ (CẦU ĐẤT - ĐÀ LẠT TỪ OPEN-METEO)
+      const cur = weatherService.currentData;
+      if (!cur) return;
+
+      if (tempEl) tempEl.textContent = weatherService.formatTemp(cur.temp);
+      if (feelsEl) feelsEl.textContent = 'Cảm giác như ' + weatherService.formatTemp(cur.feelsLike);
+      if (descEl) descEl.textContent = cur.weatherText;
+      if (iconEl) iconEl.textContent = cur.icon;
+      if (weatherSourceBadge) weatherSourceBadge.textContent = 'Cầu Đất - Open-Meteo';
+
+      if (highLowEl && weatherService.dailyData.length > 0) {
+        highLowEl.textContent = `Cao: ${weatherService.formatTemp(weatherService.dailyData[0].tempMax)} • Thấp: ${weatherService.formatTemp(weatherService.dailyData[0].tempMin)}`;
+      }
+
+      if (rainStatusEl) {
+        const isRainCondition = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
+        if (cur.shouldDelay || isRainCondition || cur.pMax3h >= 70) {
+          rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%, P_eff: ${cur.pEff3h || 0}mm)</span>`;
+        } else if (cur.pMax3h >= 40) {
+          rainStatusEl.innerHTML = `<span class="preset-badge normal">Khả năng mưa rải rác (${cur.pMax3h}%): Tiếp tục theo dõi</span>`;
+        } else {
+          rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
+        }
+      }
+
+      if (listEl && weatherService.dailyData.length > 0) {
+        listEl.innerHTML = '';
+        weatherService.dailyData.forEach((d, idx) => {
+          const card = document.createElement('div');
+          card.className = `forecast-card-day ${idx === 0 ? 'today' : ''}`;
+          const isRainy = d.rainProb >= 50;
+          const rainLabel = d.rainSum > 0 ? `${d.rainProb}% (${d.rainSum}mm)` : `${d.rainProb}%`;
+
+          card.innerHTML = `
+            <div class="forecast-day-name">${d.dayLabel}</div>
+            <div class="forecast-day-date">${d.dateStr}</div>
+            <div class="forecast-day-icon">${d.icon}</div>
+            <div class="forecast-day-desc">${d.text}</div>
+            <div class="forecast-day-temp">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
+            <span class="preset-badge ${isRainy ? 'rain' : 'normal'} forecast-day-rain">Mưa ${rainLabel}</span>
+          `;
+          listEl.appendChild(card);
+        });
       }
     }
+  }
 
-    const listEl = document.getElementById('forecastListContainer');
-    if (listEl && data.daily.length > 0) {
-      listEl.innerHTML = '';
-      data.daily.forEach((d) => {
-        const item = document.createElement('div');
-        item.className = 'forecast-item';
-        const isRainy = d.rainProb >= 50;
-        const rainLabel = isRainy ? `Mưa ${d.rainProb}% (${d.rainSum}mm)` : `Mưa ${d.rainProb}%`;
-
-        item.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">${d.icon}</span>
-            <div>
-              <div style="font-size: 13px; font-weight: 700;">${d.dayLabel} <span style="font-weight:400; color:#94a3b8; font-size:11px;">(${d.dateStr})</span></div>
-              <div style="font-size: 11px; color: var(--text-muted);">${d.text}</div>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 13px; font-weight: 700;">${weatherService.formatTemp(d.tempMax)} / ${weatherService.formatTemp(d.tempMin)}</div>
-            <span class="preset-badge ${isRainy ? 'rain' : 'normal'}" style="font-size: 10px;">${rainLabel}</span>
-          </div>
-        `;
-        listEl.appendChild(item);
-      });
-    }
+  // Đăng ký nhận thông báo khi có thời tiết mới từ Open-Meteo
+  weatherService.subscribe(() => {
+    renderWeatherCard();
   });
 
   // Chuyển đổi đơn vị C / F
@@ -512,6 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.unit-opt').forEach(el => {
         el.classList.toggle('active', el.dataset.unit === newUnit);
       });
+      renderWeatherCard();
     });
   }
 

@@ -47,7 +47,33 @@ class DashboardMQTTClient {
   setArea(areaId) {
     if (this.currentArea !== areaId) {
       this.currentArea = areaId;
-      this.trigger('onAreaChange', { area: CONFIG.AREAS[areaId] });
+
+      if (areaId === 'sim') {
+        // Kịch bản môi trường mô phỏng: Khô cằn đỉnh đồi Z1, đủ ẩm sườn dốc Z2, ngập úng đáy thung lũng Z3
+        this.latest.soil[1] = { moisture: 28, raw: 1120 };
+        this.latest.soil[2] = { moisture: 50, raw: 2000 };
+        this.latest.soil[3] = { moisture: 90, raw: 3600 };
+        this.latest.pumps[1] = { status: 'ON', runTimeMs: 18000 };
+        this.latest.pumps[2] = { status: 'OFF', runTimeMs: 0 };
+        this.latest.pumps[3] = { status: 'ON', runTimeMs: 12000 }; // Bơm tiêu úng P3-Xả đang xả
+        this.latest.env = { temperature: 36.8, humidity: 24.0 };
+      } else {
+        // Nông trường thực tế Cầu Đất - Đà Lạt: Mát mẻ, độ ẩm đồng đều ổn định
+        this.latest.soil[1] = { moisture: 42, raw: 1680 };
+        this.latest.soil[2] = { moisture: 52, raw: 2080 };
+        this.latest.soil[3] = { moisture: 66, raw: 2640 };
+        this.latest.pumps[1] = { status: 'OFF', runTimeMs: 0 };
+        this.latest.pumps[2] = { status: 'OFF', runTimeMs: 0 };
+        this.latest.pumps[3] = { status: 'OFF', runTimeMs: 0 };
+        this.latest.env = { temperature: 22.5, humidity: 72.0 };
+      }
+
+      this.trigger('onAreaChange', { area: CONFIG.AREAS[areaId], areaId });
+      this.trigger('onSoil', { zone: 1, moisture: this.latest.soil[1].moisture });
+      this.trigger('onSoil', { zone: 2, moisture: this.latest.soil[2].moisture });
+      this.trigger('onSoil', { zone: 3, moisture: this.latest.soil[3].moisture });
+      this.trigger('onPump', this.latest.pumps);
+      this.trigger('onEnv', this.latest.env);
       console.log(`[AREA] Đã chuyển khu vực làm việc: ${CONFIG.AREAS[areaId].name}`);
     }
   }
