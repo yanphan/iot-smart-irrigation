@@ -92,8 +92,8 @@ void taskControlCode(void *pvParameters) {
       publishAlert("SYSTEM_NORMAL", 0, "He thong da duoc phuc hoi binh thuong");
     }
 
-    // 4. Kiem tra bao ve qua tai bom (D5 - PUMP_TIMEOUT watchdog)
-    for (int z = 1; z <= NUM_ZONES; z++) {
+    // 4. Kiem tra bao ve qua tai bom (D5 - PUMP_TIMEOUT watchdog cho tat ca 4 relay)
+    for (int z = 1; z <= 4; z++) {
       if (pumpRelay->isOn(z)) {
         unsigned long runTime = pumpRelay->getRunTime(z);
         if (runTime >= PUMP_MAX_DURATION) {
@@ -183,9 +183,32 @@ void taskControlCode(void *pvParameters) {
     DecideCommand cmd = decide(in);
 
     // 7. THUC THI LENH DIEU KHIEN (Actuation)
+    if (cmd.nextState == S5_DRAIN) {
+      // 7.1. Che do tieu ung S5_DRAIN: Khoa van tuoi Z3, kich hoat bom tieu ung Relay 4 (GPIO 33 - P3-Xa)
+      if (pumpRelay->isOn(3)) {
+        unsigned long rt = pumpRelay->getRunTime(3);
+        pumpRelay->turnOff(3);
+        publishPumpState(3, false, rt);
+        if (currentActiveZone == 3) currentActiveZone = 0;
+      }
+      if (!pumpRelay->isOn(4)) {
+        pumpRelay->turnOn(4);
+        publishPumpState(4, true, 0);
+        Serial.println("[FLOOD] Phat hien ngap ung Zone 3! Kich hoat bom tieu ung Relay 4 (GPIO 33 - P3-Xa) hut nuoc ve be");
+      }
+    } else {
+      // Khi khong con ngap ung, tu dong ngat bom tieu ung Relay 4 neu dang bat (khi khong o MANUAL)
+      if (pumpRelay->isOn(4) && !curManualMode) {
+        unsigned long rt = pumpRelay->getRunTime(4);
+        pumpRelay->turnOff(4);
+        publishPumpState(4, false, rt);
+        Serial.printf("[FLOOD] Do am Zone 3 da an toan -> Tat bom tieu ung Relay 4 (da chay %lu ms)\r\n", rt);
+      }
+    }
+
     if (cmd.action == ACTION_ALL_OFF) {
       pumpRelay->allOff();
-      for (int z = 1; z <= NUM_ZONES; z++) {
+      for (int z = 1; z <= 4; z++) {
         publishPumpState(z, false, 0);
       }
       currentActiveZone = 0;
@@ -219,12 +242,13 @@ void taskControlCode(void *pvParameters) {
       // Giu nguyen trang thai xung tuoi dang chay
     }
 
-    // 8. D7: TTL Protection trong MANUAL - Bom chay qua 10 phut tu ngat
+    // 8. D7: TTL Protection trong MANUAL - Bom chay qua 10 phut tu ngat (ap dung cho ca 4 relay)
     if (curManualMode) {
-      for (int z = 1; z <= NUM_ZONES; z++) {
+      for (int z = 1; z <= 4; z++) {
         if (pumpRelay->isOn(z) && pumpRelay->getRunTime(z) >= 600000UL) {
+          unsigned long rt = pumpRelay->getRunTime(z);
           pumpRelay->turnOff(z);
-          publishPumpState(z, false, pumpRelay->getRunTime(z));
+          publishPumpState(z, false, rt);
           Serial.printf(
               "[SAFETY][MANUAL] Zone %d het TTL 10 phut -> Tu ngat an toan\r\n",
               z);
@@ -280,6 +304,7 @@ void taskNetworkCode(void *pvParameters) {
           publishSoilData(z, latestMoisture[z - 1], latestRawADC[z - 1]);
           publishPumpState(z, pumpRelay->isOn(z), pumpRelay->getRunTime(z));
         }
+        publishPumpState(4, pumpRelay->isOn(4), pumpRelay->getRunTime(4));
         publishEnvData(latestTemp, latestHum);
 
         // Publish du bao thoi tiet

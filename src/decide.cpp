@@ -71,12 +71,12 @@ DecideCommand decide(const DecideInput& in) {
     // 4. KIỂM TRA NGUY CƠ NGẬP ÚNG VÙNG TRŨNG (Z3 - S5_DRAIN / FLOOD)
     // ------------------------------------------------------------
     bool z3Flooded = (in.moisture[2] >= in.thresholdFlood[2]);
-    if (z3Flooded && in.currentlyIrrigatingZone == 3) {
+    if (z3Flooded) {
         cmd.nextState = S5_DRAIN;
         cmd.action = ACTION_PUMP_OFF;
         cmd.targetZone = 3;
         cmd.alertCode = "FLOOD_WARNING";
-        cmd.reason = "Vung 3 ngap ung do am >= 80%! Khoa van Z3";
+        cmd.reason = "Vung 3 ngap ung do am >= 80%! Khoa van tuoi Z3 va kich hoat bom tieu ung P3-Xa";
         return cmd;
     }
 

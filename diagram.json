@@ -4,7 +4,7 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-dht22", "id": "dht1", "top": -100, "left": 150, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": -100, "left": 150, "attrs": { "temperature": "22.5", "humidity": "75" } },
     { "type": "wokwi-relay-module", "id": "relay1", "top": 150, "left": -150, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay2", "top": 200, "left": -150, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay3", "top": 250, "left": -150, "attrs": {} },

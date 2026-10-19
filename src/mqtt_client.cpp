@@ -11,6 +11,7 @@
 #include "mqtt_client.h"
 #include "config.h"
 #include "weather.h"
+#include "pump_relay.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
@@ -80,6 +81,21 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
       pendingCmd.ttlMs = ttlSec * 1000UL;
       pendingCmd.receivedAt = millis();
       pendingCmd.isPending = true;
+
+      // Neu la Zone 4 (Bom tieu ung P3-Xa), thuc thi truc tiep ngay lap tuc
+      if (zone == 4) {
+        if (pendingCmd.pumpOn) {
+          pumpRelay->turnOn(4);
+          publishPumpState(4, true, 0);
+          Serial.println("[MANUAL] Bat thu cong bom tieu ung Relay 4 (P3-Xa)");
+        } else {
+          unsigned long rt = pumpRelay->getRunTime(4);
+          pumpRelay->turnOff(4);
+          publishPumpState(4, false, rt);
+          Serial.println("[MANUAL] Tat thu cong bom tieu ung Relay 4 (P3-Xa)");
+        }
+        pendingCmd.isPending = false;
+      }
 
       Serial.printf(
           "[MQTT] Nhan lenh bom thu cong: Zone %d -> %s (TTL: %lu giay)\r\n",

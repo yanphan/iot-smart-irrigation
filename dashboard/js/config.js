@@ -44,7 +44,7 @@ const CONFIG = {
   AREAS: {
     real: {
       id: 'real',
-      name: 'Khu Vực Thực Tế',
+      name: 'Nông Trường Cầu Đất',
       locationName: 'Cầu Đất - Đà Lạt',
       tagline: 'Địa hình đồi dốc tự nhiên',
       climateDesc: 'Ôn đới mát mẻ',
@@ -52,24 +52,9 @@ const CONFIG = {
       lon: 108.5300,
       baseElevation: 1550,
       zones: {
-        1: { name: 'Vùng 1 (Đỉnh đồi)', elevation: '1,630m', slope: 'Dốc cao' },
-        2: { name: 'Vùng 2 (Sườn đồi)', elevation: '1,560m', slope: 'Dốc 25°' },
-        3: { name: 'Vùng 3 (Thung lũng)', elevation: '1,500m', slope: 'Vùng trũng' }
-      }
-    },
-    sim: {
-      id: 'sim',
-      name: 'Khu Vực Mô Phỏng',
-      locationName: 'Vùng Mô Phỏng',
-      tagline: 'Mô phỏng đồi dốc',
-      climateDesc: 'Thử nghiệm kịch bản',
-      lat: 11.8500,
-      lon: 108.5300,
-      baseElevation: 800,
-      zones: {
-        1: { name: 'Vùng 1 (Gò khô hạn)', elevation: '850m', slope: 'Bốc hơi nhanh' },
-        2: { name: 'Vùng 2 (Dốc xói mòn)', elevation: '820m', slope: 'Khô nóng' },
-        3: { name: 'Vùng 3 (Lòng chảo trũng)', elevation: '780m', slope: 'Dễ ngập úng' }
+        1: { name: 'Tầng 1 (Đỉnh đồi)', elevation: '1,630m', slope: 'Dốc cao' },
+        2: { name: 'Tầng 2 (Sườn đồi)', elevation: '1,560m', slope: 'Dốc 25°' },
+        3: { name: 'Tầng 3 (Thung lũng)', elevation: '1,500m', slope: 'Vùng trũng' }
       }
     }
   },
