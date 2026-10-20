@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Firmware (PlatformIO)",
+            "type": "shell",
+            "command": "pio run",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$platformio"
+        },
+        {
+            "label": "Monitor ESP32 Logs (Terminal)",
+            "type": "shell",
+            "command": "python monitor.py",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "PlatformIO: Serial Monitor",
+            "type": "shell",
+            "command": "pio device monitor",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Node-RED Dashboard",
+            "type": "shell",
+            "command": "node-red.cmd flow_node-red.json",
+            "isBackground": true,
+            "problemMatcher": []
+        }
+    ]
+}

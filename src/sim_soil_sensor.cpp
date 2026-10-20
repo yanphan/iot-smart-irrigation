@@ -1,8 +1,8 @@
 // ============================================================
-// sim_soil_sensor.cpp — Triển khai cảm biến độ ẩm đất (Chế độ SIM)
+// sim_soil_sensor.cpp - Trien khai cam bien do am dat (Che do SIM)
 // ============================================================
-// Đọc giá trị từ biến trở (potentiometer) trên Wokwi
-// Ánh xạ ADC (0-4095) → Phần trăm độ ẩm (0-100%)
+// Doc gia tri tu bien tro (potentiometer) tren Wokwi
+// Anh xa ADC (0-4095) -> Phan tram do am (0-100%)
 // ============================================================
 
 #include "config.h"
@@ -13,50 +13,57 @@
 
 class SimSoilSensor : public SoilSensor {
 private:
-    // Mảng chân GPIO cho 3 vùng tưới (index 0 = Z1, 1 = Z2, 2 = Z3)
-    const int soilPins[NUM_ZONES] = {PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3};
+  // Mang chan GPIO cho 3 vung tuoi (index 0 = Z1, 1 = Z2, 2 = Z3)
+  const int soilPins[NUM_ZONES] = {PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3};
 
-    // Lấy chân GPIO từ zone number (1-based → 0-based index)
-    int getPin(int zone) {
-        if (zone >= 1 && zone <= NUM_ZONES) {
-            return soilPins[zone - 1];
-        }
-        Serial.printf("[SOIL][ERROR] Zone %d không hợp lệ! (1-%d)\n", zone, NUM_ZONES);
-        return -1;
+  // Lay chan GPIO tu zone number (1-based -> 0-based index)
+  int getPin(int zone) {
+    if (zone >= 1 && zone <= NUM_ZONES) {
+      return soilPins[zone - 1];
     }
+    Serial.printf("[SOIL][ERROR] Zone %d khong hop le! (1-%d)\r\n", zone,
+                  NUM_ZONES);
+    return -1;
+  }
 
 public:
-    // Khởi tạo: ESP32 không cần pinMode cho ADC input, chỉ log thông tin
-    void begin() override {
-        Serial.println("[SOIL][SIM] Khởi tạo cảm biến độ ẩm đất (Wokwi Potentiometer)");
-        Serial.printf("[SOIL][SIM] Z1=GPIO%d, Z2=GPIO%d, Z3=GPIO%d\n",
-                      PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3);
-    }
+  void begin() override {
+    Serial.println(
+        "[SOIL][SIM] Khoi tao cam bien do am dat (Wokwi Potentiometer)");
+    Serial.printf("[SOIL][SIM] Z1=GPIO%d, Z2=GPIO%d, Z3=GPIO%d\r\n",
+                  PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3);
+    pinMode(PIN_SOIL_Z1, INPUT);
+    pinMode(PIN_SOIL_Z2, INPUT);
+    pinMode(PIN_SOIL_Z3, INPUT);
+    analogSetAttenuation(ADC_11db);
+  }
 
-    // Đọc độ ẩm đất theo phần trăm (0-100%) cho vùng zone
-    int readMoisturePercent(int zone) override {
-        int pin = getPin(zone);
-        if (pin == -1) return -1;  // Zone không hợp lệ
+  // Doc gia tri ADC tho
+  int readRawADC(int zone) override {
+    int pin = getPin(zone);
+    if (pin == -1)
+      return -1;
+    return analogRead(pin);
+  }
 
-        // Đọc ADC: ESP32 ADC 12-bit → giá trị 0 ~ 4095
-        int rawValue = analogRead(pin);
+  // Doc do am dat theo phan tram (0-100%) cho vung zone
+  int readMoisturePercent(int zone) override {
+    int rawValue = readRawADC(zone);
+    if (rawValue == -1)
+      return -1;
 
-        // Ánh xạ từ dải ADC (0-4095) sang phần trăm (0-100)
-        int percent = map(rawValue, 0, 4095, 0, 100);
+    // Anh xa tu dai ADC (0-4095) sang phan tram (0-100)
+    int percent = map(rawValue, 0, 4095, 0, 100);
+    percent = constrain(percent, 0, 100);
 
-        // Giới hạn giá trị trong khoảng 0-100 (đề phòng nhiễu)
-        percent = constrain(percent, 0, 100);
-
-        Serial.printf("[SOIL][SIM] Zone %d: ADC=%d → %d%%\n", zone, rawValue, percent);
-
-        return percent;
-    }
+    return percent;
+  }
 };
 
 // ============================================================
-// GLOBAL INSTANCE — Để các file khác sử dụng
+// GLOBAL INSTANCE - De cac file khac su dung
 // ============================================================
 SimSoilSensor simSoilSensor;
-SoilSensor* soilSensor = &simSoilSensor;
+SoilSensor *soilSensor = &simSoilSensor;
 
 #endif // CURRENT_MODE == MODE_SIM

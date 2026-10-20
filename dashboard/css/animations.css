@@ -1,0 +1,70 @@
+/* ============================================================
+   animations.css - Hiệu ứng chuyển động bản đồ địa hình & thông báo
+   ============================================================ */
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes pulse-blue {
+  0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+@keyframes pulse-flood {
+  0% { fill-opacity: 0.35; stroke-width: 2.5; }
+  50% { fill-opacity: 0.65; stroke-width: 4; }
+  100% { fill-opacity: 0.35; stroke-width: 2.5; }
+}
+
+@keyframes waterRipple {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes dashRunoff {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+/* Hiệu ứng vòng tròn hào quang trạng thái môi trường quanh cảm biến */
+@keyframes pulse-dry-halo {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.75; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.75; }
+}
+
+@keyframes pulse-flood-halo {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+}
+
+@keyframes pulse-optimal-halo {
+  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.6; }
+}
+
+@keyframes pulse-active-pump {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+@keyframes pulse-active-drain {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
