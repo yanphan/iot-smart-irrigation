@@ -1143,9 +1143,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       switch (preset) {
         case 'W0':
+          // 1. Gui du lieu thoi tiet nang rao (0mm)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
             current: { temperature_2m: 26.5, relative_humidity_2m: 55.0 }
+          });
+          // 2. Gui lenh mo phong dat doi doc kho han dong bo toi ESP32
+          mqttClient.sendSimSoil({
+            action: 'dry_slope',
+            z1: 22,
+            z2: 24,
+            z3: 22
           });
           if (moistureChart && chartHistory.rain.length >= 3) {
             chartHistory.rain[chartHistory.rain.length - 3] = 0.0;
@@ -1154,10 +1162,10 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Chuẩn bị tưới Z1→Z2→Z3</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Khô 3 tầng • Tưới đồi dốc Z1→Z2→Z3</span>`;
           }
-          showToast('Đã gửi W0 tới ESP32: Nắng ráo -> Quyết định tưới tuần tự Z1 -> Z2 -> Z3', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo (0mm) • Chuẩn bị tưới tuần tự Z1→Z2→Z3', 'system');
+          showToast('Kích hoạt W0: Đất 3 tầng khô hạn -> Tự động tưới tuần tự Z1 -> Z2 -> Z3 (nước ngấm dốc)', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=22%, Z2=24%, Z3=22%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
           break;
 
         case 'W1':

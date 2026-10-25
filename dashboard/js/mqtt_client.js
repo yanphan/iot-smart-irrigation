@@ -246,6 +246,13 @@ class DashboardMQTTClient {
     this.client.publish(CONFIG.MQTT.TOPICS.SIM_FAULT, payload, { qos: 1 });
     return true;
   }
+
+  sendSimSoil(soilObj) {
+    if (!this.isConnected) return false;
+    const payload = JSON.stringify(soilObj);
+    this.client.publish(CONFIG.MQTT.TOPICS.SIM_SOIL, payload, { qos: 1 });
+    return true;
+  }
 }
 
 const mqttClient = new DashboardMQTTClient();

@@ -30,7 +30,8 @@ const CONFIG = {
       CMD_PUMP: 'g11/irrig/cmd/pump',
       CMD_THRESHOLD: 'g11/irrig/cmd/threshold',
       SIM_WEATHER: 'g11/irrig/sim/weather',
-      SIM_FAULT: 'g11/irrig/sim/fault'
+      SIM_FAULT: 'g11/irrig/sim/fault',
+      SIM_SOIL: 'g11/irrig/sim/soil'
     }
   },
 
