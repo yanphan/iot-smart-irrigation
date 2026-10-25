@@ -14,11 +14,12 @@
 
 #include "soil_sensor.h"
 #include "pump_relay.h"
+#include "weather.h"
 
 class SimSoilSensor : public SoilSensor {
 private:
   const int soilPins[NUM_ZONES] = {PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3};
-  float dynamicMoisture[NUM_ZONES] = {22.0f, 24.0f, 22.0f}; // Muc kho han thuc te (nguong can tuoi: Z1,Z2 < 40%, Z3 < 35%)
+  float dynamicMoisture[NUM_ZONES] = {28.0f, 30.0f, 28.0f}; // Kho han chuan bao cao (> 25% an toan cho hoan tuoi W1, < 40% can tuoi W0)
   int lastPotValue[NUM_ZONES] = {-1, -1, -1};
   unsigned long lastPhysicsUpdate = 0;
 
@@ -83,6 +84,18 @@ private:
       }
     }
 
+    // 3. Mo phong nuoc mua tu troi roi xuong khi co du bao mua lon (W1, W3)
+    if (weatherService != nullptr && weatherService->isDataValid()) {
+      ForecastData fc = weatherService->getForecast();
+      if (fc.effPrecip >= 5.0f && fc.maxProb >= 70) {
+        float rainRate = (fc.hourlyRain[0] >= 10.0f) ? 4.0f : 1.8f;
+        // Mua roi deu tren toan bo qua doi, thung lung Z3 nhan them dong chay tran tu 2 tang tren
+        dynamicMoisture[0] += rainRate * dt;
+        dynamicMoisture[1] += (rainRate * 1.25f) * dt;
+        dynamicMoisture[2] += (rainRate * 1.75f) * dt;
+      }
+    }
+
     for (int i = 0; i < NUM_ZONES; i++) {
       dynamicMoisture[i] = constrain(dynamicMoisture[i], 0.0f, 100.0f);
     }
@@ -126,7 +139,7 @@ public:
     }
   }
 
-  void resetSlopeDry(int z1 = 22, int z2 = 24, int z3 = 22) override {
+  void resetSlopeDry(int z1 = 28, int z2 = 30, int z3 = 28) override {
     dynamicMoisture[0] = z1;
     dynamicMoisture[1] = z2;
     dynamicMoisture[2] = z3;

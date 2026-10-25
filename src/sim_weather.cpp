@@ -19,6 +19,7 @@ class SimWeather : public Weather {
 private:
     ForecastData currentData;
     bool fallbackMode;
+    bool isPresetActive;
 
     // Tinh he so tham k theo cuong do mua (mm/h) theo muc 4.8 bao cao
     float getInfiltrationFactor(float mmPerHour) {
@@ -36,13 +37,14 @@ private:
 public:
     SimWeather() {
         fallbackMode = false;
+        isPresetActive = false;
         currentData.maxProb = 5;
         currentData.effPrecip = 0.0f;
         currentData.heavyRain = false;
         currentData.temp = 20.2f;
         currentData.humidity = 98.0f;
         currentData.isValid = true;
-        currentData.timestamp = 0;
+        currentData.timestamp = millis();
         for (int i = 0; i < 3; i++) {
             currentData.hourlyRain[i] = 0.0f;
             currentData.hourlyProb[i] = 5;
@@ -131,8 +133,19 @@ public:
             currentData.humidity = doc["hum"].as<float>();
         }
 
+        if (doc.containsKey("current")) {
+            JsonObject cur = doc["current"];
+            if (cur.containsKey("temperature_2m")) {
+                currentData.temp = cur["temperature_2m"].as<float>();
+            }
+            if (cur.containsKey("relative_humidity_2m")) {
+                currentData.humidity = cur["relative_humidity_2m"].as<float>();
+            }
+        }
+
         currentData.isValid = true;
         currentData.timestamp = millis();
+        isPresetActive = true;
         fallbackMode = false;
 
         Serial.printf("[WEATHER][SIM] Cap nhat du bao 3 gio toi:\r\n");
@@ -171,8 +184,8 @@ public:
     }
 
     bool update() override {
-        // Neu da qua 30 phut hoac chua co du lieu, tu dong fetch Open-Meteo
-        if (millis() - currentData.timestamp >= 1800000UL) {
+        // Neu chua kich hoat kich ban mo phong (preset), moi tu dong fetch Open-Meteo dinh ky
+        if (!isPresetActive && (millis() - currentData.timestamp >= 1800000UL)) {
             fetchLiveOpenMeteo();
         }
         return currentData.isValid;

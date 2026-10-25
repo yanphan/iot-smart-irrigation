@@ -1151,9 +1151,9 @@ document.addEventListener('DOMContentLoaded', () => {
           // 2. Gui lenh mo phong dat doi doc kho han dong bo toi ESP32
           mqttClient.sendSimSoil({
             action: 'dry_slope',
-            z1: 22,
-            z2: 24,
-            z3: 22
+            z1: 28,
+            z2: 30,
+            z3: 28
           });
           if (moistureChart && chartHistory.rain.length >= 3) {
             chartHistory.rain[chartHistory.rain.length - 3] = 0.0;
@@ -1165,10 +1165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Khô 3 tầng • Tưới đồi dốc Z1→Z2→Z3</span>`;
           }
           showToast('Kích hoạt W0: Đất 3 tầng khô hạn -> Tự động tưới tuần tự Z1 -> Z2 -> Z3 (nước ngấm dốc)', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=22%, Z2=24%, Z3=22%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=28%, Z2=30%, Z3=28%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
           break;
 
         case 'W1':
+          mqttClient.sendMode('AUTO');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
             current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
@@ -1182,8 +1183,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (rainStatusEl) {
             rainStatusEl.innerHTML = `<span class="preset-badge rain">Kiểm thử [W1]: Mưa dông lớn (15mm) • Hoãn tưới đón mưa</span>`;
           }
-          showToast('Đã gửi W1 tới ESP32: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa tự nhiên', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (15mm) • Hoãn tưới đón mưa tự nhiên', 'warn');
+          showToast('Kích hoạt W1: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (15mm) • Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'warn');
           break;
 
         case 'W2':
