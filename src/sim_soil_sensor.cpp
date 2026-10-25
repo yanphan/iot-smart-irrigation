@@ -88,11 +88,20 @@ private:
     if (weatherService != nullptr && weatherService->isDataValid()) {
       ForecastData fc = weatherService->getForecast();
       if (fc.effPrecip >= 5.0f && fc.maxProb >= 70) {
-        float rainRate = (fc.hourlyRain[0] >= 10.0f) ? 4.0f : 1.8f;
-        // Mua roi deu tren toan bo qua doi, thung lung Z3 nhan them dong chay tran tu 2 tang tren
-        dynamicMoisture[0] += rainRate * dt;
-        dynamicMoisture[1] += (rainRate * 1.25f) * dt;
-        dynamicMoisture[2] += (rainRate * 1.75f) * dt;
+        // W3 la mua cuc lon gay lu quet (cuong do gio 0 >= 12mm/h hoac P_eff >= 25mm)
+        bool isCatastrophicFlood = (fc.hourlyRain[0] >= 12.0f || (fc.heavyRain && fc.effPrecip >= 25.0f));
+        float rainRate = isCatastrophicFlood ? 3.5f : 1.2f;
+
+        // Muc tran do am:
+        // W1 (Mua dong 15mm): chi lam no nuoc (Z1=62%, Z2=65%, Z3=68%), KHONG gay ung ngap
+        // W3 (Mua cuc lon 15mm/h): moi gay ung ngap Z3 >= 80% de bieu dien bom tieu ung Relay 4
+        float maxCapZ1 = 62.0f;
+        float maxCapZ2 = 65.0f;
+        float maxCapZ3 = isCatastrophicFlood ? 90.0f : 68.0f;
+
+        if (dynamicMoisture[0] < maxCapZ1) dynamicMoisture[0] += rainRate * dt;
+        if (dynamicMoisture[1] < maxCapZ2) dynamicMoisture[1] += (rainRate * 1.2f) * dt;
+        if (dynamicMoisture[2] < maxCapZ3) dynamicMoisture[2] += (rainRate * 1.5f) * dt;
       }
     }
 
