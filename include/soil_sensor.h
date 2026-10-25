@@ -25,7 +25,7 @@ public:
 
   // Ho tro mo phong dong hoc do am dat doi doc (MODE_SIM)
   virtual void setSimMoisture(int zone, int percent) {}
-  virtual void resetSlopeDry(int z1 = 28, int z2 = 30, int z3 = 32) {}
+  virtual void resetSlopeDry(int z1 = 22, int z2 = 24, int z3 = 22) {}
 
   // Destructor ao - bat buoc cho abstract class
   virtual ~SoilSensor() {}

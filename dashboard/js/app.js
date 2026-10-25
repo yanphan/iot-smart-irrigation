@@ -1151,9 +1151,9 @@ document.addEventListener('DOMContentLoaded', () => {
           // 2. Gui lenh mo phong dat doi doc kho han dong bo toi ESP32
           mqttClient.sendSimSoil({
             action: 'dry_slope',
-            z1: 28,
-            z2: 30,
-            z3: 32
+            z1: 22,
+            z2: 24,
+            z3: 22
           });
           if (moistureChart && chartHistory.rain.length >= 3) {
             chartHistory.rain[chartHistory.rain.length - 3] = 0.0;
@@ -1165,7 +1165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Khô 3 tầng • Tưới đồi dốc Z1→Z2→Z3</span>`;
           }
           showToast('Kích hoạt W0: Đất 3 tầng khô hạn -> Tự động tưới tuần tự Z1 -> Z2 -> Z3 (nước ngấm dốc)', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=28%, Z2=30%, Z3=32%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=22%, Z2=24%, Z3=22%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
           break;
 
         case 'W1':

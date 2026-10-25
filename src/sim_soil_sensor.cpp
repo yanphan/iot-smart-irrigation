@@ -18,7 +18,7 @@
 class SimSoilSensor : public SoilSensor {
 private:
   const int soilPins[NUM_ZONES] = {PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3};
-  float dynamicMoisture[NUM_ZONES] = {28.0f, 30.0f, 32.0f}; // Kho han ban dau cho mo phong
+  float dynamicMoisture[NUM_ZONES] = {22.0f, 24.0f, 22.0f}; // Muc kho han thuc te (nguong can tuoi: Z1,Z2 < 40%, Z3 < 35%)
   int lastPotValue[NUM_ZONES] = {-1, -1, -1};
   unsigned long lastPhysicsUpdate = 0;
 
@@ -56,23 +56,25 @@ private:
     }
 
     // 2. Mo phong dong hoc nuoc tuoi chay doc tren dia hinh doi doc
+    // Ty le tham ri chuan nong nghiep: Nuoc chu yeu tham o tang re vung duoc tuoi,
+    // chi 8-12% chay tran ri xuong tang duoi giup Z2, Z3 tiet kiem nuoc nhung van can tuoi bo sung.
     if (pumpRelay != nullptr) {
       // Bom Zone 1 (Dinh doi 1630m)
       if (pumpRelay->isOn(1)) {
-        dynamicMoisture[0] += 6.5f * dt; // Z1 tang manh (+6.5%/s)
-        dynamicMoisture[1] += 1.5f * dt; // Nuoc ri suon doi Z2 (+1.5%/s)
-        dynamicMoisture[2] += 0.8f * dt; // Nuoc tu chan doi Z3 (+0.8%/s)
+        dynamicMoisture[0] += 6.5f * dt; // Z1 tuoi truc tiep tu voi phun (+6.5%/s)
+        dynamicMoisture[1] += 0.6f * dt; // Tham ri nhe suon doi Z2 (+0.6%/s, sau 6s tang ~3.6%)
+        dynamicMoisture[2] += 0.3f * dt; // Tham ri nhe thung lung Z3 (+0.3%/s, sau 6s tang ~1.8%)
       }
 
       // Bom Zone 2 (Suon doi 1560m)
       if (pumpRelay->isOn(2)) {
-        dynamicMoisture[1] += 6.5f * dt; // Z2 tang manh
-        dynamicMoisture[2] += 1.8f * dt; // Nuoc chay don tiep xuong thung lung Z3
+        dynamicMoisture[1] += 6.5f * dt; // Z2 tuoi truc tiep tu voi phun
+        dynamicMoisture[2] += 0.8f * dt; // Nuoc chay don tiep xuong thung lung Z3 (+0.8%/s, sau 5s tang ~4%)
       }
 
       // Bom Zone 3 (Thung lung day 1500m)
       if (pumpRelay->isOn(3)) {
-        dynamicMoisture[2] += 6.5f * dt; // Z3 tang manh
+        dynamicMoisture[2] += 6.5f * dt; // Z3 tuoi truc tiep tu voi phun
       }
 
       // Bom tieu ung Zone 4 (P3-Xa GPIO 33)
@@ -124,7 +126,7 @@ public:
     }
   }
 
-  void resetSlopeDry(int z1 = 28, int z2 = 30, int z3 = 32) override {
+  void resetSlopeDry(int z1 = 22, int z2 = 24, int z3 = 22) override {
     dynamicMoisture[0] = z1;
     dynamicMoisture[1] = z2;
     dynamicMoisture[2] = z3;
