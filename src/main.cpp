@@ -264,8 +264,14 @@ void taskControlCode(void *pvParameters) {
     publishSystemState(stateToCode(cmd.nextState),
                        curManualMode ? "MANUAL" : "AUTO", cmd.reason);
 
+    static String lastSentAlert = "";
     if (cmd.alertCode != nullptr) {
-      publishAlert(cmd.alertCode, cmd.targetZone, cmd.reason);
+      if (lastSentAlert != String(cmd.alertCode)) {
+        publishAlert(cmd.alertCode, cmd.targetZone, cmd.reason);
+        lastSentAlert = String(cmd.alertCode);
+      }
+    } else {
+      lastSentAlert = "";
     }
 
     // Cho den chu ky doc cam bien tiep theo (5000ms trong config.h)

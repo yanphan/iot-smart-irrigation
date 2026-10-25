@@ -143,9 +143,9 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
     StaticJsonDocument<256> doc;
     DeserializationError err = deserializeJson(doc, message);
     if (!err) {
-      int z1 = doc["z1"] | 22;
-      int z2 = doc["z2"] | 24;
-      int z3 = doc["z3"] | 22;
+      int z1 = doc["z1"] | 28;
+      int z2 = doc["z2"] | 30;
+      int z3 = doc["z3"] | 28;
       if (soilSensor != nullptr) {
         soilSensor->resetSlopeDry(z1, z2, z3);
       }

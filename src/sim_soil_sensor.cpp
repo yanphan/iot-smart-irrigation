@@ -14,11 +14,12 @@
 
 #include "soil_sensor.h"
 #include "pump_relay.h"
+#include "weather.h"
 
 class SimSoilSensor : public SoilSensor {
 private:
   const int soilPins[NUM_ZONES] = {PIN_SOIL_Z1, PIN_SOIL_Z2, PIN_SOIL_Z3};
-  float dynamicMoisture[NUM_ZONES] = {22.0f, 24.0f, 22.0f}; // Muc kho han thuc te (nguong can tuoi: Z1,Z2 < 40%, Z3 < 35%)
+  float dynamicMoisture[NUM_ZONES] = {28.0f, 30.0f, 28.0f}; // Kho han chuan bao cao (> 25% an toan cho hoan tuoi W1, < 40% can tuoi W0)
   int lastPotValue[NUM_ZONES] = {-1, -1, -1};
   unsigned long lastPhysicsUpdate = 0;
 
@@ -61,25 +62,46 @@ private:
     if (pumpRelay != nullptr) {
       // Bom Zone 1 (Dinh doi 1630m)
       if (pumpRelay->isOn(1)) {
-        dynamicMoisture[0] += 6.5f * dt; // Z1 tuoi truc tiep tu voi phun (+6.5%/s)
-        dynamicMoisture[1] += 0.6f * dt; // Tham ri nhe suon doi Z2 (+0.6%/s, sau 6s tang ~3.6%)
-        dynamicMoisture[2] += 0.3f * dt; // Tham ri nhe thung lung Z3 (+0.3%/s, sau 6s tang ~1.8%)
+        dynamicMoisture[0] += 3.5f * dt; // Z1 tuoi truc tiep (+3.5%/s, khoang 9-10s dat du am)
+        dynamicMoisture[1] += 0.35f * dt; // Tham ri nhe suon doi Z2 (+0.35%/s, sau 9s tang ~3.1%)
+        dynamicMoisture[2] += 0.15f * dt; // Tham ri nhe thung lung Z3 (+0.15%/s, sau 9s tang ~1.3%)
       }
 
       // Bom Zone 2 (Suon doi 1560m)
       if (pumpRelay->isOn(2)) {
-        dynamicMoisture[1] += 6.5f * dt; // Z2 tuoi truc tiep tu voi phun
-        dynamicMoisture[2] += 0.8f * dt; // Nuoc chay don tiep xuong thung lung Z3 (+0.8%/s, sau 5s tang ~4%)
+        dynamicMoisture[1] += 3.5f * dt; // Z2 tuoi truc tiep (+3.5%/s, khoang 8s dat du am)
+        dynamicMoisture[2] += 0.45f * dt; // Nuoc chay don tiep xuong thung lung Z3 (+0.45%/s, sau 8s tang ~3.6%)
       }
 
       // Bom Zone 3 (Thung lung day 1500m)
       if (pumpRelay->isOn(3)) {
-        dynamicMoisture[2] += 6.5f * dt; // Z3 tuoi truc tiep tu voi phun
+        dynamicMoisture[2] += 3.5f * dt; // Z3 tuoi truc tiep (+3.5%/s, khoang 6s dat du am)
       }
 
       // Bom tieu ung Zone 4 (P3-Xa GPIO 33)
       if (pumpRelay->isOn(4)) {
-        dynamicMoisture[2] -= 8.0f * dt; // Hut nuoc xa tran thung lung
+        dynamicMoisture[2] -= 5.0f * dt; // Hut nuoc xa tran thung lung
+      }
+    }
+
+    // 3. Mo phong nuoc mua tu troi roi xuong khi co du bao mua lon (W1, W3)
+    if (weatherService != nullptr && weatherService->isDataValid()) {
+      ForecastData fc = weatherService->getForecast();
+      if (fc.effPrecip >= 5.0f && fc.maxProb >= 70) {
+        // W3 la mua cuc lon gay lu quet (cuong do gio 0 >= 12mm/h hoac P_eff >= 25mm)
+        bool isCatastrophicFlood = (fc.hourlyRain[0] >= 12.0f || (fc.heavyRain && fc.effPrecip >= 25.0f));
+        float rainRate = isCatastrophicFlood ? 3.5f : 1.2f;
+
+        // Muc tran do am:
+        // W1 (Mua dong 15mm): chi lam no nuoc (Z1=62%, Z2=65%, Z3=68%), KHONG gay ung ngap
+        // W3 (Mua cuc lon 15mm/h): moi gay ung ngap Z3 >= 80% de bieu dien bom tieu ung Relay 4
+        float maxCapZ1 = 62.0f;
+        float maxCapZ2 = 65.0f;
+        float maxCapZ3 = isCatastrophicFlood ? 90.0f : 68.0f;
+
+        if (dynamicMoisture[0] < maxCapZ1) dynamicMoisture[0] += rainRate * dt;
+        if (dynamicMoisture[1] < maxCapZ2) dynamicMoisture[1] += (rainRate * 1.2f) * dt;
+        if (dynamicMoisture[2] < maxCapZ3) dynamicMoisture[2] += (rainRate * 1.5f) * dt;
       }
     }
 
@@ -126,7 +148,7 @@ public:
     }
   }
 
-  void resetSlopeDry(int z1 = 22, int z2 = 24, int z3 = 22) override {
+  void resetSlopeDry(int z1 = 28, int z2 = 30, int z3 = 28) override {
     dynamicMoisture[0] = z1;
     dynamicMoisture[1] = z2;
     dynamicMoisture[2] = z3;
