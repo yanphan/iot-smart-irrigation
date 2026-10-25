@@ -23,6 +23,10 @@ public:
   // Khoi tao cam bien (cau hinh chan, log thong tin)
   virtual void begin() = 0;
 
+  // Ho tro mo phong dong hoc do am dat doi doc (MODE_SIM)
+  virtual void setSimMoisture(int zone, int percent) {}
+  virtual void resetSlopeDry(int z1 = 28, int z2 = 30, int z3 = 32) {}
+
   // Destructor ao - bat buoc cho abstract class
   virtual ~SoilSensor() {}
 };

@@ -177,7 +177,7 @@ void taskControlCode(void *pvParameters) {
     in.currentlyIrrigatingZone = currentActiveZone;
     in.currentPulseDurationMs =
         (currentActiveZone > 0) ? (millis() - pulseStartTime) : 0;
-    in.maxPulseDurationMs = 20000; // 20s moi xung trong mo phong
+    in.maxPulseDurationMs = SIM_MAX_PULSE_DURATION; // Gioi han xung toi da theo config.h
 
     // 6. GOI HAM THUAN decide() DE DUA RA QUYET DINH
     DecideCommand cmd = decide(in);

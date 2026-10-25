@@ -63,9 +63,17 @@
 // ------------------------------------------------------------
 // 6. THOI GIAN (milliseconds)
 // ------------------------------------------------------------
-#define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
-#define SOAK_WAIT_TIME       120000    // 120s cho nuoc ngam dat
-#define SENSOR_READ_INTERVAL   5000    // Doc cam bien moi 5s
+#if CURRENT_MODE == MODE_SIM
+  #define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
+  #define SOAK_WAIT_TIME         3500    // 3.5s cho nuoc ngam dat trong mo phong demo
+  #define SENSOR_READ_INTERVAL   1500    // Doc cam bien va cap nhat moi 1.5s
+  #define SIM_MAX_PULSE_DURATION 8000    // Toi da 8s moi xung trong mo phong
+#else
+  #define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
+  #define SOAK_WAIT_TIME       120000    // 120s cho nuoc ngam dat
+  #define SENSOR_READ_INTERVAL   5000    // Doc cam bien moi 5s
+  #define SIM_MAX_PULSE_DURATION 20000   // 20s
+#endif
 #define MQTT_RECONNECT_INTERVAL 5000   // Thu ket noi lai MQTT moi 5s
 #define WEATHER_UPDATE_INTERVAL 60000  // Cap nhat thoi tiet moi 60s
 

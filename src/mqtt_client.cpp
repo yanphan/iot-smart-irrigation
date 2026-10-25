@@ -12,6 +12,7 @@
 #include "config.h"
 #include "weather.h"
 #include "pump_relay.h"
+#include "soil_sensor.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
@@ -135,6 +136,20 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
       const char *fault = doc["fault"] | "";
       latestSimFaultCode = String(fault);
       Serial.printf("[MQTT] Tiem ma loi mo phong: %s\r\n", fault);
+    }
+  }
+  // 6. Lenh mo phong do am dat doi doc (sim/soil)
+  else if (topicStr.endsWith("sim/soil")) {
+    StaticJsonDocument<256> doc;
+    DeserializationError err = deserializeJson(doc, message);
+    if (!err) {
+      int z1 = doc["z1"] | 28;
+      int z2 = doc["z2"] | 30;
+      int z3 = doc["z3"] | 32;
+      if (soilSensor != nullptr) {
+        soilSensor->resetSlopeDry(z1, z2, z3);
+      }
+      Serial.printf("[MQTT] Mo phong dat doi doc kho han: Z1=%d%%, Z2=%d%%, Z3=%d%%\r\n", z1, z2, z3);
     }
   }
 }

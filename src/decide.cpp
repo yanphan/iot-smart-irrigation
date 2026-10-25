@@ -141,7 +141,7 @@ DecideCommand decide(const DecideInput& in) {
             cmd.targetZone = curZone;
             if (curZone < NUM_ZONES) {
                 cmd.triggerSoakWait = true;
-                cmd.soakDurationMs = 15000; // 15 giây mô phỏng (thực tế 120s)
+                cmd.soakDurationMs = SOAK_WAIT_TIME; // Theo cau hinh config.h
                 cmd.reason = "Ket thuc xung tuoi -> Chuyen sang SOAK_WAIT cho nuoc ngam xuong";
             } else {
                 cmd.reason = "Zone 3 da dat do am du -> Hoan tat chu trinh tuoi";
