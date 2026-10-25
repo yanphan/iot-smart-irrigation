@@ -62,25 +62,25 @@ private:
     if (pumpRelay != nullptr) {
       // Bom Zone 1 (Dinh doi 1630m)
       if (pumpRelay->isOn(1)) {
-        dynamicMoisture[0] += 6.5f * dt; // Z1 tuoi truc tiep tu voi phun (+6.5%/s)
-        dynamicMoisture[1] += 0.6f * dt; // Tham ri nhe suon doi Z2 (+0.6%/s, sau 6s tang ~3.6%)
-        dynamicMoisture[2] += 0.3f * dt; // Tham ri nhe thung lung Z3 (+0.3%/s, sau 6s tang ~1.8%)
+        dynamicMoisture[0] += 3.5f * dt; // Z1 tuoi truc tiep (+3.5%/s, khoang 9-10s dat du am)
+        dynamicMoisture[1] += 0.35f * dt; // Tham ri nhe suon doi Z2 (+0.35%/s, sau 9s tang ~3.1%)
+        dynamicMoisture[2] += 0.15f * dt; // Tham ri nhe thung lung Z3 (+0.15%/s, sau 9s tang ~1.3%)
       }
 
       // Bom Zone 2 (Suon doi 1560m)
       if (pumpRelay->isOn(2)) {
-        dynamicMoisture[1] += 6.5f * dt; // Z2 tuoi truc tiep tu voi phun
-        dynamicMoisture[2] += 0.8f * dt; // Nuoc chay don tiep xuong thung lung Z3 (+0.8%/s, sau 5s tang ~4%)
+        dynamicMoisture[1] += 3.5f * dt; // Z2 tuoi truc tiep (+3.5%/s, khoang 8s dat du am)
+        dynamicMoisture[2] += 0.45f * dt; // Nuoc chay don tiep xuong thung lung Z3 (+0.45%/s, sau 8s tang ~3.6%)
       }
 
       // Bom Zone 3 (Thung lung day 1500m)
       if (pumpRelay->isOn(3)) {
-        dynamicMoisture[2] += 6.5f * dt; // Z3 tuoi truc tiep tu voi phun
+        dynamicMoisture[2] += 3.5f * dt; // Z3 tuoi truc tiep (+3.5%/s, khoang 6s dat du am)
       }
 
       // Bom tieu ung Zone 4 (P3-Xa GPIO 33)
       if (pumpRelay->isOn(4)) {
-        dynamicMoisture[2] -= 8.0f * dt; // Hut nuoc xa tran thung lung
+        dynamicMoisture[2] -= 5.0f * dt; // Hut nuoc xa tran thung lung
       }
     }
 
