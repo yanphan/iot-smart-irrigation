@@ -41,9 +41,10 @@ void setManualMode(bool manual);
 ManualCommand getPendingManualCommand();
 void clearPendingManualCommand();
 
-// Truy xuat nguong cai dat Zone 1
-int getThresholdDryZ1();
-int getThresholdWetZ1();
+// Truy xuat nguong cai dat cua tung vung (zone = 1..NUM_ZONES)
+int getThresholdDry(int zone);
+int getThresholdWet(int zone);
+int getThresholdFlood(int zone);
 
 // Truy xuat ma loi tiem tu MQTT sim/fault
 String getSimFaultCode();

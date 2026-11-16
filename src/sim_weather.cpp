@@ -103,7 +103,7 @@ public:
             float k = getInfiltrationFactor(r);
             totalEff += (r * k);
 
-            if (r >= 10.0f) {
+            if (r >= HEAVY_RAIN_MM_H) {
                 hasHeavy = true;
             }
         }
@@ -169,14 +169,17 @@ public:
         HTTPClient http;
         String url = String("http://api.open-meteo.com/v1/forecast?latitude=") + LOCATION_LATITUDE +
                      "&longitude=" + LOCATION_LONGITUDE +
-                     "&hourly=precipitation_probability,precipitation,temperature_2m&timezone=Asia%2FHo_Chi_Minh";
+                     "&hourly=precipitation_probability,precipitation,temperature_2m&forecast_hours=3&timezone=Asia%2FHo_Chi_Minh";
         http.begin(url);
         http.setTimeout(8000);
         int httpCode = http.GET();
         if (httpCode == HTTP_CODE_OK) {
             String payload = http.getString();
             http.end();
-            return parseJson(payload);
+            bool ok = parseJson(payload);
+            // parseJson() bat co preset; du lieu API that thi khong khoa cac lan goi sau
+            isPresetActive = false;
+            return ok;
         }
         http.end();
         Serial.printf("[WEATHER][SIM] HTTP GET that bai (ma loi %d)\r\n", httpCode);

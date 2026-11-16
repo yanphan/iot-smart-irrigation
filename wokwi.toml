@@ -2,3 +2,5 @@
 version = 1
 elf = ".pio/build/esp32dev/firmware.elf"
 firmware = ".pio/build/esp32dev/firmware.bin"
+# Cong serial cho monitor.py (TCP 127.0.0.1:4000)
+rfc2217ServerPort = 4000

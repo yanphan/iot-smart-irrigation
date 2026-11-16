@@ -90,11 +90,12 @@ const CONFIG = {
   STATES: {
     'S0_INIT': { code: 'S0_INIT', name: 'Khởi động hệ thống', desc: 'Đang kiểm tra kết nối thiết bị', color: '#64748b', bg: '#f1f5f9' },
     'S1_MONITOR': { code: 'S1_MONITOR', name: 'Đang giám sát tự động', desc: 'Cảm biến & máy bơm hoạt động ổn định', color: '#16a34a', bg: '#dcfce7' },
-    'S2_CHECK': { code: 'S2_CHECK', name: 'Kiểm tra an toàn', desc: 'Đang quét dữ liệu trước khi kích hoạt tưới', color: '#0284c7', bg: '#e0f2fe' },
+    'S2_EVALUATE': { code: 'S2_EVALUATE', name: 'Đánh giá trước khi tưới', desc: 'Phát hiện vùng khô, đối chiếu dự báo để quyết định tưới hay hoãn', color: '#0284c7', bg: '#e0f2fe' },
     'S3_RAIN_DELAY': { code: 'S3_RAIN_DELAY', name: 'Tạm hoãn tưới (Đón mưa)', desc: 'Dự báo có mưa, tạm dừng để tiết kiệm nước', color: '#0284c7', bg: '#e0f2fe' },
     'S4_IRRIGATING': { code: 'S4_IRRIGATING', name: 'Đang tưới tự động', desc: 'Đang kích hoạt van tưới theo chu kỳ độ dốc', color: '#ea580c', bg: '#ffedd5' },
     'S5_DRAIN': { code: 'S5_DRAIN', name: 'Đang xả tràn tiêu úng', desc: 'Bơm tiêu úng thung lũng đang vận hành xả nước', color: '#ef4444', bg: '#fee2e2' },
     'S6_MANUAL': { code: 'S6_MANUAL', name: 'Điều khiển thủ công', desc: 'Người dùng trực tiếp vận hành van bơm', color: '#8b5cf6', bg: '#f5f3ff' },
+    'S7_ALERT': { code: 'S7_ALERT', name: 'Cảnh báo chờ xác nhận', desc: 'Bơm tưới bị ngắt do chạy quá giới hạn, nhấn RESET sau khi kiểm tra', color: '#b45309', bg: '#fef3c7' },
     'S8_FALLBACK': { code: 'S8_FALLBACK', name: 'Vận hành tự trị độc lập', desc: 'Tự động kiểm soát khi mất kết nối mạng', color: '#d97706', bg: '#fef3c7' },
     'S9_SOAK_WAIT': { code: 'S9_SOAK_WAIT', name: 'Chờ nước ngấm vào đất', desc: 'Tạm dừng van giữa các xung tưới để nước thấm đều', color: '#0d9488', bg: '#ccfbf1' },
     'S99_SAFE': { code: 'S99_SAFE', name: 'Ngắt an toàn khẩn cấp', desc: 'Hệ thống tự động khóa van bảo vệ sự cố', color: '#dc2626', bg: '#fee2e2' }

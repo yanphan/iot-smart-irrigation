@@ -23,8 +23,10 @@ static PubSubClient mqttClient(espClient);
 
 static bool manualModeActive = false;
 static ManualCommand pendingCmd = {0, false, MANUAL_TTL_MS, 0UL, false};
-static int customDryZ1 = 40;
-static int customWetZ1 = 60;
+// Nguong tuy chinh cua 3 vung (cap nhat qua cmd/threshold), khoi tao tu config.h
+static volatile int customDry[NUM_ZONES] = {Z1_THRESHOLD_DRY, Z2_THRESHOLD_DRY, Z3_THRESHOLD_DRY};
+static volatile int customWet[NUM_ZONES] = {Z1_THRESHOLD_WET, Z2_THRESHOLD_WET, Z3_THRESHOLD_WET};
+static volatile int customFlood[NUM_ZONES] = {Z1_THRESHOLD_FLOOD, Z2_THRESHOLD_FLOOD, Z3_THRESHOLD_FLOOD};
 
 static String latestSimWeatherJson = "";
 static bool newSimWeatherFlag = false;
@@ -77,15 +79,12 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
       const char *action = doc["action"] | doc["cmd"] | "OFF";
       unsigned long ttlSec = doc["ttl"] | (MANUAL_TTL_MS / 1000UL); // Mac dinh theo config.h
 
-      pendingCmd.zone = zone;
-      pendingCmd.pumpOn = (strcasecmp(action, "ON") == 0);
-      pendingCmd.ttlMs = ttlSec * 1000UL;
-      pendingCmd.receivedAt = millis();
-      pendingCmd.isPending = true;
+      bool pumpOn = (strcasecmp(action, "ON") == 0);
 
-      // Neu la Zone 4 (Bom tieu ung P3-Xa), thuc thi truc tiep ngay lap tuc
       if (zone == 4) {
-        if (pendingCmd.pumpOn) {
+        // Zone 4 (Bom tieu ung P3-Xa): thuc thi truc tiep, KHONG ghi de lenh
+        // dang cho cua vung 1-3 (vd. dashboard gui "tat Z1" roi "bat xa")
+        if (pumpOn) {
           pumpRelay->turnOn(4);
           publishPumpState(4, true, 0);
           Serial.println("[MANUAL] Bat thu cong bom tieu ung Relay 4 (P3-Xa)");
@@ -95,12 +94,23 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
           publishPumpState(4, false, rt);
           Serial.println("[MANUAL] Tat thu cong bom tieu ung Relay 4 (P3-Xa)");
         }
-        pendingCmd.isPending = false;
+      } else if (zone >= 0 && zone <= NUM_ZONES) {
+        if (zone == 0 && !pumpOn) {
+          // Ngat khan cap: chuyen MANUAL de luat tu dong khong bat lai bom,
+          // decide() nhan lenh zone 0 -> ACTION_ALL_OFF (ca bom tieu ung)
+          manualModeActive = true;
+          Serial.println("[MANUAL] NGAT KHAN CAP: chuyen MANUAL, tat toan bo bom");
+        }
+        pendingCmd.zone = zone;
+        pendingCmd.pumpOn = pumpOn;
+        pendingCmd.ttlMs = ttlSec * 1000UL;
+        pendingCmd.receivedAt = millis();
+        pendingCmd.isPending = true;
       }
 
       Serial.printf(
           "[MQTT] Nhan lenh bom thu cong: Zone %d -> %s (TTL: %lu giay)\r\n",
-          zone, pendingCmd.pumpOn ? "BAT" : "TAT", ttlSec);
+          zone, pumpOn ? "BAT" : "TAT", ttlSec);
     }
   }
   // 3. Lenh cap nhat nguong cai dat
@@ -109,16 +119,23 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
     DeserializationError err = deserializeJson(doc, message);
     if (!err) {
       int zone = doc["zone"] | 1;
-      int dry = doc["dry"] | -1;
-      int wet = doc["wet"] | -1;
-      if (zone == 1 || zone == 0) {
-        if (dry > 0)
-          customDryZ1 = dry;
-        if (wet > 0)
-          customWetZ1 = wet;
+      if (zone >= 1 && zone <= NUM_ZONES) {
+        int i = zone - 1;
+        int dry = doc["dry"] | customDry[i];
+        int wet = doc["wet"] | customWet[i];
+        int flood = doc["flood"] | customFlood[i];
+        // Chi nhan khi hop le: 5 <= kho < du am < ngap <= 95
+        if (dry >= 5 && dry < wet && wet < flood && flood <= 95) {
+          customDry[i] = dry;
+          customWet[i] = wet;
+          customFlood[i] = flood;
+          Serial.printf("[MQTT] Cap nhat nguong Zone %d: Kho=%d%%, Du=%d%%, "
+                        "Ngap=%d%%\r\n", zone, dry, wet, flood);
+        } else {
+          Serial.printf("[MQTT] Tu choi nguong Zone %d khong hop le "
+                        "(kho=%d, du=%d, ngap=%d)\r\n", zone, dry, wet, flood);
+        }
       }
-      Serial.printf("[MQTT] Cap nhat nguong Zone %d: Kho=%d%%, Du=%d%%\r\n",
-                    zone, customDryZ1, customWetZ1);
     }
   }
   // 4. Kich ban thoi tiet mo phong (Inject W0 - W5)
@@ -333,9 +350,11 @@ ManualCommand getPendingManualCommand() { return pendingCmd; }
 
 void clearPendingManualCommand() { pendingCmd.isPending = false; }
 
-int getThresholdDryZ1() { return customDryZ1; }
+int getThresholdDry(int zone) { return customDry[zone - 1]; }
 
-int getThresholdWetZ1() { return customWetZ1; }
+int getThresholdWet(int zone) { return customWet[zone - 1]; }
+
+int getThresholdFlood(int zone) { return customFlood[zone - 1]; }
 
 bool publishWeatherData(int maxProb, float effPrecip, bool heavyRain,
                         float temp, float humidity) {

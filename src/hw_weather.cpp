@@ -22,7 +22,7 @@ private:
     unsigned long lastFetchTime;
 
     // API Open-Meteo theo cau hinh trong config.h
-    const char* apiUrl = "http://api.open-meteo.com/v1/forecast?latitude=" LOCATION_LATITUDE "&longitude=" LOCATION_LONGITUDE "&hourly=precipitation_probability,precipitation,temperature_2m&timezone=Asia%2FHo_Chi_Minh";
+    const char* apiUrl = "http://api.open-meteo.com/v1/forecast?latitude=" LOCATION_LATITUDE "&longitude=" LOCATION_LONGITUDE "&hourly=precipitation_probability,precipitation,temperature_2m&forecast_hours=3&timezone=Asia%2FHo_Chi_Minh";
 
     float getInfiltrationFactor(float mmPerHour) {
         if (mmPerHour < 2.0f) {
@@ -90,7 +90,7 @@ public:
 
                     if (p > maxP) maxP = p;
                     totalEff += (r * getInfiltrationFactor(r));
-                    if (r >= 10.0f) hasHeavy = true;
+                    if (r >= HEAVY_RAIN_MM_H) hasHeavy = true;
                 }
 
                 currentData.maxProb = maxP;
