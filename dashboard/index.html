@@ -72,7 +72,7 @@
               <span class="dropdown-arrow">▾</span>
             </button>
             <div class="scenario-dropdown-menu">
-              <div class="scenario-menu-header">KỊCH BẢN THỜI TIẾT (OPEN-METEO)</div>
+              <div class="scenario-menu-header">KỊCH BẢN THỜI TIẾT (TIÊM GIẢ LẬP)</div>
               <button class="scenario-menu-item" data-preset="W0">
                 <span class="preset-badge sun">W0</span>
                 <div class="scenario-item-info">
@@ -83,14 +83,14 @@
               <button class="scenario-menu-item" data-preset="W1">
                 <span class="preset-badge rain">W1</span>
                 <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mưa Dông Lớn (15mm)</div>
+                  <div class="scenario-item-title">Mưa Dông Lớn (19mm)</div>
                   <div class="scenario-item-desc">Ngắt bơm hoãn tưới đón mưa tự nhiên</div>
                 </div>
               </button>
               <button class="scenario-menu-item" data-preset="W2">
                 <span class="preset-badge rain">W2</span>
                 <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mưa Phùn Nhẹ (2.0mm)</div>
+                  <div class="scenario-item-title">Mưa Phùn Nhẹ (2.5mm)</div>
                   <div class="scenario-item-desc">Lượng mưa thấp không đủ thấm, tiếp tục tưới</div>
                 </div>
               </button>
@@ -123,7 +123,7 @@
                 <span class="preset-badge fault">D1</span>
                 <div class="scenario-item-info">
                   <div class="scenario-item-title">Đứt Dây Cảm Biến</div>
-                  <div class="scenario-item-desc">Hỏng ADC1 Z1 → Khóa van an toàn S99_SAFE</div>
+                  <div class="scenario-item-desc">Bật cờ lỗi cảm biến → S99_SAFE</div>
                 </div>
               </button>
               <button class="scenario-menu-item" data-preset="D2">
@@ -151,7 +151,7 @@
                 <span class="preset-badge fault">D5</span>
                 <div class="scenario-item-info">
                   <div class="scenario-item-title">Quá Tải Bơm (Watchdog)</div>
-                  <div class="scenario-item-desc">Bơm quá 600s tự ngắt relay an toàn</div>
+                  <div class="scenario-item-desc">Ép watchdog ngắt bơm tưới → S7_ALERT</div>
                 </div>
               </button>
               <button class="scenario-menu-item" data-preset="D7">
