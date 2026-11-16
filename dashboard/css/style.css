@@ -2048,6 +2048,16 @@ body {
   color: var(--primary);
 }
 
+.preset-badge.purple {
+  background-color: var(--purple-light);
+  color: var(--purple);
+}
+
+.preset-badge.warn {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
 .btn-action-sm {
   padding: 5px 11px;
   border-radius: var(--radius-sm);

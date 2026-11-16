@@ -1208,10 +1208,10 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge rain">Kiểm thử [W1]: Mưa dông lớn (15mm) • Hoãn tưới đón mưa</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge rain">Kiểm thử [W1]: Mưa dông lớn (19mm) • Hoãn tưới đón mưa</span>`;
           }
-          showToast('Kích hoạt W1: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (15mm) • Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'warn');
+          showToast('Kích hoạt W1: Mưa dông lớn (19mm) -> Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (19mm) • Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'warn');
           break;
 
         case 'W2':
@@ -1226,10 +1226,10 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge normal">Kiểm thử [W2]: Mưa phùn nhẹ (2mm) • Không đủ thấm, tiếp tục tưới</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge normal">Kiểm thử [W2]: Mưa phùn nhẹ (2.5mm) • Không đủ thấm, tiếp tục tưới</span>`;
           }
-          showToast('Đã gửi W2 tới ESP32: Mưa phùn nhẹ (2mm) -> Không đủ thấm đất, tiếp tục tưới', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W2]', 'Kích hoạt kịch bản Mưa phùn nhẹ (2mm) • Không đủ thấm đất, tiếp tục tưới', 'system');
+          showToast('Đã gửi W2 tới ESP32: Mưa phùn nhẹ (2.5mm) -> Không đủ thấm đất, tiếp tục tưới', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W2]', 'Kích hoạt kịch bản Mưa phùn nhẹ (2.5mm) • Không đủ thấm đất, tiếp tục tưới', 'system');
           break;
 
         case 'W3':
