@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(`Đã chọn Lô ${plotKey}. Nhấn nút Bơm hoặc Xả trên thanh Tầng ${tierNum} để thao tác riêng cho lô này.`, 'normal');
     }
     updateSelectionUI();
+    updateTopographicMap();
   }
 
   function updateSelectionUI() {
@@ -514,7 +515,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const z4On = (pumps[4] && pumps[4].status === 'ON');
     const anyActive = (z1On || z2On || z3On || z4On);
 
-    if (!anyActive) {
+    // Kiểm tra xem lệnh thủ công vừa gửi có đang chờ ESP32 phản hồi hay không (giữ trong 3.5 giây)
+    const isPending = (Date.now() - pendingCommandTime < 3500);
+
+    if (anyActive) {
+      pendingCommandTime = 0; // ESP32 đã xác nhận rơ-le đang chạy
+    } else if (!isPending) {
       activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
     }
 
@@ -526,13 +532,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const isTierDrainOn = (t === 3 && z4On);
 
       const isRunningThisTier = (activeControl.tierNum === t);
-      const isRunningIrrig = isRunningThisTier && (activeControl.action === 'IRRIG') && isTierZoneOn;
-      const isRunningDrain = isRunningThisTier && (activeControl.action === 'DRAIN') && z4On;
+      const isRunningIrrig = isRunningThisTier && (activeControl.action === 'IRRIG') && (isTierZoneOn || isPending);
+      const isRunningDrain = isRunningThisTier && (activeControl.action === 'DRAIN') && (z4On || isPending);
+      const selPlot = selectedPlots[t];
 
       if (btnTierIrrig) {
-        if (anyActive) {
+        if (anyActive || isPending) {
           if (isRunningIrrig) {
-            btnTierIrrig.textContent = 'Dừng Bơm';
+            btnTierIrrig.textContent = (activeControl.targetType === 'PLOT' && activeControl.plotKey)
+              ? `Dừng ${activeControl.plotKey}`
+              : 'Dừng Bơm';
             btnTierIrrig.className = 'btn-tier-action btn-tier-irrig active-selected';
             btnTierIrrig.disabled = false;
           } else {
@@ -541,16 +550,18 @@ document.addEventListener('DOMContentLoaded', () => {
             btnTierIrrig.disabled = true;
           }
         } else {
-          btnTierIrrig.textContent = 'Bơm';
+          btnTierIrrig.textContent = selPlot ? `Bơm ${selPlot}` : 'Bơm';
           btnTierIrrig.className = 'btn-tier-action btn-tier-irrig';
           btnTierIrrig.disabled = false;
         }
       }
 
       if (btnTierDrain) {
-        if (anyActive) {
+        if (anyActive || isPending) {
           if (isRunningDrain) {
-            btnTierDrain.textContent = 'Dừng Xả';
+            btnTierDrain.textContent = (activeControl.targetType === 'PLOT' && activeControl.plotKey)
+              ? `Dừng Xả ${activeControl.plotKey}`
+              : 'Dừng Xả';
             btnTierDrain.className = 'btn-tier-action btn-tier-drain active-selected';
             btnTierDrain.disabled = false;
           } else {
@@ -559,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnTierDrain.disabled = true;
           }
         } else {
-          btnTierDrain.textContent = 'Xả';
+          btnTierDrain.textContent = selPlot ? `Xả ${selPlot}` : 'Xả';
           btnTierDrain.className = 'btn-tier-action btn-tier-drain';
           btnTierDrain.disabled = false;
         }
@@ -590,14 +601,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeControl.targetType === 'PLOT') {
         // Người dùng ra lệnh tưới/xả cho 1 LÔ CỤ THỂ: CHỈ LÔ ĐÓ HIỂN THỊ ĐANG CHẠY!
         if (activeControl.plotKey === plotKey) {
-          if (activeControl.action === 'IRRIG') isPlotIrrigating = isTierZoneIrrigating;
-          if (activeControl.action === 'DRAIN') isPlotDraining = z4On;
+          if (activeControl.action === 'IRRIG') isPlotIrrigating = (isTierZoneIrrigating || isPending);
+          if (activeControl.action === 'DRAIN') isPlotDraining = (z4On || isPending);
         }
       } else if (activeControl.targetType === 'TIER') {
         // Người dùng ra lệnh cho CẢ TẦNG: TẤT CẢ LÔ TRONG TẦNG ĐÓ HIỂN THỊ ĐANG CHẠY!
         if (activeControl.tierNum === tierNum) {
-          if (activeControl.action === 'IRRIG') isPlotIrrigating = isTierZoneIrrigating;
-          if (activeControl.action === 'DRAIN') isPlotDraining = z4On;
+          if (activeControl.action === 'IRRIG') isPlotIrrigating = (isTierZoneIrrigating || isPending);
+          if (activeControl.action === 'DRAIN') isPlotDraining = (z4On || isPending);
         }
       } else {
         // Chế độ AUTO từ ESP32: Tự động tưới theo tầng độ cao
@@ -1333,9 +1344,71 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'RESET':
+          // 1. Gửi lệnh RESET mã lỗi phần cứng tới ESP32 (D1 - D7)
           mqttClient.sendSimFault('RESET');
-          showToast('Đã gửi lệnh RESET -> Khôi phục hệ thống về bình thường', 'success');
-          addLogEntry('PHỤC HỒI', 'Toàn Nông Trại', 'Gửi lệnh RESET: Khôi phục tất cả trạng thái về bình thường', 'system');
+
+          // 2. Đồng bộ lại thời tiết thực tế từ Open-Meteo tới ESP32 (xóa kịch bản giả lập W0 - W5)
+          if (weatherService.hourlyData && weatherService.hourlyData.length >= 3) {
+            const h = weatherService.hourlyData;
+            mqttClient.sendSimWeather({
+              hourly: {
+                precipitation: [h[0].precip || 0.0, h[1].precip || 0.0, h[2].precip || 0.0],
+                precipitation_probability: [h[0].prob || 0, h[1].prob || 0, h[2].prob || 0]
+              },
+              current: {
+                temperature_2m: weatherService.currentData?.temp || 22.0,
+                relative_humidity_2m: weatherService.currentData?.humidity || 75.0
+              }
+            });
+          } else {
+            mqttClient.sendSimWeather({
+              hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [10, 10, 10] },
+              current: { temperature_2m: 22.0, relative_humidity_2m: 75.0 }
+            });
+          }
+
+          // 3. Khôi phục giao diện khuyến nghị thời tiết về dữ liệu Open-Meteo thực tế
+          if (rainStatusEl) {
+            if (weatherService.currentData) {
+              const cur = weatherService.currentData;
+              const isRainCondition = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
+              if (cur.shouldDelay || isRainCondition || cur.pMax3h >= 70) {
+                rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%)</span>`;
+              } else if (cur.pMax3h >= 40) {
+                rainStatusEl.innerHTML = `<span class="preset-badge normal">Khả năng mưa rải rác (${cur.pMax3h}%): Tiếp tục theo dõi</span>`;
+              } else {
+                rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
+              }
+            } else {
+              rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo: Hệ thống hoạt động bình thường</span>`;
+            }
+          }
+
+          if (typeof renderWeatherCard === 'function') {
+            try { renderWeatherCard(); } catch (err) { console.warn(err); }
+          }
+
+          if (moistureChart && weatherService.hourlyData && weatherService.hourlyData.length >= 3) {
+            weatherService.hourlyData.slice(0, 3).forEach((h, idx) => {
+              const chartIdx = chartHistory.rain.length - 1 - (2 - idx);
+              if (chartIdx >= 0 && chartIdx < chartHistory.rain.length) {
+                chartHistory.rain[chartIdx] = h.precip;
+              }
+            });
+            moistureChart.update('none');
+          }
+
+          if (weatherService && typeof weatherService.fetchWeather === 'function') {
+            try { weatherService.fetchWeather(); } catch (err) { console.warn(err); }
+          }
+
+          // 4. Khôi phục trạng thái điều khiển và bản đồ
+          activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
+          pendingCommandTime = 0;
+          updateTopographicMap();
+
+          showToast('Đã gửi lệnh RESET -> Khôi phục cờ lỗi & kịch bản môi trường về bình thường', 'success');
+          addLogEntry('PHỤC HỒI', 'Toàn Nông Trại', 'Gửi lệnh RESET: Khôi phục tất cả cờ lỗi và kịch bản thời tiết về bình thường', 'system');
           break;
       }
     });
