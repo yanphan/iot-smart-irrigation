@@ -72,104 +72,114 @@
               <span class="dropdown-arrow">▾</span>
             </button>
             <div class="scenario-dropdown-menu">
-              <div class="scenario-menu-header">KỊCH BẢN THỜI TIẾT (OPEN-METEO)</div>
-              <button class="scenario-menu-item" data-preset="W0">
-                <span class="preset-badge sun">W0</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Nắng Ráo (P_eff = 0mm)</div>
-                  <div class="scenario-item-desc">Tưới tuần tự đồi dốc Z1 → Z2 → Z3</div>
+              <!-- KHỐI 2 CỘT NGANG CHO KỊCH BẢN KIỂM THỬ -->
+              <div class="scenario-columns">
+                <!-- CỘT 1: KỊCH BẢN THỜI TIẾT (TIÊM GIẢ LẬP) -->
+                <div class="scenario-col">
+                  <div class="scenario-menu-header">KỊCH BẢN THỜI TIẾT (TIÊM GIẢ LẬP)</div>
+                  <button class="scenario-menu-item" data-preset="W0">
+                    <span class="preset-badge sun">W0</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Nắng Ráo (P_eff = 0mm)</div>
+                      <div class="scenario-item-desc">Tưới tuần tự đồi dốc Z1 → Z2 → Z3</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="W1">
+                    <span class="preset-badge rain">W1</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Mưa Dông Lớn (15mm)</div>
+                      <div class="scenario-item-desc">Ngắt bơm hoãn tưới đón mưa tự nhiên</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="W2">
+                    <span class="preset-badge rain">W2</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Mưa Phùn Nhẹ (2.0mm)</div>
+                      <div class="scenario-item-desc">Lượng mưa thấp không đủ thấm, tiếp tục tưới</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="W3">
+                    <span class="preset-badge purple">W3</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Mưa Cực Lớn (15mm/h)</div>
+                      <div class="scenario-item-desc">Khóa van Z3 đón nước tràn chống sạt lở</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="W4">
+                    <span class="preset-badge warn">W4</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Hạn Kiệt Vùng Cao (&lt;25%)</div>
+                      <div class="scenario-item-desc">Cứu cây khẩn cấp, bỏ qua hoãn mưa</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="W5">
+                    <span class="preset-badge sun">W5</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Dự Báo Sai (Hết Mưa)</div>
+                      <div class="scenario-item-desc">Tạnh sớm, khôi phục tưới tự động ngay</div>
+                    </div>
+                  </button>
                 </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="W1">
-                <span class="preset-badge rain">W1</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mưa Dông Lớn (15mm)</div>
-                  <div class="scenario-item-desc">Ngắt bơm hoãn tưới đón mưa tự nhiên</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="W2">
-                <span class="preset-badge rain">W2</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mưa Phùn Nhẹ (2.0mm)</div>
-                  <div class="scenario-item-desc">Lượng mưa thấp không đủ thấm, tiếp tục tưới</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="W3">
-                <span class="preset-badge purple">W3</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mưa Cực Lớn (15mm/h)</div>
-                  <div class="scenario-item-desc">Khóa van Z3 đón nước tràn chống sạt lở</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="W4">
-                <span class="preset-badge warn">W4</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Hạn Kiệt Vùng Cao (&lt;25%)</div>
-                  <div class="scenario-item-desc">Cứu cây khẩn cấp, bỏ qua hoãn mưa</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="W5">
-                <span class="preset-badge sun">W5</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Dự Báo Sai (Hết Mưa)</div>
-                  <div class="scenario-item-desc">Tạnh sớm, khôi phục tưới tự động ngay</div>
-                </div>
-              </button>
 
+                <!-- CỘT 2: TIÊM SỰ CỐ & AN TOÀN PHẦN CỨNG -->
+                <div class="scenario-col">
+                  <div class="scenario-menu-header">TIÊM SỰ CỐ &amp; AN TOÀN PHẦN CỨNG</div>
+                  <button class="scenario-menu-item" data-preset="D1">
+                    <span class="preset-badge fault">D1</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Đứt Dây Cảm Biến</div>
+                      <div class="scenario-item-desc">Hỏng ADC1 Z1 → Khóa van an toàn S99_SAFE</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="D2">
+                    <span class="preset-badge fault">D2</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Kẹt Van Bơm</div>
+                      <div class="scenario-item-desc">Mô phỏng hỏng bơm → Cảnh báo PUMP_JAM</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="D3">
+                    <span class="preset-badge warn">D3</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Mất Kết Nối Mạng</div>
+                      <div class="scenario-item-desc">Chuyển sang S8_FALLBACK (Tưới cảm biến)</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="D4">
+                    <span class="preset-badge normal">D4</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Có Mạng Lại (Online)</div>
+                      <div class="scenario-item-desc">Phục hồi S1_MONITOR &amp; đồng bộ Broker</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="D5">
+                    <span class="preset-badge fault">D5</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Quá Tải Bơm (Watchdog)</div>
+                      <div class="scenario-item-desc">Bơm quá 600s tự ngắt relay an toàn</div>
+                    </div>
+                  </button>
+                  <button class="scenario-menu-item" data-preset="D7">
+                    <span class="preset-badge warn">D7</span>
+                    <div class="scenario-item-info">
+                      <div class="scenario-item-title">Hết TTL Manual (10 Phút)</div>
+                      <div class="scenario-item-desc">Bơm thủ công quá 10 phút tự ngắt an toàn</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- HÀNG CUỐI: KHÔI PHỤC BÌNH THƯỜNG (RESET) KHÔNG BỊ KHUẤT MÀN HÌNH -->
               <div class="scenario-menu-divider"></div>
-              <div class="scenario-menu-header">TIÊM SỰ CỐ &amp; AN TOÀN PHẦN CỨNG</div>
-
-              <button class="scenario-menu-item" data-preset="D1">
-                <span class="preset-badge fault">D1</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Đứt Dây Cảm Biến</div>
-                  <div class="scenario-item-desc">Hỏng ADC1 Z1 → Khóa van an toàn S99_SAFE</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="D2">
-                <span class="preset-badge fault">D2</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Kẹt Van Bơm</div>
-                  <div class="scenario-item-desc">Mô phỏng hỏng bơm → Cảnh báo PUMP_JAM</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="D3">
-                <span class="preset-badge warn">D3</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Mất Kết Nối Mạng</div>
-                  <div class="scenario-item-desc">Chuyển sang S8_FALLBACK (Tưới cảm biến)</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="D4">
-                <span class="preset-badge normal">D4</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Có Mạng Lại (Online)</div>
-                  <div class="scenario-item-desc">Phục hồi S1_MONITOR &amp; đồng bộ Broker</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="D5">
-                <span class="preset-badge fault">D5</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Quá Tải Bơm (Watchdog)</div>
-                  <div class="scenario-item-desc">Bơm quá 600s tự ngắt relay an toàn</div>
-                </div>
-              </button>
-              <button class="scenario-menu-item" data-preset="D7">
-                <span class="preset-badge warn">D7</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Hết TTL Manual (10 Phút)</div>
-                  <div class="scenario-item-desc">Bơm thủ công quá 10 phút tự ngắt an toàn</div>
-                </div>
-              </button>
-
-              <div class="scenario-menu-divider"></div>
-              <button class="scenario-menu-item" data-preset="RESET">
-                <span class="preset-badge normal">RESET</span>
-                <div class="scenario-item-info">
-                  <div class="scenario-item-title">Khôi Phục Bình Thường</div>
-                  <div class="scenario-item-desc">Xóa cờ lỗi, phục hồi giám sát tự động</div>
-                </div>
-              </button>
+              <div class="scenario-footer">
+                <button class="scenario-menu-item scenario-reset-item" data-preset="RESET">
+                  <span class="preset-badge normal">RESET</span>
+                  <div class="scenario-item-info">
+                    <div class="scenario-item-title">Khôi Phục Bình Thường</div>
+                    <div class="scenario-item-desc">Xóa cờ lỗi, phục hồi giám sát tự động</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
 
