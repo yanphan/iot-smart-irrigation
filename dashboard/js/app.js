@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(`Đã chọn Lô ${plotKey}. Nhấn nút Bơm hoặc Xả trên thanh Tầng ${tierNum} để thao tác riêng cho lô này.`, 'normal');
     }
     updateSelectionUI();
+    updateTopographicMap();
   }
 
   function updateSelectionUI() {
@@ -489,7 +490,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const z4On = (pumps[4] && pumps[4].status === 'ON');
     const anyActive = (z1On || z2On || z3On || z4On);
 
-    if (!anyActive) {
+    // Kiểm tra xem lệnh thủ công vừa gửi có đang chờ ESP32 phản hồi hay không (giữ trong 3.5 giây)
+    const isPending = (Date.now() - pendingCommandTime < 3500);
+
+    if (anyActive) {
+      pendingCommandTime = 0; // ESP32 đã xác nhận rơ-le đang chạy
+    } else if (!isPending) {
       activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
     }
 
@@ -501,13 +507,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const isTierDrainOn = (t === 3 && z4On);
 
       const isRunningThisTier = (activeControl.tierNum === t);
-      const isRunningIrrig = isRunningThisTier && (activeControl.action === 'IRRIG') && isTierZoneOn;
-      const isRunningDrain = isRunningThisTier && (activeControl.action === 'DRAIN') && z4On;
+      const isRunningIrrig = isRunningThisTier && (activeControl.action === 'IRRIG') && (isTierZoneOn || isPending);
+      const isRunningDrain = isRunningThisTier && (activeControl.action === 'DRAIN') && (z4On || isPending);
+      const selPlot = selectedPlots[t];
 
       if (btnTierIrrig) {
-        if (anyActive) {
+        if (anyActive || isPending) {
           if (isRunningIrrig) {
-            btnTierIrrig.textContent = 'Dừng Bơm';
+            btnTierIrrig.textContent = (activeControl.targetType === 'PLOT' && activeControl.plotKey)
+              ? `Dừng ${activeControl.plotKey}`
+              : 'Dừng Bơm';
             btnTierIrrig.className = 'btn-tier-action btn-tier-irrig active-selected';
             btnTierIrrig.disabled = false;
           } else {
@@ -516,16 +525,18 @@ document.addEventListener('DOMContentLoaded', () => {
             btnTierIrrig.disabled = true;
           }
         } else {
-          btnTierIrrig.textContent = 'Bơm';
+          btnTierIrrig.textContent = selPlot ? `Bơm ${selPlot}` : 'Bơm';
           btnTierIrrig.className = 'btn-tier-action btn-tier-irrig';
           btnTierIrrig.disabled = false;
         }
       }
 
       if (btnTierDrain) {
-        if (anyActive) {
+        if (anyActive || isPending) {
           if (isRunningDrain) {
-            btnTierDrain.textContent = 'Dừng Xả';
+            btnTierDrain.textContent = (activeControl.targetType === 'PLOT' && activeControl.plotKey)
+              ? `Dừng Xả ${activeControl.plotKey}`
+              : 'Dừng Xả';
             btnTierDrain.className = 'btn-tier-action btn-tier-drain active-selected';
             btnTierDrain.disabled = false;
           } else {
@@ -534,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnTierDrain.disabled = true;
           }
         } else {
-          btnTierDrain.textContent = 'Xả';
+          btnTierDrain.textContent = selPlot ? `Xả ${selPlot}` : 'Xả';
           btnTierDrain.className = 'btn-tier-action btn-tier-drain';
           btnTierDrain.disabled = false;
         }
@@ -565,14 +576,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeControl.targetType === 'PLOT') {
         // Người dùng ra lệnh tưới/xả cho 1 LÔ CỤ THỂ: CHỈ LÔ ĐÓ HIỂN THỊ ĐANG CHẠY!
         if (activeControl.plotKey === plotKey) {
-          if (activeControl.action === 'IRRIG') isPlotIrrigating = isTierZoneIrrigating;
-          if (activeControl.action === 'DRAIN') isPlotDraining = z4On;
+          if (activeControl.action === 'IRRIG') isPlotIrrigating = (isTierZoneIrrigating || isPending);
+          if (activeControl.action === 'DRAIN') isPlotDraining = (z4On || isPending);
         }
       } else if (activeControl.targetType === 'TIER') {
         // Người dùng ra lệnh cho CẢ TẦNG: TẤT CẢ LÔ TRONG TẦNG ĐÓ HIỂN THỊ ĐANG CHẠY!
         if (activeControl.tierNum === tierNum) {
-          if (activeControl.action === 'IRRIG') isPlotIrrigating = isTierZoneIrrigating;
-          if (activeControl.action === 'DRAIN') isPlotDraining = z4On;
+          if (activeControl.action === 'IRRIG') isPlotIrrigating = (isTierZoneIrrigating || isPending);
+          if (activeControl.action === 'DRAIN') isPlotDraining = (z4On || isPending);
         }
       } else {
         // Chế độ AUTO từ ESP32: Tự động tưới theo tầng độ cao
