@@ -1251,15 +1251,29 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W4':
+          // 1. Gui du lieu du bao mua (4-5mm, xac suat 70-75%) - binh thuong se hoan tuoi (S3)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [4.0, 5.0, 3.0], precipitation_probability: [70, 75, 60] },
             current: { temperature_2m: 29.0, relative_humidity_2m: 45.0 }
           });
-          if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge warn">Kiểm thử [W4]: Hạn kiệt vùng cao (&lt;25%) • Ưu tiên cứu cây khẩn cấp, bỏ qua hoãn mưa</span>`;
+          // 2. Tiem do am dat Z1 = 20% (< 25% muc khan cap THRESHOLD_EMERGENCY)
+          mqttClient.sendSimSoil({
+            action: 'dry_slope',
+            z1: 20,
+            z2: 32,
+            z3: 35
+          });
+          if (moistureChart && chartHistory.rain.length >= 3) {
+            chartHistory.rain[chartHistory.rain.length - 3] = 4.0;
+            chartHistory.rain[chartHistory.rain.length - 2] = 5.0;
+            chartHistory.rain[chartHistory.rain.length - 1] = 3.0;
+            moistureChart.update('none');
           }
-          showToast('Đã gửi W4: Hạn kiệt vùng cao (<25%) -> Quyết định tưới cứu cây khẩn cấp!', 'warn');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W4]', 'Kích hoạt hạn kiệt vùng cao (<25%): Ưu tiên tưới khẩn cấp cứu cây', 'warn');
+          if (rainStatusEl) {
+            rainStatusEl.innerHTML = `<span class="preset-badge warn">Kiểm thử [W4]: Hạn kiệt vùng cao (Z1=20% &lt; 25%) • Cứu cây khẩn cấp, bỏ qua hoãn mưa!</span>`;
+          }
+          showToast('Kích hoạt W4: Đất Z1=20% (<25% hạn kiệt) -> Ưu tiên bật bơm cứu cây ngay dù trời sắp mưa!', 'warn');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W4]', 'Kích hoạt hạn kiệt Z1=20% (<25%): Bỏ qua hoãn mưa, bật bơm tưới khẩn cấp cứu cây!', 'warn');
           break;
 
         case 'W5':
