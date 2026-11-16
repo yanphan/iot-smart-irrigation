@@ -32,7 +32,7 @@
 #define PIN_RELAY_Z1  27   // Relay vung Z1
 #define PIN_RELAY_Z2  26   // Relay vung Z2
 #define PIN_RELAY_Z3  25   // Relay vung Z3
-#define PIN_RELAY_AUX 33   // Relay du phong
+#define PIN_RELAY_AUX 33   // Relay 4: bom tieu ung Z3 (S5_DRAIN)
 
 // ------------------------------------------------------------
 // 4. GPIO - CAM BIEN NHIET DO & DO AM KHONG KHI
@@ -68,12 +68,15 @@
   #define SOAK_WAIT_TIME         7000    // 7s cho nuoc ngam dat trong mo phong demo (vua du thoi gian thuyet minh S9)
   #define SENSOR_READ_INTERVAL   1500    // Doc cam bien va cap nhat moi 1.5s
   #define SIM_MAX_PULSE_DURATION 15000   // Toi da 15s moi xung trong mo phong
+  #define MAX_RAIN_DELAY_MS    120000UL  // Tdelay_max demo: hoan qua 2 phut thi tuoi lai
 #else
   #define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
   #define SOAK_WAIT_TIME       120000    // 120s cho nuoc ngam dat
   #define SENSOR_READ_INTERVAL   5000    // Doc cam bien moi 5s
   #define SIM_MAX_PULSE_DURATION 20000   // 20s
+  #define MAX_RAIN_DELAY_MS  14400000UL  // Tdelay_max = 4 gio: du bao sai thi khong hoan mai
 #endif
+#define MANUAL_TTL_MS          600000UL  // MANUAL tu het han sau 10 phut -> ve AUTO
 #define MQTT_RECONNECT_INTERVAL 5000   // Thu ket noi lai MQTT moi 5s
 #define WEATHER_UPDATE_INTERVAL 60000  // Cap nhat thoi tiet moi 60s
 

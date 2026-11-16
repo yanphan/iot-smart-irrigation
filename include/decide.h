@@ -48,6 +48,7 @@ struct DecideInput {
     bool manualMode;
     int manualZone;         // Vùng nhận lệnh thủ công (1..NUM_ZONES, 0 = tất cả)
     bool manualPumpOn;      // Bật (true) hoặc Tắt (false)
+    bool manualCommandPending; // true = chu kỳ này có lệnh thủ công mới từ Dashboard
 
     // 5. Cờ sự cố & An toàn phần cứng
     bool sensorFault;       // Lỗi cảm biến (tiêm lỗi D1 hoặc ADC ngoài khoảng 20-4085)
@@ -59,6 +60,10 @@ struct DecideInput {
     int currentlyIrrigatingZone; // Vùng đang được bật bơm (0 nếu không có)
     unsigned long currentPulseDurationMs; // Thời gian xung bơm hiện tại đã chạy (ms)
     unsigned long maxPulseDurationMs;     // Giới hạn thời gian 1 xung bơm (ms)
+
+    // 7. Thời hạn hoãn tưới tối đa (Tdelay_max)
+    unsigned long rainDelayElapsedMs;     // Đã hoãn tưới liên tục bao lâu (ms)
+    unsigned long maxRainDelayMs;         // Hoãn quá mức này thì tưới lại theo cảm biến
 };
 
 // Cấu trúc lệnh điều khiển đầu ra
@@ -74,5 +79,9 @@ struct DecideCommand {
 
 // Hàm thuần quyết định logic tưới tiêu
 DecideCommand decide(const DecideInput& in);
+
+// Hàm thuần: dự báo hiện tại có đủ điều kiện hoãn tưới không (chưa xét Tdelay_max).
+// main.cpp dùng hàm này để đo thời gian đã hoãn liên tục.
+bool isRainDelayCondition(const DecideInput& in);
 
 #endif // DECIDE_H

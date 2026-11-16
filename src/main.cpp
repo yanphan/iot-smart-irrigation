@@ -38,6 +38,16 @@ static unsigned long pulseStartTime = 0;
 static bool sensorFaultActive = false;
 static bool pumpFaultActive = false;
 
+// Tdelay_max: thoi diem bat dau hoan tuoi lien tuc
+static bool rainDelayActive = false;
+static unsigned long rainDelayStart = 0;
+
+// TTL che do MANUAL: het han thi tu ve AUTO
+static bool wasManualMode = false;
+static unsigned long manualStart = 0;
+static unsigned long manualTtlMs = MANUAL_TTL_MS;
+static bool manualTtlForced = false; // D7_MANUAL_TTL: ep het han de demo
+
 // ============================================================
 // Task Dieu khien & Cam bien (Core 1) - Tich hop Ham thuan decide()
 // ============================================================
@@ -90,6 +100,10 @@ void taskControlCode(void *pvParameters) {
       Serial.println(
           "[FAULT][RESET] Da phuc hoi he thong ve trang thai binh thuong!\r\n");
       publishAlert("SYSTEM_NORMAL", 0, "He thong da duoc phuc hoi binh thuong");
+    } else if (fault == "D7_MANUAL_TTL") {
+      manualTtlForced = true;
+      clearSimFaultCode();
+      Serial.println("[FAULT][INJECT] D7_MANUAL_TTL: Ep het han che do MANUAL");
     }
 
     // 4. Kiem tra bao ve qua tai bom (D5 - PUMP_TIMEOUT watchdog cho tat ca 4 relay)
@@ -155,17 +169,40 @@ void taskControlCode(void *pvParameters) {
     }
 
     // Che do dieu khien & Lenh thu cong
-    bool curManualMode = isManualModeRequested();
-    in.manualMode = curManualMode;
     ManualCommand cmdManual = getPendingManualCommand();
     if (cmdManual.isPending) {
-      in.manualZone = cmdManual.zone;
-      in.manualPumpOn = cmdManual.pumpOn;
       clearPendingManualCommand();
-    } else {
-      in.manualZone = 0;
-      in.manualPumpOn = false;
     }
+    bool curManualMode = isManualModeRequested();
+
+    // TTL: tinh tu luc vao MANUAL, gia han moi khi co lenh moi
+    if (curManualMode && (!wasManualMode || cmdManual.isPending)) {
+      manualStart = millis();
+      manualTtlMs = (cmdManual.isPending && cmdManual.ttlMs > 0)
+                        ? cmdManual.ttlMs
+                        : MANUAL_TTL_MS;
+    }
+    if (curManualMode &&
+        (manualTtlForced || millis() - manualStart >= manualTtlMs)) {
+      pumpRelay->allOff();
+      for (int z = 1; z <= 4; z++) {
+        publishPumpState(z, false, 0);
+      }
+      currentActiveZone = 0;
+      setManualMode(false);
+      curManualMode = false;
+      cmdManual.isPending = false; // Bo lenh cu, khong thuc thi sau khi het han
+      publishAlert("MANUAL_TTL_EXPIRED", 0,
+                   "Het thoi han MANUAL -> Tat bom va tu dong ve AUTO");
+      Serial.println("[SAFETY][MANUAL] Het TTL -> Tat toan bo bom, ve AUTO");
+    }
+    manualTtlForced = false;
+    wasManualMode = curManualMode;
+
+    in.manualMode = curManualMode;
+    in.manualCommandPending = cmdManual.isPending;
+    in.manualZone = cmdManual.isPending ? cmdManual.zone : 0;
+    in.manualPumpOn = cmdManual.isPending && cmdManual.pumpOn;
 
     // Su co phan cung
     in.sensorFault = sensorFaultActive;
@@ -178,6 +215,18 @@ void taskControlCode(void *pvParameters) {
     in.currentPulseDurationMs =
         (currentActiveZone > 0) ? (millis() - pulseStartTime) : 0;
     in.maxPulseDurationMs = SIM_MAX_PULSE_DURATION; // Gioi han xung toi da theo config.h
+
+    // Tdelay_max: dem thoi gian hoan lien tuc, reset khi het dieu kien hoan
+    if (isRainDelayCondition(in)) {
+      if (!rainDelayActive) {
+        rainDelayActive = true;
+        rainDelayStart = millis();
+      }
+    } else {
+      rainDelayActive = false;
+    }
+    in.rainDelayElapsedMs = rainDelayActive ? (millis() - rainDelayStart) : 0;
+    in.maxRainDelayMs = MAX_RAIN_DELAY_MS;
 
     // 6. GOI HAM THUAN decide() DE DUA RA QUYET DINH
     DecideCommand cmd = decide(in);
@@ -242,19 +291,7 @@ void taskControlCode(void *pvParameters) {
       // Giu nguyen trang thai xung tuoi dang chay
     }
 
-    // 8. D7: TTL Protection trong MANUAL - Bom chay qua 10 phut tu ngat (ap dung cho ca 4 relay)
-    if (curManualMode) {
-      for (int z = 1; z <= 4; z++) {
-        if (pumpRelay->isOn(z) && pumpRelay->getRunTime(z) >= 600000UL) {
-          unsigned long rt = pumpRelay->getRunTime(z);
-          pumpRelay->turnOff(z);
-          publishPumpState(z, false, rt);
-          Serial.printf(
-              "[SAFETY][MANUAL] Zone %d het TTL 10 phut -> Tu ngat an toan\r\n",
-              z);
-        }
-      }
-    }
+    // 8. TTL che do MANUAL da xu ly o buoc 5 (het han -> tat bom, ve AUTO)
 
     // 9. XUAT LOG VA PUBLISH TRANG THAI LEN MQTT
     Serial.printf("[DECIDE] Trang thai: %s | Lenh: %d | Zone: %d | Ly do: %s\r\n",

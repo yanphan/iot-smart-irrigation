@@ -50,6 +50,7 @@ DRAIN_PUMP_RATE = 0.5             # %/phut bom tieu ung Z3 (relay 4, chi S-D co)
 
 PULSE_MAX_MIN = 10                # Thoi gian toi da 1 xung tuoi (phut)
 SOAK_MIN = 20                     # Thoi gian nghi cho nuoc ngam (phut)
+MAX_RAIN_DELAY_MIN = 240          # Tdelay_max: hoan qua 4 gio ma chua mua thi tuoi lai
 SCHEDULE = [(6 * 60, 5), (17 * 60, 5)]  # S-A: (phut bat dau trong ngay, so phut tuoi)
 
 
@@ -191,8 +192,19 @@ class SingleSensor:
         return ([0, 1, 2] if self.pumping else []), False
 
 
-def decide(m, fc, soaking, active_zone, pulse_min):
+def rain_delay_condition(m, fc):
+    """Ban sao cua isRainDelayCondition() trong decide.cpp."""
+    emergency = any(x < EMERGENCY for x in m)
+    if emergency and not (fc["heavy"] and fc["rain0"] >= 10):
+        return False
+    if fc["max_prob"] >= 70:
+        return fc["eff"] >= 5.0  # mua phun (< 5 mm): van tuoi
+    return fc["max_prob"] >= 50
+
+
+def decide(m, fc, soaking, active_zone, pulse_min, delay_min):
     """Ban sao cua src/decide.cpp (bo nhanh loi cam bien va MANUAL vi khong mo phong).
+    delay_min: so phut da hoan tuoi lien tuc (de so voi Tdelay_max).
     Tra ve (trang thai, hanh dong, vung, co kich hoat nghi ngam)."""
     if soaking:
         return "S9", "ALL_OFF", 0, False
@@ -200,18 +212,8 @@ def decide(m, fc, soaking, active_zone, pulse_min):
     if m[2] >= FLOOD[2]:
         return "S5", "PUMP_OFF", 3, False
 
-    emergency = any(x < EMERGENCY for x in m)
     z3_lock = fc["heavy"]
-    rain_delay = False
-    if emergency and not (fc["heavy"] and fc["rain0"] >= 10):
-        rain_delay = False
-    elif fc["max_prob"] >= 70 and fc["eff"] >= 5.0:
-        rain_delay = True
-    elif fc["max_prob"] >= 70:
-        rain_delay = False  # mua phun: van tuoi
-    elif 50 <= fc["max_prob"] < 70:
-        rain_delay = True
-    if rain_delay:
+    if rain_delay_condition(m, fc) and delay_min < MAX_RAIN_DELAY_MIN:
         return "S3", "ALL_OFF", 0, False
 
     if active_zone > 0:
@@ -235,10 +237,17 @@ class ThreeZone:
         self.active = 0
         self.pulse_start = 0
         self.soak_until = 0
+        self.delay_start = None  # Thoi diem bat dau hoan lien tuc (giong main.cpp)
 
     def step(self, t, m, fc):
+        if rain_delay_condition(m, fc):
+            if self.delay_start is None:
+                self.delay_start = t
+        else:
+            self.delay_start = None
+        delay_min = 0 if self.delay_start is None else t - self.delay_start
         state, action, zone, soak = decide(m, fc, t < self.soak_until,
-                                           self.active, t - self.pulse_start)
+                                           self.active, t - self.pulse_start, delay_min)
         drain = state == "S5"
         if drain and self.active == 3:
             self.active = 0

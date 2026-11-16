@@ -22,7 +22,7 @@ static WiFiClient espClient;
 static PubSubClient mqttClient(espClient);
 
 static bool manualModeActive = false;
-static ManualCommand pendingCmd = {0, false, 600000UL, 0UL, false};
+static ManualCommand pendingCmd = {0, false, MANUAL_TTL_MS, 0UL, false};
 static int customDryZ1 = 40;
 static int customWetZ1 = 60;
 
@@ -75,7 +75,7 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length) {
     if (!err) {
       int zone = doc["zone"] | 1;
       const char *action = doc["action"] | doc["cmd"] | "OFF";
-      unsigned long ttlSec = doc["ttl"] | 600; // Mac dinh 600 giay (10 phut)
+      unsigned long ttlSec = doc["ttl"] | (MANUAL_TTL_MS / 1000UL); // Mac dinh theo config.h
 
       pendingCmd.zone = zone;
       pendingCmd.pumpOn = (strcasecmp(action, "ON") == 0);
