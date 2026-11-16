@@ -56,12 +56,17 @@ static DecideInput createDefaultInput() {
     in.manualPumpOn = false;
     in.sensorFault = false;
     in.pumpFault = false;
+    in.alertPending = false;
+    in.alertZone = 0;
 
     in.currentState = S1_MONITOR;
     in.isSoakWaiting = false;
     in.currentlyIrrigatingZone = 0;
     in.currentPulseDurationMs = 0;
     in.maxPulseDurationMs = 20000;
+    // Mặc định: vùng khô (nếu có) đã qua một chu kỳ S2_EVALUATE.
+    // Test A4 đặt false để kiểm tra riêng bước đánh giá.
+    in.dryZoneEvaluated = true;
 
     // Chưa hoãn tưới, Tdelay_max theo config.h
     in.rainDelayElapsedMs = 0;
@@ -111,6 +116,24 @@ static void test_A3_SoakWaitTransition() {
     assert(cmd.triggerSoakWait == true);
     assert(cmd.nextState == S9_SOAK_WAIT);
     printf("[PASS] Test A3: Z1 tuoi xong -> Tat van va chuyen sang S9_SOAK_WAIT\n");
+}
+
+static void test_A4_EvaluateBeforeIrrigation() {
+    DecideInput in = createDefaultInput();
+    in.moisture[0] = 30;          // Z1 vừa khô
+    in.dryZoneEvaluated = false;  // Chưa qua chu kỳ đánh giá
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S2_EVALUATE);
+    assert(cmd.action == ACTION_NONE); // Chưa bật bơm
+    assert(cmd.targetZone == 1);
+
+    in.dryZoneEvaluated = true;   // Chu kỳ kế tiếp
+    cmd = decide(in);
+    assert(cmd.nextState == S4_IRRIGATING);
+    assert(cmd.action == ACTION_PUMP_ON);
+    printf("[PASS] Test A4: Z1 vua kho -> S2_EVALUATE mot chu ky, chu ky sau moi bat bom\n");
 }
 
 // ------------------------------------------------------------
@@ -202,6 +225,7 @@ static void test_C2_FloodWarningZone3() {
     assert(cmd.nextState == S5_DRAIN);
     assert(cmd.action == ACTION_PUMP_OFF);
     assert(cmd.targetZone == 3);
+    assert(cmd.drainPumpOn == true); // Bật bơm tiêu úng
     assert(strcmp(cmd.alertCode, "FLOOD_WARNING") == 0);
     printf("[PASS] Test C2: Zone 3 bi ngap ung (85%%) -> Khoa van va bat canh bao FLOOD_WARNING\n");
 }
@@ -229,7 +253,38 @@ static void test_D2_PumpJamFault() {
 
     assert(cmd.nextState == S99_SAFE);
     assert(cmd.action == ACTION_ALL_OFF);
+    assert(strcmp(cmd.alertCode, "PUMP_JAM") == 0);
     printf("[PASS] Test D2: Tiem loi ket bom D2_PUMP_JAM -> Ngat an toan S99_SAFE\n");
+}
+
+static void test_D5_PumpTimeoutAlert() {
+    DecideInput in = createDefaultInput();
+    in.alertPending = true;  // Bơm Z1 vừa bị watchdog ngắt
+    in.alertZone = 1;
+    in.moisture[0] = 30;     // Z1 vẫn khô nhưng không được tưới tiếp
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S7_ALERT);
+    assert(cmd.action == ACTION_IRRIG_OFF);
+    assert(cmd.drainPumpOn == false);
+    assert(cmd.targetZone == 1);
+    assert(strcmp(cmd.alertCode, "PUMP_TIMEOUT") == 0);
+    printf("[PASS] Test D5: Bom tuoi bi watchdog ngat -> S7_ALERT, dung tuoi tu dong cho RESET\n");
+}
+
+static void test_D5b_AlertKeepsDrainWhenFlooded() {
+    DecideInput in = createDefaultInput();
+    in.alertPending = true;
+    in.alertZone = 2;
+    in.moisture[2] = 85;     // Z3 đang ngập
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S7_ALERT);
+    assert(cmd.action == ACTION_IRRIG_OFF);
+    assert(cmd.drainPumpOn == true); // Bơm tiêu úng vẫn chạy
+    printf("[PASS] Test D5b: S7_ALERT khi Z3 ngap -> Tat bom tuoi, van giu bom tieu ung\n");
 }
 
 static void test_D6_ManualMode() {
@@ -303,6 +358,7 @@ int runAllDecideTests() {
     RUN_TEST(test_A1_NormalIrrigationZ1);
     RUN_TEST(test_A2_PrioritySequential);
     RUN_TEST(test_A3_SoakWaitTransition);
+    RUN_TEST(test_A4_EvaluateBeforeIrrigation);
 
     RUN_TEST(test_B1_RainDelayHighProb);
     RUN_TEST(test_B2_DrizzleAllowsIrrigation);
@@ -314,6 +370,8 @@ int runAllDecideTests() {
 
     RUN_TEST(test_D1_SensorFailureADCOutOfRange);
     RUN_TEST(test_D2_PumpJamFault);
+    RUN_TEST(test_D5_PumpTimeoutAlert);
+    RUN_TEST(test_D5b_AlertKeepsDrainWhenFlooded);
     RUN_TEST(test_D6_ManualMode);
     RUN_TEST(test_D6b_ManualWithoutCommandKeepsPumps);
     RUN_TEST(test_D6c_ManualRejectZone3WhenFlooded);

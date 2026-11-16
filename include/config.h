@@ -60,6 +60,16 @@
 #define Z3_THRESHOLD_FLOOD  80
 #define THRESHOLD_EMERGENCY 25   // Duoi 25% la muc khan cap, bat buoc tuoi cuu cay
 
+// Nguong du bao mua (Bang 3.4) - dong bo voi sim/hydrology.py
+#define RAIN_PROB_HIGH      70     // P_max >= 70%: hoan neu P_eff >= RAIN_EFF_MIN_MM
+#define RAIN_PROB_MID       50     // 50% <= P_max < 70%: hoan than trong
+#define RAIN_EFF_MIN_MM     5.0f   // Luong mua hieu dung toi thieu de hoan (mm)
+#define HEAVY_RAIN_MM_H     10.0f  // Mua lon (mm/h): khoa tuoi Z3
+
+// Kiem tra hop le tin hieu do am (ADC 12 bit)
+#define ADC_FAULT_LOW       20     // <= 20: dut day / chap mass
+#define ADC_FAULT_HIGH      4085   // >= 4085: chap nguon / ho chan
+
 // ------------------------------------------------------------
 // 6. THOI GIAN (milliseconds)
 // ------------------------------------------------------------
@@ -79,6 +89,7 @@
 #define MANUAL_TTL_MS          600000UL  // MANUAL tu het han sau 10 phut -> ve AUTO
 #define MQTT_RECONNECT_INTERVAL 5000   // Thu ket noi lai MQTT moi 5s
 #define WEATHER_UPDATE_INTERVAL 60000  // Cap nhat thoi tiet moi 60s
+#define DHT_READ_INTERVAL       2000   // DHT22 can toi thieu 2s giua hai lan doc
 
 // ------------------------------------------------------------
 // 7. MQTT BROKER

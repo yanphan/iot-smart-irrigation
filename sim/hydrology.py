@@ -204,6 +204,9 @@ def rain_delay_condition(m, fc):
 
 def decide(m, fc, soaking, active_zone, pulse_min, delay_min):
     """Ban sao cua src/decide.cpp (bo nhanh loi cam bien va MANUAL vi khong mo phong).
+    Cung bo S7_ALERT (mo hinh khong co watchdog/tiem loi) va S2_EVALUATE: S2 chi
+    chen mot chu ky 5 s truoc khi bat bom, nho hon buoc thoi gian 1 phut cua mo hinh,
+    nen khong lam thay doi ket qua so sanh chien luoc.
     delay_min: so phut da hoan tuoi lien tuc (de so voi Tdelay_max).
     Tra ve (trang thai, hanh dong, vung, co kich hoat nghi ngam)."""
     if soaking:
