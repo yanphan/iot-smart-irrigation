@@ -63,6 +63,10 @@ static DecideInput createDefaultInput() {
     in.currentPulseDurationMs = 0;
     in.maxPulseDurationMs = 20000;
 
+    // Chưa hoãn tưới, Tdelay_max theo config.h
+    in.rainDelayElapsedMs = 0;
+    in.maxRainDelayMs = MAX_RAIN_DELAY_MS;
+
     return in;
 }
 
@@ -154,6 +158,22 @@ static void test_B3_EmergencyDryOverridesRainDelay() {
     printf("[PASS] Test B3: Dat kho khan cap (< 25%%) -> Cuu cay khan cap, bo qua hoan mua\n");
 }
 
+static void test_B4_RainDelayExpired() {
+    DecideInput in = createDefaultInput();
+    in.moisture[0] = 35; // Z1 khô
+    in.maxProb = 85;
+    in.effPrecip = 12.5f; // Vẫn dự báo mưa lớn như B1
+    in.rainDelayElapsedMs = in.maxRainDelayMs; // Nhưng đã hoãn đủ Tdelay_max mà chưa mưa
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S4_IRRIGATING);
+    assert(cmd.action == ACTION_PUMP_ON);
+    assert(cmd.targetZone == 1);
+    assert(strcmp(cmd.alertCode, "RAIN_DELAY_EXPIRED") == 0);
+    printf("[PASS] Test B4: Hoan tuoi qua Tdelay_max ma chua mua -> Tuoi lai Z1 theo cam bien\n");
+}
+
 // ------------------------------------------------------------
 // NHÓM TEST C: BẢO VỆ VÙNG TRŨNG THUNG LŨNG (ZONE 3)
 // ------------------------------------------------------------
@@ -215,6 +235,7 @@ static void test_D2_PumpJamFault() {
 static void test_D6_ManualMode() {
     DecideInput in = createDefaultInput();
     in.manualMode = true;
+    in.manualCommandPending = true;
     in.manualZone = 2;
     in.manualPumpOn = true;
 
@@ -224,6 +245,35 @@ static void test_D6_ManualMode() {
     assert(cmd.action == ACTION_PUMP_ON);
     assert(cmd.targetZone == 2);
     printf("[PASS] Test D6: Che do MANUAL -> Thuc thi lenh bat van Zone 2 theo yeu cau\n");
+}
+
+static void test_D6b_ManualWithoutCommandKeepsPumps() {
+    DecideInput in = createDefaultInput();
+    in.manualMode = true;
+    in.manualCommandPending = false; // Chu kỳ sau lệnh: không có lệnh mới
+    in.moisture[0] = 30;             // Z1 khô nhưng MANUAL không tự tưới
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S6_MANUAL);
+    assert(cmd.action == ACTION_NONE); // Không được ALL_OFF làm tắt bơm vừa bật
+    printf("[PASS] Test D6b: MANUAL khong co lenh moi -> Giu nguyen trang thai bom\n");
+}
+
+static void test_D6c_ManualRejectZone3WhenFlooded() {
+    DecideInput in = createDefaultInput();
+    in.manualMode = true;
+    in.manualCommandPending = true;
+    in.manualZone = 3;
+    in.manualPumpOn = true;
+    in.moisture[2] = 85; // Z3 đang ngập (>= 80%)
+
+    DecideCommand cmd = decide(in);
+
+    assert(cmd.nextState == S6_MANUAL);
+    assert(cmd.action == ACTION_NONE);
+    assert(strcmp(cmd.alertCode, "MANUAL_REJECT_FLOOD") == 0);
+    printf("[PASS] Test D6c: MANUAL mo van Z3 khi dang ngap -> Tu choi lenh\n");
 }
 
 static void test_D8_FallbackWhenWeatherFails() {
@@ -247,24 +297,32 @@ int runAllDecideTests() {
     printf("  [TV3] KHOI CHAY UNIT TEST HAM THUAN decide()   \n");
     printf("==================================================\n");
 
-    test_A1_NormalIrrigationZ1();
-    test_A2_PrioritySequential();
-    test_A3_SoakWaitTransition();
+    int passed = 0;
+#define RUN_TEST(fn) do { fn(); passed++; } while (0)
 
-    test_B1_RainDelayHighProb();
-    test_B2_DrizzleAllowsIrrigation();
-    test_B3_EmergencyDryOverridesRainDelay();
+    RUN_TEST(test_A1_NormalIrrigationZ1);
+    RUN_TEST(test_A2_PrioritySequential);
+    RUN_TEST(test_A3_SoakWaitTransition);
 
-    test_C1_HeavyRainLocksZone3();
-    test_C2_FloodWarningZone3();
+    RUN_TEST(test_B1_RainDelayHighProb);
+    RUN_TEST(test_B2_DrizzleAllowsIrrigation);
+    RUN_TEST(test_B3_EmergencyDryOverridesRainDelay);
+    RUN_TEST(test_B4_RainDelayExpired);
 
-    test_D1_SensorFailureADCOutOfRange();
-    test_D2_PumpJamFault();
-    test_D6_ManualMode();
-    test_D8_FallbackWhenWeatherFails();
+    RUN_TEST(test_C1_HeavyRainLocksZone3);
+    RUN_TEST(test_C2_FloodWarningZone3);
 
+    RUN_TEST(test_D1_SensorFailureADCOutOfRange);
+    RUN_TEST(test_D2_PumpJamFault);
+    RUN_TEST(test_D6_ManualMode);
+    RUN_TEST(test_D6b_ManualWithoutCommandKeepsPumps);
+    RUN_TEST(test_D6c_ManualRejectZone3WhenFlooded);
+    RUN_TEST(test_D8_FallbackWhenWeatherFails);
+#undef RUN_TEST
+
+    // assert() dừng chương trình nếu một test sai, nên tới đây là tất cả đều đạt
     printf("==================================================\n");
-    printf("  [TV3] KET QUA: 12/12 TEST CASES PASSED (100%%)! \n");
+    printf("  [TV3] KET QUA: %d/%d TEST CASES PASSED (100%%)! \n", passed, passed);
     printf("==================================================\n\n");
     return 0;
 }

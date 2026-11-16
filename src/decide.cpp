@@ -9,6 +9,32 @@
 
 #include "decide.h"
 
+// ------------------------------------------------------------
+// BẢNG QUYẾT ĐỊNH HOÃN TƯỚI THEO DỰ BÁO (B1, B2, B3)
+// ------------------------------------------------------------
+bool isRainDelayCondition(const DecideInput& in) {
+    if (!in.weatherValid) {
+        return false; // Không có dự báo -> chạy theo cảm biến (S8_FALLBACK)
+    }
+
+    // Đất khô khẩn cấp (< 25%): bỏ qua hoãn mưa để cứu cây,
+    // trừ khi mưa lớn đã bắt đầu ngay giờ tới
+    bool emergencyDry = false;
+    for (int z = 0; z < NUM_ZONES; z++) {
+        if (in.moisture[z] < in.thresholdEmergency) {
+            emergencyDry = true;
+        }
+    }
+    if (emergencyDry && !(in.heavyRain && in.hourlyRain0 >= 10.0f)) {
+        return false;
+    }
+
+    if (in.maxProb >= 70) {
+        return in.effPrecip >= 5.0f;  // Bước 4: mưa lớn -> hoãn; Bước 5: mưa phùn -> vẫn tưới
+    }
+    return in.maxProb >= 50;          // Bước 3: 50-70% -> hoãn; Bước 2: nắng ráo -> tưới
+}
+
 DecideCommand decide(const DecideInput& in) {
     DecideCommand cmd;
     cmd.nextState = S1_MONITOR;
@@ -44,15 +70,29 @@ DecideCommand decide(const DecideInput& in) {
     // ------------------------------------------------------------
     if (in.manualMode) {
         cmd.nextState = S6_MANUAL;
+        cmd.reason = "Dieu khien thu cong tu Dashboard";
+
+        // Không có lệnh mới trong chu kỳ này -> giữ nguyên trạng thái bơm
+        if (!in.manualCommandPending) {
+            cmd.action = ACTION_NONE;
+            return cmd;
+        }
+
         cmd.targetZone = in.manualZone;
         if (in.manualZone == 0) {
             cmd.action = ACTION_ALL_OFF;
         } else if (in.manualPumpOn) {
+            // An toàn: không mở van tưới Z3 khi vùng trũng đang ngập
+            if (in.manualZone == 3 && in.moisture[2] >= in.thresholdFlood[2]) {
+                cmd.action = ACTION_NONE;
+                cmd.alertCode = "MANUAL_REJECT_FLOOD";
+                cmd.reason = "Tu choi mo van Z3 vi vung trung dang ngap";
+                return cmd;
+            }
             cmd.action = ACTION_PUMP_ON;
         } else {
             cmd.action = ACTION_PUMP_OFF;
         }
-        cmd.reason = "Dieu khien thu cong tu Dashboard";
         return cmd;
     }
 
@@ -83,37 +123,13 @@ DecideCommand decide(const DecideInput& in) {
     // ------------------------------------------------------------
     // 5. ĐÁNH GIÁ THỜI TIẾT & BẢNG QUYẾT ĐỊNH (B1, B2, C1)
     // ------------------------------------------------------------
-    bool rainDelay = false;
-    bool z3LockHeavyRain = false;
+    // Dự báo mưa lớn >= 10 mm/h: Khóa tưới Z3 để chuẩn bị hứng nước chảy tràn
+    bool z3LockHeavyRain = in.weatherValid && in.heavyRain;
 
-    // Kiểm tra độ ẩm khẩn cấp (< 25%): Bắt buộc tưới cứu cây (Bước 1)
-    bool emergencyDry = (in.moisture[0] < in.thresholdEmergency ||
-                         in.moisture[1] < in.thresholdEmergency ||
-                         (in.moisture[2] < in.thresholdEmergency && !z3Flooded));
-
-    if (in.weatherValid) {
-        // Dự báo mưa lớn >= 10 mm/h: Khóa tưới Z3 để chuẩn bị hứng nước chảy tràn
-        if (in.heavyRain) {
-            z3LockHeavyRain = true;
-        }
-
-        if (emergencyDry && !(in.heavyRain && in.hourlyRain0 >= 10.0f)) {
-            // Đất khô khẩn cấp: Bỏ qua hoãn mưa, tiếp tục tưới cứu cây
-            rainDelay = false;
-        } else if (in.maxProb >= 70 && in.effPrecip >= 5.0f) {
-            // Bước 4: Mưa lớn xác suất cao -> HOÃN TƯỚI
-            rainDelay = true;
-        } else if (in.maxProb >= 70 && in.effPrecip < 5.0f) {
-            // Bước 5: Mưa phùn nhẹ -> VẪN TƯỚI
-            rainDelay = false;
-        } else if (in.maxProb >= 50 && in.maxProb < 70) {
-            // Bước 3: Xác suất 50-70% -> HOÃN TƯỚI
-            rainDelay = true;
-        } else {
-            // Bước 2: Nắng ráo (P_max < 50%) -> TƯỚI BÌNH THƯỜNG
-            rainDelay = false;
-        }
-    }
+    // Tdelay_max: đã hoãn quá lâu mà vẫn chưa mưa -> dự báo sai, tưới lại theo cảm biến
+    bool rainCondition = isRainDelayCondition(in);
+    bool rainDelayExpired = rainCondition && in.rainDelayElapsedMs >= in.maxRainDelayMs;
+    bool rainDelay = rainCondition && !rainDelayExpired;
 
     // Xử lý khi hoãn tưới (S3_RAIN_DELAY)
     if (rainDelay) {
@@ -177,8 +193,13 @@ DecideCommand decide(const DecideInput& in) {
         cmd.nextState = S4_IRRIGATING;
         cmd.action = ACTION_PUMP_ON;
         cmd.targetZone = targetZone;
-        cmd.alertCode = "AUTO_IRRIG";
-        cmd.reason = "Do am thap -> Bat bom tuoi theo thu tu dia hinh tu cao xuong thap";
+        if (rainDelayExpired) {
+            cmd.alertCode = "RAIN_DELAY_EXPIRED";
+            cmd.reason = "Hoan tuoi qua Tdelay_max ma chua mua -> Tuoi lai theo cam bien";
+        } else {
+            cmd.alertCode = "AUTO_IRRIG";
+            cmd.reason = "Do am thap -> Bat bom tuoi theo thu tu dia hinh tu cao xuong thap";
+        }
         return cmd;
     }
 
