@@ -44,7 +44,7 @@ DecideCommand decide(const DecideInput& in) {
     cmd.triggerSoakWait = false;
     cmd.soakDurationMs = 0;
     cmd.alertCode = nullptr;
-    cmd.reason = "He thong on dinh";
+    cmd.reason = "Hệ thống ổn định";
 
     // ------------------------------------------------------------
     // 1. AN TOÀN PHẦN CỨNG & TIÊM LỖI (D1 - SENSOR_RANGE, D2 - PUMP_JAM)
@@ -63,10 +63,10 @@ DecideCommand decide(const DecideInput& in) {
         cmd.targetZone = 0;
         if (in.pumpFault && !in.sensorFault && !adcOutOfRange) {
             cmd.alertCode = "PUMP_JAM";
-            cmd.reason = "Ket bom / hong van (D2) - Ngat bom an toan";
+            cmd.reason = "Kẹt bơm hoặc hỏng van (D2), đã ngắt toàn bộ bơm";
         } else {
             cmd.alertCode = "SENSOR_RANGE";
-            cmd.reason = "Loi cam bien do am (D1 / ADC ngoai khoang) - Ngat bom an toan";
+            cmd.reason = "Lỗi cảm biến độ ẩm (D1 hoặc ADC ngoài khoảng), đã ngắt toàn bộ bơm";
         }
         return cmd;
     }
@@ -76,7 +76,7 @@ DecideCommand decide(const DecideInput& in) {
     // ------------------------------------------------------------
     if (in.manualMode) {
         cmd.nextState = S6_MANUAL;
-        cmd.reason = "Dieu khien thu cong tu Dashboard";
+        cmd.reason = "Điều khiển thủ công từ dashboard";
 
         // Không có lệnh mới trong chu kỳ này -> giữ nguyên trạng thái bơm
         if (!in.manualCommandPending) {
@@ -92,7 +92,7 @@ DecideCommand decide(const DecideInput& in) {
             if (in.manualZone == 3 && in.moisture[2] >= in.thresholdFlood[2]) {
                 cmd.action = ACTION_NONE;
                 cmd.alertCode = "MANUAL_REJECT_FLOOD";
-                cmd.reason = "Tu choi mo van Z3 vi vung trung dang ngap";
+                cmd.reason = "Từ chối mở van Z3 vì vùng trũng đang ngập";
                 return cmd;
             }
             cmd.action = ACTION_PUMP_ON;
@@ -116,8 +116,8 @@ DecideCommand decide(const DecideInput& in) {
         cmd.drainPumpOn = z3Flooded;
         cmd.alertCode = "PUMP_TIMEOUT";
         cmd.reason = z3Flooded
-            ? "Bom tuoi bi ngat do chay qua gioi han, cho RESET - Van tieu ung Z3"
-            : "Bom tuoi bi ngat do chay qua gioi han, cho nguoi van hanh RESET";
+            ? "Bơm tưới bị ngắt do chạy quá giới hạn, chờ RESET; vẫn tiêu úng Z3"
+            : "Bơm tưới bị ngắt do chạy quá giới hạn, chờ người vận hành RESET";
         return cmd;
     }
 
@@ -128,7 +128,7 @@ DecideCommand decide(const DecideInput& in) {
         cmd.nextState = S9_SOAK_WAIT;
         cmd.action = ACTION_ALL_OFF;
         cmd.targetZone = 0;
-        cmd.reason = "Nghi ngam dat SOAK_WAIT cho nuoc chay xuong vung duoi";
+        cmd.reason = "Nghỉ chờ nước ngấm xuống vùng dưới (SOAK_WAIT)";
         return cmd;
     }
 
@@ -141,7 +141,7 @@ DecideCommand decide(const DecideInput& in) {
         cmd.targetZone = 3;
         cmd.drainPumpOn = true;
         cmd.alertCode = "FLOOD_WARNING";
-        cmd.reason = "Vung 3 ngap ung do am >= 80%! Khoa van tuoi Z3 va kich hoat bom tieu ung P3-Xa";
+        cmd.reason = "Z3 vượt ngưỡng ngập: khóa tưới Z3, bật bơm tiêu úng";
         return cmd;
     }
 
@@ -162,7 +162,7 @@ DecideCommand decide(const DecideInput& in) {
         cmd.nextState = S2_EVALUATE;
         cmd.action = ACTION_NONE;
         cmd.targetZone = z1Need ? 1 : (z2Need ? 2 : 3);
-        cmd.reason = "Phat hien vung kho -> Doi chieu du bao truoc khi tuoi";
+        cmd.reason = "Phát hiện vùng khô, đối chiếu dự báo trước khi tưới";
         return cmd;
     }
 
@@ -181,7 +181,7 @@ DecideCommand decide(const DecideInput& in) {
         cmd.action = ACTION_ALL_OFF;
         cmd.targetZone = 0;
         cmd.alertCode = "RAIN_DELAY";
-        cmd.reason = "Du bao co mua lon, he thong tu dong hoan tuoi";
+        cmd.reason = "Dự báo có mưa, tạm hoãn tưới";
         return cmd;
     }
 
@@ -202,9 +202,9 @@ DecideCommand decide(const DecideInput& in) {
             if (curZone < NUM_ZONES) {
                 cmd.triggerSoakWait = true;
                 cmd.soakDurationMs = SOAK_WAIT_TIME; // Theo cau hinh config.h
-                cmd.reason = "Ket thuc xung tuoi -> Chuyen sang SOAK_WAIT cho nuoc ngam xuong";
+                cmd.reason = "Kết thúc xung tưới, nghỉ chờ nước ngấm";
             } else {
-                cmd.reason = "Zone 3 da dat do am du -> Hoan tat chu trinh tuoi";
+                cmd.reason = "Z3 đã đủ ẩm, hoàn tất chu trình tưới";
             }
             return cmd;
         } else {
@@ -212,7 +212,7 @@ DecideCommand decide(const DecideInput& in) {
             cmd.nextState = S4_IRRIGATING;
             cmd.action = ACTION_HOLD;
             cmd.targetZone = curZone;
-            cmd.reason = "Dang tiep tuc xung tuoi";
+            cmd.reason = "Đang tiếp tục xung tưới";
             return cmd;
         }
     }
@@ -235,10 +235,10 @@ DecideCommand decide(const DecideInput& in) {
         cmd.targetZone = targetZone;
         if (rainDelayExpired) {
             cmd.alertCode = "RAIN_DELAY_EXPIRED";
-            cmd.reason = "Hoan tuoi qua Tdelay_max ma chua mua -> Tuoi lai theo cam bien";
+            cmd.reason = "Đã hoãn quá Tdelay_max mà chưa mưa, tưới lại theo cảm biến";
         } else {
             cmd.alertCode = "AUTO_IRRIG";
-            cmd.reason = "Do am thap -> Bat bom tuoi theo thu tu dia hinh tu cao xuong thap";
+            cmd.reason = "Độ ẩm thấp, bật bơm theo thứ tự từ cao xuống thấp";
         }
         return cmd;
     }
@@ -248,7 +248,7 @@ DecideCommand decide(const DecideInput& in) {
     cmd.action = ACTION_ALL_OFF;
     cmd.targetZone = 0;
     cmd.reason = in.weatherValid 
-        ? "Giam sat on dinh, cac vung dat deu du am" 
-        : "Che do Fallback - Cac vung dat deu du am";
+        ? "Giám sát ổn định, các vùng đều đủ ẩm"
+        : "Mất dự báo, tưới theo cảm biến; các vùng đều đủ ẩm";
     return cmd;
 }

@@ -121,7 +121,7 @@ void taskControlCode(void *pvParameters) {
       clearSimFaultCode();
       Serial.println(
           "[FAULT][RESET] Da phuc hoi he thong ve trang thai binh thuong!\r\n");
-      publishAlert("SYSTEM_NORMAL", 0, "He thong da duoc phuc hoi binh thuong");
+      publishAlert("SYSTEM_NORMAL", 0, "Đã xóa lỗi và cảnh báo");
     } else if (fault == "D7_MANUAL_TTL") {
       manualTtlForced = true;
       clearSimFaultCode();
@@ -163,7 +163,7 @@ void taskControlCode(void *pvParameters) {
           alertZone = z;
         } else {
           publishAlert("PUMP_TIMEOUT", z,
-                       "Bom tieu ung chay qua thoi gian toi da, tu dong ngat");
+                       "Bơm tiêu úng chạy quá thời gian tối đa, đã tự ngắt");
         }
       }
     }
@@ -236,7 +236,7 @@ void taskControlCode(void *pvParameters) {
       curManualMode = false;
       cmdManual.isPending = false; // Bo lenh cu, khong thuc thi sau khi het han
       publishAlert("MANUAL_TTL_EXPIRED", 0,
-                   "Het thoi han MANUAL -> Tat bom va tu dong ve AUTO");
+                   "Hết thời hạn MANUAL, đã tắt bơm và chuyển về AUTO");
       Serial.println("[SAFETY][MANUAL] Het TTL -> Tat toan bo bom, ve AUTO");
     }
     manualTtlForced = false;
@@ -462,7 +462,7 @@ void setup() {
 
   // BUOC 5: Khoi tao Wi-Fi va MQTT Client (TV2)
   initNetwork();
-  publishSystemState(stateToCode(S0_INIT), "AUTO", "Khoi dong xong, bat dau giam sat");
+  publishSystemState(stateToCode(S0_INIT), "AUTO", "Khởi động xong, bắt đầu giám sát");
 
   // BUOC 6: Tao FreeRTOS Tasks tren 2 Core rieng biet
   xTaskCreatePinnedToCore(taskNetworkCode, "TaskNetwork", TASK_STACK_SIZE, NULL,
