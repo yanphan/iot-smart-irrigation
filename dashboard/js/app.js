@@ -1294,9 +1294,44 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'RESET':
+          // 1. Gửi lệnh RESET mã lỗi phần cứng tới ESP32 (D1 - D7)
           mqttClient.sendSimFault('RESET');
-          showToast('Đã gửi lệnh RESET -> Khôi phục hệ thống về bình thường', 'success');
-          addLogEntry('PHỤC HỒI', 'Toàn Nông Trại', 'Gửi lệnh RESET: Khôi phục tất cả trạng thái về bình thường', 'system');
+
+          // 2. Đồng bộ lại thời tiết thực tế từ Open-Meteo tới ESP32 (xóa kịch bản giả lập W0 - W5)
+          if (weatherService.hourlyData && weatherService.hourlyData.length >= 3) {
+            const h = weatherService.hourlyData;
+            mqttClient.sendSimWeather({
+              hourly: {
+                precipitation: [h[0].precip || 0.0, h[1].precip || 0.0, h[2].precip || 0.0],
+                precipitation_probability: [h[0].prob || 0, h[1].prob || 0, h[2].prob || 0]
+              },
+              current: {
+                temperature_2m: weatherService.currentData?.temp || 22.0,
+                relative_humidity_2m: weatherService.currentData?.humidity || 75.0
+              }
+            });
+          } else {
+            mqttClient.sendSimWeather({
+              hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [10, 10, 10] },
+              current: { temperature_2m: 22.0, relative_humidity_2m: 75.0 }
+            });
+          }
+
+          // 3. Khôi phục giao diện khuyến nghị thời tiết về dữ liệu Open-Meteo thực tế
+          if (weatherService.currentData) {
+            renderWeatherUI();
+          } else if (rainStatusEl) {
+            rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo: Hệ thống hoạt động bình thường</span>`;
+          }
+          weatherService.fetchWeather();
+
+          // 4. Khôi phục trạng thái điều khiển và bản đồ
+          activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
+          pendingCommandTime = 0;
+          updateTopographicMap();
+
+          showToast('Đã gửi lệnh RESET -> Khôi phục cờ lỗi & kịch bản môi trường về bình thường', 'success');
+          addLogEntry('PHỤC HỒI', 'Toàn Nông Trại', 'Gửi lệnh RESET: Khôi phục tất cả cờ lỗi và kịch bản thời tiết về bình thường', 'system');
           break;
       }
     });
