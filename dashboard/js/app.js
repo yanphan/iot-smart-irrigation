@@ -1318,12 +1318,39 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           // 3. Khôi phục giao diện khuyến nghị thời tiết về dữ liệu Open-Meteo thực tế
-          if (weatherService.currentData) {
-            renderWeatherUI();
-          } else if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo: Hệ thống hoạt động bình thường</span>`;
+          if (rainStatusEl) {
+            if (weatherService.currentData) {
+              const cur = weatherService.currentData;
+              const isRainCondition = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
+              if (cur.shouldDelay || isRainCondition || cur.pMax3h >= 70) {
+                rainStatusEl.innerHTML = `<span class="preset-badge rain">Khuyến nghị: Hoãn tưới đón mưa (P_max: ${cur.pMax3h}%)</span>`;
+              } else if (cur.pMax3h >= 40) {
+                rainStatusEl.innerHTML = `<span class="preset-badge normal">Khả năng mưa rải rác (${cur.pMax3h}%): Tiếp tục theo dõi</span>`;
+              } else {
+                rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo (P_max: ${cur.pMax3h}%): Tưới bình thường</span>`;
+              }
+            } else {
+              rainStatusEl.innerHTML = `<span class="preset-badge normal">Nắng ráo: Hệ thống hoạt động bình thường</span>`;
+            }
           }
-          weatherService.fetchWeather();
+
+          if (typeof renderWeatherCard === 'function') {
+            try { renderWeatherCard(); } catch (err) { console.warn(err); }
+          }
+
+          if (moistureChart && weatherService.hourlyData && weatherService.hourlyData.length >= 3) {
+            weatherService.hourlyData.slice(0, 3).forEach((h, idx) => {
+              const chartIdx = chartHistory.rain.length - 1 - (2 - idx);
+              if (chartIdx >= 0 && chartIdx < chartHistory.rain.length) {
+                chartHistory.rain[chartIdx] = h.precip;
+              }
+            });
+            moistureChart.update('none');
+          }
+
+          if (weatherService && typeof weatherService.fetchWeather === 'function') {
+            try { weatherService.fetchWeather(); } catch (err) { console.warn(err); }
+          }
 
           // 4. Khôi phục trạng thái điều khiển và bản đồ
           activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
