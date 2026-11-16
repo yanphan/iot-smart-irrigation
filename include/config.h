@@ -32,7 +32,7 @@
 #define PIN_RELAY_Z1  27   // Relay vung Z1
 #define PIN_RELAY_Z2  26   // Relay vung Z2
 #define PIN_RELAY_Z3  25   // Relay vung Z3
-#define PIN_RELAY_AUX 33   // Relay du phong
+#define PIN_RELAY_AUX 33   // Relay 4: bom tieu ung Z3 (S5_DRAIN)
 
 // ------------------------------------------------------------
 // 4. GPIO - CAM BIEN NHIET DO & DO AM KHONG KHI
@@ -60,14 +60,36 @@
 #define Z3_THRESHOLD_FLOOD  80
 #define THRESHOLD_EMERGENCY 25   // Duoi 25% la muc khan cap, bat buoc tuoi cuu cay
 
+// Nguong du bao mua (Bang 3.4) - dong bo voi sim/hydrology.py
+#define RAIN_PROB_HIGH      70     // P_max >= 70%: hoan neu P_eff >= RAIN_EFF_MIN_MM
+#define RAIN_PROB_MID       50     // 50% <= P_max < 70%: hoan than trong
+#define RAIN_EFF_MIN_MM     5.0f   // Luong mua hieu dung toi thieu de hoan (mm)
+#define HEAVY_RAIN_MM_H     10.0f  // Mua lon (mm/h): khoa tuoi Z3
+
+// Kiem tra hop le tin hieu do am (ADC 12 bit)
+#define ADC_FAULT_LOW       20     // <= 20: dut day / chap mass
+#define ADC_FAULT_HIGH      4085   // >= 4085: chap nguon / ho chan
+
 // ------------------------------------------------------------
 // 6. THOI GIAN (milliseconds)
 // ------------------------------------------------------------
-#define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
-#define SOAK_WAIT_TIME       120000    // 120s cho nuoc ngam dat
-#define SENSOR_READ_INTERVAL   5000    // Doc cam bien moi 5s
+#if CURRENT_MODE == MODE_SIM
+  #define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
+  #define SOAK_WAIT_TIME         7000    // 7s cho nuoc ngam dat trong mo phong demo (vua du thoi gian thuyet minh S9)
+  #define SENSOR_READ_INTERVAL   1500    // Doc cam bien va cap nhat moi 1.5s
+  #define SIM_MAX_PULSE_DURATION 15000   // Toi da 15s moi xung trong mo phong
+  #define MAX_RAIN_DELAY_MS    120000UL  // Tdelay_max demo: hoan qua 2 phut thi tuoi lai
+#else
+  #define PUMP_MAX_DURATION     30000    // Toi da 30s moi lan bom (chong chay)
+  #define SOAK_WAIT_TIME       120000    // 120s cho nuoc ngam dat
+  #define SENSOR_READ_INTERVAL   5000    // Doc cam bien moi 5s
+  #define SIM_MAX_PULSE_DURATION 20000   // 20s
+  #define MAX_RAIN_DELAY_MS  14400000UL  // Tdelay_max = 4 gio: du bao sai thi khong hoan mai
+#endif
+#define MANUAL_TTL_MS          600000UL  // MANUAL tu het han sau 10 phut -> ve AUTO
 #define MQTT_RECONNECT_INTERVAL 5000   // Thu ket noi lai MQTT moi 5s
 #define WEATHER_UPDATE_INTERVAL 60000  // Cap nhat thoi tiet moi 60s
+#define DHT_READ_INTERVAL       2000   // DHT22 can toi thieu 2s giua hai lan doc
 
 // ------------------------------------------------------------
 // 7. MQTT BROKER

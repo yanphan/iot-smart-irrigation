@@ -2106,8 +2106,8 @@ body {
 }
 
 .preset-badge.purple {
-  background-color: #f3e8ff;
-  color: #9333ea;
+  background-color: var(--purple-light);
+  color: var(--purple);
 }
 
 .btn-action-sm {

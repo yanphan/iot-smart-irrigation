@@ -81,17 +81,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------
   // 1. THEO DÕI LƯỢNG NƯỚC ĐÃ TƯỚI & DUNG TÍCH BỂ CHỨA
   // ------------------------------------------------------------
+  // Không có cảm biến lưu lượng / mực nước: ước tính từ thời gian chạy 3 bơm tưới
+  // (telemetry pump) × lưu lượng giả định. Bể giả định đầy khi mở trang.
   const waterState = {
-    tankCapacity: 10000, // 10,000 L
-    tankCurrent: 8500,   // Dung tích hiện tại trong bể
-    irrigatedToday: 0    // Lượng nước thực tế đã tưới
+    tankCapacity: 10000, // L (giả định)
+    flowLpm: 10,         // L/phút mỗi bơm tưới (giả định)
+    pumpSeconds: 0,      // Tổng giây chạy của các lần bơm đã kết thúc
+    onSince: { 1: null, 2: null, 3: null },
+    tankCurrent: 10000,
+    irrigatedToday: 0
   };
+
+  function trackPumpRuntime(p) {
+    const z = p && p.zone;
+    if (!(z >= 1 && z <= 3)) return; // Bỏ bơm tiêu úng (zone 4)
+    const now = Date.now();
+    if (p.status === 'ON' && waterState.onSince[z] === null) {
+      waterState.onSince[z] = now;
+    } else if (p.status === 'OFF' && waterState.onSince[z] !== null) {
+      waterState.pumpSeconds += (now - waterState.onSince[z]) / 1000;
+      waterState.onSince[z] = null;
+    }
+  }
 
   function updateWaterMetricsUI() {
     const tankEl = document.getElementById('waterTankLevel');
     const barEl = document.getElementById('tankProgressBar');
     const usedEl = document.getElementById('waterUsedToday');
     const percentEl = document.getElementById('tankPercent');
+
+    let seconds = waterState.pumpSeconds;
+    const now = Date.now();
+    for (const z of [1, 2, 3]) {
+      if (waterState.onSince[z] !== null) seconds += (now - waterState.onSince[z]) / 1000;
+    }
+    waterState.irrigatedToday = seconds / 60 * waterState.flowLpm;
+    waterState.tankCurrent = Math.max(0, waterState.tankCapacity - waterState.irrigatedToday);
 
     const percent = Math.max(0, Math.min(100, (waterState.tankCurrent / waterState.tankCapacity) * 100)).toFixed(1);
     if (tankEl) tankEl.textContent = `${Math.round(waterState.tankCurrent).toLocaleString('vi-VN')} L`;
@@ -797,13 +822,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnMapAllOff = document.getElementById('btnMapAllOff');
   if (btnMapAllOff) {
     btnMapAllOff.addEventListener('click', () => {
-      mqttClient.sendPump(1, 'OFF', 0);
-      mqttClient.sendPump(2, 'OFF', 0);
-      mqttClient.sendPump(3, 'OFF', 0);
-      mqttClient.sendPump(4, 'OFF', 0);
+      // Một lệnh zone 0: firmware chuyển MANUAL và tắt cả 4 bơm trong một chu kỳ
+      // (gửi 4 lệnh riêng sẽ đè nhau vì firmware chỉ giữ một lệnh chờ)
+      mqttClient.sendPump(0, 'OFF', 0);
       activeControl = { targetType: null, plotKey: null, tierNum: null, action: null };
       pendingCommandTime = 0;
-      showToast('Đã gửi lệnh ngắt khẩn cấp toàn bộ các máy bơm & van tưới!', 'warn');
+      showToast('Đã gửi lệnh ngắt khẩn cấp: chuyển MANUAL và tắt toàn bộ máy bơm!', 'warn');
       addLogEntry('NGẮT KHẨN CẤP', 'Toàn Nông Trại', 'Ngắt khẩn cấp toàn bộ máy bơm & van tưới', 'warn');
       updateTopographicMap();
     });
@@ -1104,9 +1128,12 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTopographicMap();
   });
 
-  mqttClient.on('onPump', () => {
+  mqttClient.on('onPump', (p) => {
+    trackPumpRuntime(p);
+    updateWaterMetricsUI();
     updateTopographicMap();
   });
+  setInterval(updateWaterMetricsUI, 1000); // Cập nhật lượng nước khi bơm đang chạy
 
   // Vi khí hậu thực tế từ cảm biến DHT22 nối chân GPIO 4 trên ESP32
   mqttClient.on('onEnv', (d) => {
@@ -1154,9 +1181,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       switch (preset) {
         case 'W0':
+          // 1. Gui du lieu thoi tiet nang rao (0mm)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
             current: { temperature_2m: 26.5, relative_humidity_2m: 55.0 }
+          });
+          // 2. Gui lenh mo phong dat doi doc kho han dong bo toi ESP32
+          mqttClient.sendSimSoil({
+            action: 'dry_slope',
+            z1: 28,
+            z2: 30,
+            z3: 28
           });
           if (moistureChart && chartHistory.rain.length >= 3) {
             chartHistory.rain[chartHistory.rain.length - 3] = 0.0;
@@ -1165,13 +1200,14 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Chuẩn bị tưới Z1→Z2→Z3</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge sun">Kiểm thử [W0]: Nắng ráo (0mm) • Khô 3 tầng • Tưới đồi dốc Z1→Z2→Z3</span>`;
           }
-          showToast('Đã gửi W0 tới ESP32: Nắng ráo -> Quyết định tưới tuần tự Z1 -> Z2 -> Z3', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo (0mm) • Chuẩn bị tưới tuần tự Z1→Z2→Z3', 'system');
+          showToast('Kích hoạt W0: Đất 3 tầng khô hạn -> Tự động tưới tuần tự Z1 -> Z2 -> Z3 (nước ngấm dốc)', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W0]', 'Kích hoạt kịch bản Nắng ráo: Khô đồi dốc (Z1=28%, Z2=30%, Z3=28%) • Bắt đầu tưới tuần tự Z1→Z2→Z3', 'system');
           break;
 
         case 'W1':
+          mqttClient.sendMode('AUTO');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
             current: { temperature_2m: 20.0, relative_humidity_2m: 88.0 }
@@ -1183,10 +1219,10 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge rain">Kiểm thử [W1]: Mưa dông lớn (15mm) • Hoãn tưới đón mưa</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge rain">Kiểm thử [W1]: Mưa dông lớn (19mm) • Hoãn tưới đón mưa</span>`;
           }
-          showToast('Đã gửi W1 tới ESP32: Mưa dông lớn (15mm) -> Hoãn tưới đón mưa tự nhiên', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (15mm) • Hoãn tưới đón mưa tự nhiên', 'warn');
+          showToast('Kích hoạt W1: Mưa dông lớn (19mm) -> Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W1]', 'Kích hoạt kịch bản Mưa dông lớn (19mm) • Hoãn tưới đón mưa tự nhiên (ngắt bơm ngay)', 'warn');
           break;
 
         case 'W2':
@@ -1201,10 +1237,10 @@ document.addEventListener('DOMContentLoaded', () => {
             moistureChart.update('none');
           }
           if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge normal">Kiểm thử [W2]: Mưa phùn nhẹ (2mm) • Không đủ thấm, tiếp tục tưới</span>`;
+            rainStatusEl.innerHTML = `<span class="preset-badge normal">Kiểm thử [W2]: Mưa phùn nhẹ (2.5mm) • Không đủ thấm, tiếp tục tưới</span>`;
           }
-          showToast('Đã gửi W2 tới ESP32: Mưa phùn nhẹ (2mm) -> Không đủ thấm đất, tiếp tục tưới', 'normal');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W2]', 'Kích hoạt kịch bản Mưa phùn nhẹ (2mm) • Không đủ thấm đất, tiếp tục tưới', 'system');
+          showToast('Đã gửi W2 tới ESP32: Mưa phùn nhẹ (2.5mm) -> Không đủ thấm đất, tiếp tục tưới', 'normal');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W2]', 'Kích hoạt kịch bản Mưa phùn nhẹ (2.5mm) • Không đủ thấm đất, tiếp tục tưới', 'system');
           break;
 
         case 'W3':
@@ -1226,15 +1262,29 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W4':
+          // 1. Gui du lieu du bao mua (4-5mm, xac suat 70-75%) - binh thuong se hoan tuoi (S3)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [4.0, 5.0, 3.0], precipitation_probability: [70, 75, 60] },
             current: { temperature_2m: 29.0, relative_humidity_2m: 45.0 }
           });
-          if (rainStatusEl) {
-            rainStatusEl.innerHTML = `<span class="preset-badge warn">Kiểm thử [W4]: Hạn kiệt vùng cao (&lt;25%) • Ưu tiên cứu cây khẩn cấp, bỏ qua hoãn mưa</span>`;
+          // 2. Tiem do am dat Z1 = 20% (< 25% muc khan cap THRESHOLD_EMERGENCY)
+          mqttClient.sendSimSoil({
+            action: 'dry_slope',
+            z1: 20,
+            z2: 32,
+            z3: 35
+          });
+          if (moistureChart && chartHistory.rain.length >= 3) {
+            chartHistory.rain[chartHistory.rain.length - 3] = 4.0;
+            chartHistory.rain[chartHistory.rain.length - 2] = 5.0;
+            chartHistory.rain[chartHistory.rain.length - 1] = 3.0;
+            moistureChart.update('none');
           }
-          showToast('Đã gửi W4: Hạn kiệt vùng cao (<25%) -> Quyết định tưới cứu cây khẩn cấp!', 'warn');
-          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W4]', 'Kích hoạt hạn kiệt vùng cao (<25%): Ưu tiên tưới khẩn cấp cứu cây', 'warn');
+          if (rainStatusEl) {
+            rainStatusEl.innerHTML = `<span class="preset-badge warn">Kiểm thử [W4]: Hạn kiệt vùng cao (Z1=20% &lt; 25%) • Cứu cây khẩn cấp, bỏ qua hoãn mưa!</span>`;
+          }
+          showToast('Kích hoạt W4: Đất Z1=20% (<25% hạn kiệt) -> Ưu tiên bật bơm cứu cây ngay dù trời sắp mưa!', 'warn');
+          addLogEntry('KỊCH BẢN', 'Mô Phỏng [W4]', 'Kích hoạt hạn kiệt Z1=20% (<25%): Bỏ qua hoãn mưa, bật bơm tưới khẩn cấp cứu cây!', 'warn');
           break;
 
         case 'W5':
@@ -1284,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'D5':
           mqttClient.sendSimFault('D5_PUMP_TIMEOUT');
           showToast('Đã gửi D5_PUMP_TIMEOUT -> Watchdog kích hoạt ngắt an toàn relay quá tải!', 'alert');
-          addLogEntry('BẢO VỆ PHẦN CỨNG', 'Watchdog [D5]', 'Kích hoạt D5_PUMP_TIMEOUT: Bơm quá 600s, tự động ngắt relay an toàn', 'warn');
+          addLogEntry('BẢO VỆ PHẦN CỨNG', 'Watchdog [D5]', 'Kích hoạt D5_PUMP_TIMEOUT: Bơm tưới chạm giới hạn 30s, ngắt relay và chuyển S7_ALERT chờ RESET', 'warn');
           break;
 
         case 'D7':
@@ -1427,8 +1477,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const defaultThresholds = {
     dryZ1: 40, wetZ1: 60,
     dryZ2: 40, wetZ2: 60,
-    dryZ3: 35, wetZ3: 55, floodZ3: 80,
-    soakWait: 15, maxPump: 600
+    dryZ3: 35, wetZ3: 55, floodZ3: 80
   };
 
   function loadThresholds() {
@@ -1484,8 +1533,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mD3 = document.getElementById('modalDryZ3');
     const mW3 = document.getElementById('modalWetZ3');
     const mF3 = document.getElementById('modalFloodZ3');
-    const mSoak = document.getElementById('modalSoakWait');
-    const mPump = document.getElementById('modalMaxPump');
 
     if (mD1) mD1.value = currentThresholds.dryZ1;
     if (mW1) mW1.value = currentThresholds.wetZ1;
@@ -1494,8 +1541,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mD3) mD3.value = currentThresholds.dryZ3;
     if (mW3) mW3.value = currentThresholds.wetZ3 || 55;
     if (mF3) mF3.value = currentThresholds.floodZ3;
-    if (mSoak) mSoak.value = currentThresholds.soakWait || 15;
-    if (mPump) mPump.value = currentThresholds.maxPump || 600;
   }
 
   function initThresholdHandlers() {
@@ -1553,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyThresholdsToUI();
         mqttClient.sendThreshold(1, currentThresholds.dryZ1, currentThresholds.wetZ1);
         mqttClient.sendThreshold(2, currentThresholds.dryZ2, currentThresholds.wetZ2);
-        mqttClient.sendThreshold(3, currentThresholds.dryZ3, currentThresholds.floodZ3);
+        mqttClient.sendThreshold(3, currentThresholds.dryZ3, currentThresholds.wetZ3 || 55, currentThresholds.floodZ3);
         addLogEntry('CẤU HÌNH NGƯỠNG', 'Tùy Chỉnh', `Cập nhật ngưỡng Tầng 1 (${currentThresholds.dryZ1}/${currentThresholds.wetZ1}%), Tầng 2 (${currentThresholds.dryZ2}/${currentThresholds.wetZ2}%), Tầng 3 (${currentThresholds.dryZ3}/${currentThresholds.floodZ3}%)`, 'system');
         showToast('Đã lưu cấu hình ngưỡng độ ẩm và đồng bộ xuống trạm điều khiển!', 'success');
       });
@@ -1584,8 +1629,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const mD3 = document.getElementById('modalDryZ3');
         const mW3 = document.getElementById('modalWetZ3');
         const mF3 = document.getElementById('modalFloodZ3');
-        const mSoak = document.getElementById('modalSoakWait');
-        const mPump = document.getElementById('modalMaxPump');
 
         if (mD1) currentThresholds.dryZ1 = parseInt(mD1.value) || 40;
         if (mW1) currentThresholds.wetZ1 = parseInt(mW1.value) || 60;
@@ -1594,15 +1637,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mD3) currentThresholds.dryZ3 = parseInt(mD3.value) || 35;
         if (mW3) currentThresholds.wetZ3 = parseInt(mW3.value) || 55;
         if (mF3) currentThresholds.floodZ3 = parseInt(mF3.value) || 80;
-        if (mSoak) currentThresholds.soakWait = parseInt(mSoak.value) || 15;
-        if (mPump) currentThresholds.maxPump = parseInt(mPump.value) || 600;
 
         saveThresholds(currentThresholds);
         applyThresholdsToUI();
         mqttClient.sendThreshold(1, currentThresholds.dryZ1, currentThresholds.wetZ1);
         mqttClient.sendThreshold(2, currentThresholds.dryZ2, currentThresholds.wetZ2);
-        mqttClient.sendThreshold(3, currentThresholds.dryZ3, currentThresholds.floodZ3);
-        addLogEntry('CẤU HÌNH NGƯỠNG', 'Bảng Chi Tiết', `Lưu bảng ngưỡng: Ngâm thấm=${currentThresholds.soakWait}s, Watchdog=${currentThresholds.maxPump}s`, 'system');
+        mqttClient.sendThreshold(3, currentThresholds.dryZ3, currentThresholds.wetZ3 || 55, currentThresholds.floodZ3);
+        addLogEntry('CẤU HÌNH NGƯỠNG', 'Bảng Chi Tiết', `Lưu ngưỡng Tầng 1 (${currentThresholds.dryZ1}/${currentThresholds.wetZ1}%), Tầng 2 (${currentThresholds.dryZ2}/${currentThresholds.wetZ2}%), Tầng 3 (${currentThresholds.dryZ3}/${currentThresholds.wetZ3 || 55}/${currentThresholds.floodZ3}%)`, 'system');
         showToast('Đã lưu cấu hình chi tiết và đồng bộ với trạm điều khiển!', 'success');
         closeModal();
       });

@@ -22,7 +22,8 @@ enum ActionType {
     ACTION_PUMP_ON = 1,     // Bật bơm cho targetZone
     ACTION_PUMP_OFF = 2,    // Tắt bơm của targetZone
     ACTION_ALL_OFF = 3,     // Ngắt toàn bộ bơm tất cả các vùng
-    ACTION_HOLD = 4         // Tiếp tục duy trì xung tưới hiện tại
+    ACTION_HOLD = 4,        // Tiếp tục duy trì xung tưới hiện tại
+    ACTION_IRRIG_OFF = 5    // Tắt 3 bơm tưới, bơm tiêu úng do drainPumpOn quyết định
 };
 
 // Cấu trúc dữ liệu đầu vào cho bộ quyết định
@@ -48,10 +49,13 @@ struct DecideInput {
     bool manualMode;
     int manualZone;         // Vùng nhận lệnh thủ công (1..NUM_ZONES, 0 = tất cả)
     bool manualPumpOn;      // Bật (true) hoặc Tắt (false)
+    bool manualCommandPending; // true = chu kỳ này có lệnh thủ công mới từ Dashboard
 
     // 5. Cờ sự cố & An toàn phần cứng
     bool sensorFault;       // Lỗi cảm biến (tiêm lỗi D1 hoặc ADC ngoài khoảng 20-4085)
     bool pumpFault;         // Lỗi kẹt bơm / hỏng van (D2)
+    bool alertPending;      // Bơm tưới từng bị watchdog ngắt, chờ người vận hành RESET (S7)
+    int alertZone;          // Vùng có bơm bị ngắt (0 nếu tiêm lỗi D5 khi không bơm nào chạy)
 
     // 6. Trạng thái máy trạng thái & Timers
     SystemState currentState;
@@ -59,6 +63,11 @@ struct DecideInput {
     int currentlyIrrigatingZone; // Vùng đang được bật bơm (0 nếu không có)
     unsigned long currentPulseDurationMs; // Thời gian xung bơm hiện tại đã chạy (ms)
     unsigned long maxPulseDurationMs;     // Giới hạn thời gian 1 xung bơm (ms)
+    bool dryZoneEvaluated;  // Vùng khô hiện tại đã qua một chu kỳ S2_EVALUATE chưa
+
+    // 7. Thời hạn hoãn tưới tối đa (Tdelay_max)
+    unsigned long rainDelayElapsedMs;     // Đã hoãn tưới liên tục bao lâu (ms)
+    unsigned long maxRainDelayMs;         // Hoãn quá mức này thì tưới lại theo cảm biến
 };
 
 // Cấu trúc lệnh điều khiển đầu ra
@@ -66,6 +75,7 @@ struct DecideCommand {
     SystemState nextState;     // Trạng thái tiếp theo của FSM
     ActionType action;         // Hành động điều khiển van/bơm
     int targetZone;            // Vùng chịu tác động (1..NUM_ZONES, hoặc 0)
+    bool drainPumpOn;          // Bật bơm tiêu úng Z3 (relay 4): S5_DRAIN, hoặc S7 khi Z3 ngập
     bool triggerSoakWait;      // Yêu cầu chuyển sang nghỉ ngấm đất sau xung
     unsigned long soakDurationMs; // Thời gian nghỉ ngấm đất khuyến nghị (ms)
     const char* alertCode;     // Mã cảnh báo gửi MQTT (NULL nếu bình thường)
@@ -74,5 +84,9 @@ struct DecideCommand {
 
 // Hàm thuần quyết định logic tưới tiêu
 DecideCommand decide(const DecideInput& in);
+
+// Hàm thuần: dự báo hiện tại có đủ điều kiện hoãn tưới không (chưa xét Tdelay_max).
+// main.cpp dùng hàm này để đo thời gian đã hoãn liên tục.
+bool isRainDelayCondition(const DecideInput& in);
 
 #endif // DECIDE_H

@@ -20,3 +20,12 @@ compile_commands.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Ket qua mo hinh Python (tao lai bang: python sim/hydrology.py)
+sim/output/
+__pycache__/
+
+# Tai lieu bao cao va file cua Claude Code (chi luu tren may, khong day len repo)
+docs/
+CLAUDE.md
+.claude/

@@ -222,13 +222,15 @@ class DashboardMQTTClient {
     return true;
   }
 
-  sendThreshold(zone, dry, wet) {
+  sendThreshold(zone, dry, wet, flood) {
     if (!this.isConnected) return false;
-    const payload = JSON.stringify({
+    const msg = {
       zone: parseInt(zone),
       dry: parseInt(dry),
       wet: parseInt(wet)
-    });
+    };
+    if (flood !== undefined) msg.flood = parseInt(flood);
+    const payload = JSON.stringify(msg);
     this.client.publish(CONFIG.MQTT.TOPICS.CMD_THRESHOLD, payload, { qos: 1 });
     return true;
   }
@@ -244,6 +246,13 @@ class DashboardMQTTClient {
     if (!this.isConnected) return false;
     const payload = JSON.stringify({ fault: faultCode });
     this.client.publish(CONFIG.MQTT.TOPICS.SIM_FAULT, payload, { qos: 1 });
+    return true;
+  }
+
+  sendSimSoil(soilObj) {
+    if (!this.isConnected) return false;
+    const payload = JSON.stringify(soilObj);
+    this.client.publish(CONFIG.MQTT.TOPICS.SIM_SOIL, payload, { qos: 1 });
     return true;
   }
 }
