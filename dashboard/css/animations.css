@@ -93,4 +93,88 @@
   }
 }
 
+/* Hiệu ứng hào quang & ánh nắng mặt trời trên bản đồ */
+@keyframes sun-pulse-glow {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+@keyframes rotate-sun-corona {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sunbeam-float-1 {
+  0% {
+    transform: rotate(35deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotate(41deg);
+    opacity: 1;
+  }
+}
+
+@keyframes sunbeam-float-2 {
+  0% {
+    transform: rotate(53deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(59deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes sunbeam-float-3 {
+  0% {
+    transform: rotate(71deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotate(77deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes heat-shimmer-pulse {
+  0% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes pulse-sun-pill {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+    border-color: #fcd34d;
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(245, 158, 11, 0.45);
+    border-color: #f59e0b;
+  }
+}
+
+@keyframes spin-sun-icon {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 

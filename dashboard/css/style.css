@@ -2440,6 +2440,19 @@ body {
   animation: pulse-storm-pill 1.5s infinite ease-in-out;
 }
 
+.map-weather-pill.sunny {
+  background: rgba(254, 243, 199, 0.95);
+  border-color: #fcd34d;
+  color: #b45309;
+  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.25);
+  animation: pulse-sun-pill 2.5s infinite ease-in-out;
+}
+
+.map-weather-pill.sunny .map-weather-pill-icon {
+  display: inline-block;
+  animation: spin-sun-icon 12s linear infinite;
+}
+
 .map-weather-pill-icon {
   font-size: 13px;
   line-height: 1;
@@ -2471,6 +2484,134 @@ body {
 .map-rain-fog.fog-heavy {
   opacity: 1;
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(2, 132, 199, 0.15) 60%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+/* Lớp hiệu ứng ánh nắng mặt trời & quầng sáng khi trời nắng ráo */
+.map-sun-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.map-sun-container.visible {
+  opacity: 1;
+}
+
+.map-sun-ambient-warmth {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 82% 16%, rgba(254, 240, 138, 0.26) 0%, rgba(251, 191, 36, 0.12) 35%, rgba(245, 158, 11, 0.03) 65%, transparent 80%);
+  mix-blend-mode: screen;
+}
+
+.map-sun-beams {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sun-beam {
+  position: absolute;
+  top: -40px;
+  right: 70px;
+  width: 130px;
+  height: 900px;
+  transform-origin: top center;
+  background: linear-gradient(180deg, rgba(254, 240, 138, 0.22) 0%, rgba(251, 191, 36, 0.08) 50%, transparent 88%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+}
+
+.sun-beam.beam-1 {
+  transform: rotate(38deg);
+  width: 150px;
+  animation: sunbeam-float-1 8s ease-in-out infinite alternate;
+}
+
+.sun-beam.beam-2 {
+  transform: rotate(56deg);
+  width: 100px;
+  opacity: 0.85;
+  animation: sunbeam-float-2 7s ease-in-out infinite alternate;
+}
+
+.sun-beam.beam-3 {
+  transform: rotate(74deg);
+  width: 140px;
+  opacity: 0.7;
+  animation: sunbeam-float-3 9s ease-in-out infinite alternate;
+}
+
+.map-sun-disc-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 65px;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 8;
+}
+
+.map-sun-core {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #fef08a 40%, #f59e0b 85%, #d97706 100%);
+  box-shadow: 0 0 20px rgba(254, 240, 138, 0.95), 0 0 40px rgba(245, 158, 11, 0.75), 0 0 75px rgba(217, 119, 6, 0.45);
+  position: relative;
+  z-index: 3;
+}
+
+.map-sun-glow {
+  position: absolute;
+  width: 95px;
+  height: 95px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.65) 0%, rgba(251, 191, 36, 0.28) 50%, transparent 75%);
+  animation: sun-pulse-glow 4s ease-in-out infinite alternate;
+  z-index: 1;
+}
+
+.map-sun-corona {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(254, 240, 138, 0.55) 0deg 15deg,
+    transparent 15deg 30deg
+  );
+  animation: rotate-sun-corona 35s linear infinite;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+.map-sun-heat-shimmer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 45%;
+  background: linear-gradient(0deg, rgba(251, 191, 36, 0.07) 0%, transparent 100%);
+  animation: heat-shimmer-pulse 3.5s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
 /* Lớp Canvas hạt mưa động */

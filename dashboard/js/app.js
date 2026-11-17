@@ -1076,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pillTextEl: null,
     runoffGroupEl: null,
     floodPoolEl: null,
+    sunContainerEl: null,
 
     init() {
       this.canvas = document.getElementById('mapRainCanvas');
@@ -1085,6 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.pillTextEl = document.getElementById('mapWeatherPillText');
       this.runoffGroupEl = document.getElementById('mapRunoffGroup');
       this.floodPoolEl = document.getElementById('valleyFloodPool');
+      this.sunContainerEl = document.getElementById('mapSunContainer');
 
       if (!this.canvas) return;
       this.ctx = this.canvas.getContext('2d');
@@ -1099,6 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
           mapImg.addEventListener('load', () => this.resize());
         }
       }
+
+      // Khởi tạo ban đầu ở trạng thái nắng ráo nếu chưa kích hoạt kịch bản mưa
+      this.setIntensity('none', 'Nắng ráo', '0.0mm');
     },
 
     resize() {
@@ -1109,20 +1114,22 @@ document.addEventListener('DOMContentLoaded', () => {
       this.height = rect.height;
       this.canvas.width = this.width;
       this.canvas.height = this.height;
-      if (this.intensity !== 'none') {
+      if (this.intensity !== 'none' && this.intensity !== 'sunny') {
         this.resetDrops();
       }
     },
 
     setIntensity(level, label, detail) {
       this.intensity = level;
+      const isSunny = (level === 'none' || level === 'sunny');
 
       // 1. Cập nhật huy hiệu thời tiết trên header bản đồ
       if (this.pillEl) {
         this.pillEl.className = 'map-weather-pill';
-        if (level === 'none') {
+        if (isSunny) {
+          this.pillEl.classList.add('sunny');
           if (this.pillIconEl) this.pillIconEl.textContent = '☀️';
-          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Nắng ráo'} • ${detail || '0mm'}`;
+          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Nắng ráo'} • ${detail || '0.0mm'}`;
         } else if (level === 'light') {
           this.pillEl.classList.add('raining');
           if (this.pillIconEl) this.pillIconEl.textContent = '🌦️';
@@ -1138,7 +1145,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 2. Cập nhật lớp khí quyển sương mờ / mây dông
+      // 2. Cập nhật hiệu ứng quầng sáng & vệt nắng mặt trời
+      if (this.sunContainerEl) {
+        if (isSunny) {
+          this.sunContainerEl.classList.add('visible');
+        } else {
+          this.sunContainerEl.classList.remove('visible');
+        }
+      }
+
+      // 3. Cập nhật lớp khí quyển sương mờ / mây dông
       if (this.fogEl) {
         this.fogEl.className = 'map-rain-fog';
         if (level === 'light') this.fogEl.classList.add('fog-light');
@@ -1146,9 +1162,9 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (level === 'heavy') this.fogEl.classList.add('fog-heavy');
       }
 
-      // 3. Kích hoạt dòng chảy tràn bề mặt đồi dốc (SVG runoff streams)
+      // 4. Kích hoạt dòng chảy tràn bề mặt đồi dốc (SVG runoff streams)
       if (this.runoffGroupEl) {
-        if (level === 'none') {
+        if (isSunny) {
           this.runoffGroupEl.style.opacity = '0';
         } else if (level === 'light') {
           this.runoffGroupEl.style.opacity = '0.35';
@@ -1159,13 +1175,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 4. Hồ tụ thủy Tầng 3 chân dốc (khi mưa cực lớn hoặc úng)
+      // 5. Hồ tụ thủy Tầng 3 chân dốc (khi mưa cực lớn hoặc úng)
       if (this.floodPoolEl) {
         this.floodPoolEl.style.opacity = (level === 'heavy') ? '1.0' : '0';
       }
 
-      // 5. Quản lý vòng lặp vẽ Canvas
-      if (level === 'none') {
+      // 6. Quản lý vòng lặp vẽ Canvas mưa
+      if (isSunny) {
         this.stop();
       } else {
         this.resetDrops();
@@ -1423,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', () => {
       switch (preset) {
         case 'W0':
           isSimulatedWeatherActive = true;
-          mapRainEngine.setIntensity('none', 'Nắng ráo', '0.0mm');
+          mapRainEngine.setIntensity('none', 'Nắng ráo (Khô hạn)', '0.0mm');
           // 1. Gui du lieu thoi tiet nang rao (0mm)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },

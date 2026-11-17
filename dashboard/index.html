@@ -17,8 +17,8 @@
   <script src="js/mqtt.min.js"></script>
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=5.4">
-  <link rel="stylesheet" href="css/animations.css?v=5.4">
+  <link rel="stylesheet" href="css/style.css?v=5.5">
+  <link rel="stylesheet" href="css/animations.css?v=5.5">
 </head>
 
 <body>
@@ -249,6 +249,29 @@
 
                 <!-- Lớp sương mờ / khí quyển dông bão khi trời mưa -->
                 <div class="map-rain-fog" id="mapRainFog"></div>
+
+                <!-- Lớp hiệu ứng ánh nắng mặt trời & quầng sáng khi trời nắng ráo -->
+                <div class="map-sun-container" id="mapSunContainer">
+                  <!-- Quầng sáng ấm áp tỏa khắp sườn đồi -->
+                  <div class="map-sun-ambient-warmth"></div>
+
+                  <!-- Các vệt nắng chiếu chéo rọi qua các tầng đồi (Crepuscular Rays) -->
+                  <div class="map-sun-beams">
+                    <div class="sun-beam beam-1"></div>
+                    <div class="sun-beam beam-2"></div>
+                    <div class="sun-beam beam-3"></div>
+                  </div>
+
+                  <!-- Đĩa mặt trời & hào quang ánh sáng rực rỡ -->
+                  <div class="map-sun-disc-wrapper">
+                    <div class="map-sun-glow"></div>
+                    <div class="map-sun-corona"></div>
+                    <div class="map-sun-core"></div>
+                  </div>
+
+                  <!-- Gợn sóng nhiệt bốc hơi bề mặt khi trời nắng nóng đồi dốc -->
+                  <div class="map-sun-heat-shimmer"></div>
+                </div>
 
                 <!-- Các nhãn tầng cao độ trắc địa theo sườn dốc tự nhiên -->
                 <div class="map-tier-badge" style="top: 14px; left: 16px;">
@@ -1020,10 +1043,10 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
-  <script src="js/config.js?v=5.4"></script>
-  <script src="js/weather_service.js?v=5.4"></script>
-  <script src="js/mqtt_client.js?v=5.4"></script>
-  <script src="js/app.js?v=5.4"></script>
+  <script src="js/config.js?v=5.5"></script>
+  <script src="js/weather_service.js?v=5.5"></script>
+  <script src="js/mqtt_client.js?v=5.5"></script>
+  <script src="js/app.js?v=5.5"></script>
 </body>
 
 </html>
