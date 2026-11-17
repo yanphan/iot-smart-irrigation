@@ -283,8 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (operationLogs.length === 0) {
       const emptyRow = document.createElement('tr');
       emptyRow.innerHTML = `
-        <td colspan="4" style="text-align: center; padding: 22px 10px; color: var(--text-muted); font-size: 11px;">
-          <div style="font-size: 18px; margin-bottom: 4px;">📋</div>
+        <td colspan="4" style="text-align: center; padding: 22px 10px; color: var(--text-muted); font-size: 11px; line-height: 1.6;">
           Chưa có sự kiện vận hành nào được ghi nhận.<br/>
           Thao tác Bơm / Xả hoặc kết nối ESP32 để lưu lịch sử tự động.
         </td>
@@ -862,6 +861,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function initChart() {
     const ctx = document.getElementById('yieldChart');
     if (!ctx) return;
+
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    }
 
     moistureChart = new Chart(ctx, {
       type: 'line',
