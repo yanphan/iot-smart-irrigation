@@ -1128,19 +1128,31 @@ document.addEventListener('DOMContentLoaded', () => {
         this.pillEl.className = 'map-weather-pill';
         if (isSunny) {
           this.pillEl.classList.add('sunny');
-          if (this.pillIconEl) this.pillIconEl.textContent = '☀️';
+          if (this.pillIconEl) {
+            this.pillIconEl.textContent = '';
+            this.pillIconEl.style.display = 'none';
+          }
           if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Nắng ráo'} • ${detail || '0.0mm'}`;
         } else if (level === 'light') {
           this.pillEl.classList.add('raining');
-          if (this.pillIconEl) this.pillIconEl.textContent = '🌦️';
+          if (this.pillIconEl) {
+            this.pillIconEl.style.display = 'inline-block';
+            this.pillIconEl.textContent = '🌦️';
+          }
           if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa phùn'} • ${detail || '2.5mm'}`;
         } else if (level === 'medium') {
           this.pillEl.classList.add('raining');
-          if (this.pillIconEl) this.pillIconEl.textContent = '🌧️';
+          if (this.pillIconEl) {
+            this.pillIconEl.style.display = 'inline-block';
+            this.pillIconEl.textContent = '🌧️';
+          }
           if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa dông lớn'} • ${detail || '19mm'}`;
         } else if (level === 'heavy') {
           this.pillEl.classList.add('storm');
-          if (this.pillIconEl) this.pillIconEl.textContent = '⛈️';
+          if (this.pillIconEl) {
+            this.pillIconEl.style.display = 'inline-block';
+            this.pillIconEl.textContent = '⛈️';
+          }
           if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa cực lớn'} • ${detail || '15mm/h'}`;
         }
       }

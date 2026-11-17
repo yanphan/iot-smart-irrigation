@@ -17,8 +17,8 @@
   <script src="js/mqtt.min.js"></script>
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=5.5">
-  <link rel="stylesheet" href="css/animations.css?v=5.5">
+  <link rel="stylesheet" href="css/style.css?v=5.6">
+  <link rel="stylesheet" href="css/animations.css?v=5.6">
 </head>
 
 <body>
@@ -230,7 +230,7 @@
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <!-- Huy hiệu thời tiết trực quan trên bản đồ -->
                   <div class="map-weather-pill" id="mapWeatherPill" title="Thời tiết thời gian thực trên bản đồ">
-                    <span class="map-weather-pill-icon" id="mapWeatherPillIcon">☀️</span>
+                    <span class="map-weather-pill-icon" id="mapWeatherPillIcon" style="display: none;"></span>
                     <span class="map-weather-pill-text" id="mapWeatherPillText">Nắng ráo • 0mm</span>
                   </div>
                   <button id="btnMapAllOff" class="btn-emergency-stop"
@@ -250,24 +250,10 @@
                 <!-- Lớp sương mờ / khí quyển dông bão khi trời mưa -->
                 <div class="map-rain-fog" id="mapRainFog"></div>
 
-                <!-- Lớp hiệu ứng ánh nắng mặt trời & quầng sáng khi trời nắng ráo -->
+                <!-- Lớp hiệu ứng ánh sáng tự nhiên khi trời nắng ráo -->
                 <div class="map-sun-container" id="mapSunContainer">
-                  <!-- Quầng sáng ấm áp tỏa khắp sườn đồi -->
+                  <!-- Ánh sáng ấm áp tự nhiên trải khắp sườn đồi -->
                   <div class="map-sun-ambient-warmth"></div>
-
-                  <!-- Các vệt nắng chiếu chéo rọi qua các tầng đồi (Crepuscular Rays) -->
-                  <div class="map-sun-beams">
-                    <div class="sun-beam beam-1"></div>
-                    <div class="sun-beam beam-2"></div>
-                    <div class="sun-beam beam-3"></div>
-                  </div>
-
-                  <!-- Đĩa mặt trời & hào quang ánh sáng rực rỡ -->
-                  <div class="map-sun-disc-wrapper">
-                    <div class="map-sun-glow"></div>
-                    <div class="map-sun-corona"></div>
-                    <div class="map-sun-core"></div>
-                  </div>
 
                   <!-- Gợn sóng nhiệt bốc hơi bề mặt khi trời nắng nóng đồi dốc -->
                   <div class="map-sun-heat-shimmer"></div>
@@ -1043,10 +1029,10 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
-  <script src="js/config.js?v=5.5"></script>
-  <script src="js/weather_service.js?v=5.5"></script>
-  <script src="js/mqtt_client.js?v=5.5"></script>
-  <script src="js/app.js?v=5.5"></script>
+  <script src="js/config.js?v=5.6"></script>
+  <script src="js/weather_service.js?v=5.6"></script>
+  <script src="js/mqtt_client.js?v=5.6"></script>
+  <script src="js/app.js?v=5.6"></script>
 </body>
 
 </html>
