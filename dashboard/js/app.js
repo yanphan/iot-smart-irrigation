@@ -1056,8 +1056,249 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+// ============================================================
+  // HỆ THỐNG MÔ PHỎNG MƯA & DÒNG CHẢY TRÀN ĐỒI DỐC TRỰC QUAN (CANVAS 2D)
+  // ============================================================
+  let isSimulatedWeatherActive = false;
+
+  const mapRainEngine = {
+    canvas: null,
+    ctx: null,
+    animId: null,
+    width: 0,
+    height: 0,
+    intensity: 'none', // 'none' | 'light' | 'medium' | 'heavy'
+    drops: [],
+    splashes: [],
+    fogEl: null,
+    pillEl: null,
+    pillIconEl: null,
+    pillTextEl: null,
+    runoffGroupEl: null,
+    floodPoolEl: null,
+
+    init() {
+      this.canvas = document.getElementById('mapRainCanvas');
+      this.fogEl = document.getElementById('mapRainFog');
+      this.pillEl = document.getElementById('mapWeatherPill');
+      this.pillIconEl = document.getElementById('mapWeatherPillIcon');
+      this.pillTextEl = document.getElementById('mapWeatherPillText');
+      this.runoffGroupEl = document.getElementById('mapRunoffGroup');
+      this.floodPoolEl = document.getElementById('valleyFloodPool');
+
+      if (!this.canvas) return;
+      this.ctx = this.canvas.getContext('2d');
+      this.resize();
+      window.addEventListener('resize', () => this.resize());
+
+      const mapImg = document.getElementById('mapBgImg');
+      if (mapImg) {
+        if (mapImg.complete) {
+          this.resize();
+        } else {
+          mapImg.addEventListener('load', () => this.resize());
+        }
+      }
+    },
+
+    resize() {
+      const box = document.getElementById('mapBox');
+      if (!box || !this.canvas) return;
+      const rect = box.getBoundingClientRect();
+      this.width = rect.width;
+      this.height = rect.height;
+      this.canvas.width = this.width;
+      this.canvas.height = this.height;
+      if (this.intensity !== 'none') {
+        this.resetDrops();
+      }
+    },
+
+    setIntensity(level, label, detail) {
+      this.intensity = level;
+
+      // 1. Cập nhật huy hiệu thời tiết trên header bản đồ
+      if (this.pillEl) {
+        this.pillEl.className = 'map-weather-pill';
+        if (level === 'none') {
+          if (this.pillIconEl) this.pillIconEl.textContent = '☀️';
+          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Nắng ráo'} • ${detail || '0mm'}`;
+        } else if (level === 'light') {
+          this.pillEl.classList.add('raining');
+          if (this.pillIconEl) this.pillIconEl.textContent = '🌦️';
+          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa phùn'} • ${detail || '2.5mm'}`;
+        } else if (level === 'medium') {
+          this.pillEl.classList.add('raining');
+          if (this.pillIconEl) this.pillIconEl.textContent = '🌧️';
+          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa dông lớn'} • ${detail || '19mm'}`;
+        } else if (level === 'heavy') {
+          this.pillEl.classList.add('storm');
+          if (this.pillIconEl) this.pillIconEl.textContent = '⛈️';
+          if (this.pillTextEl) this.pillTextEl.textContent = `${label || 'Mưa cực lớn'} • ${detail || '15mm/h'}`;
+        }
+      }
+
+      // 2. Cập nhật lớp khí quyển sương mờ / mây dông
+      if (this.fogEl) {
+        this.fogEl.className = 'map-rain-fog';
+        if (level === 'light') this.fogEl.classList.add('fog-light');
+        else if (level === 'medium') this.fogEl.classList.add('fog-medium');
+        else if (level === 'heavy') this.fogEl.classList.add('fog-heavy');
+      }
+
+      // 3. Kích hoạt dòng chảy tràn bề mặt đồi dốc (SVG runoff streams)
+      if (this.runoffGroupEl) {
+        if (level === 'none') {
+          this.runoffGroupEl.style.opacity = '0';
+        } else if (level === 'light') {
+          this.runoffGroupEl.style.opacity = '0.35';
+        } else if (level === 'medium') {
+          this.runoffGroupEl.style.opacity = '0.75';
+        } else if (level === 'heavy') {
+          this.runoffGroupEl.style.opacity = '1.0';
+        }
+      }
+
+      // 4. Hồ tụ thủy Tầng 3 chân dốc (khi mưa cực lớn hoặc úng)
+      if (this.floodPoolEl) {
+        this.floodPoolEl.style.opacity = (level === 'heavy') ? '1.0' : '0';
+      }
+
+      // 5. Quản lý vòng lặp vẽ Canvas
+      if (level === 'none') {
+        this.stop();
+      } else {
+        this.resetDrops();
+        if (!this.animId) {
+          this.loop();
+        }
+      }
+    },
+
+    resetDrops() {
+      this.drops = [];
+      this.splashes = [];
+      let count = 0;
+      if (this.intensity === 'light') count = Math.max(35, Math.floor(this.width * 0.08));
+      else if (this.intensity === 'medium') count = Math.max(90, Math.floor(this.width * 0.2));
+      else if (this.intensity === 'heavy') count = Math.max(180, Math.floor(this.width * 0.38));
+
+      for (let i = 0; i < count; i++) {
+        this.drops.push(this.createDrop(true));
+      }
+    },
+
+    createDrop(randomY = false) {
+      const isHeavy = this.intensity === 'heavy';
+      const isLight = this.intensity === 'light';
+      return {
+        x: Math.random() * (this.width + 120) - 60,
+        y: randomY ? Math.random() * this.height : -20 - Math.random() * 40,
+        length: isLight ? (7 + Math.random() * 6) : (isHeavy ? (20 + Math.random() * 15) : (13 + Math.random() * 10)),
+        speed: isLight ? (7 + Math.random() * 4) : (isHeavy ? (20 + Math.random() * 10) : (13 + Math.random() * 6)),
+        opacity: isLight ? (0.25 + Math.random() * 0.3) : (isHeavy ? (0.55 + Math.random() * 0.4) : (0.4 + Math.random() * 0.35)),
+        slant: isLight ? 1.6 : (isHeavy ? 4.2 : 2.8),
+        width: isLight ? 1.0 : (isHeavy ? 1.8 : 1.4)
+      };
+    },
+
+    createSplash(x, y) {
+      return {
+        x,
+        y,
+        radius: 1,
+        maxRadius: 4 + Math.random() * 7,
+        opacity: 0.65,
+        speed: 0.45 + Math.random() * 0.3
+      };
+    },
+
+    loop() {
+      if (this.intensity === 'none') {
+        this.animId = null;
+        return;
+      }
+      this.render();
+      this.animId = requestAnimationFrame(() => this.loop());
+    },
+
+    render() {
+      if (!this.ctx) return;
+      this.ctx.clearRect(0, 0, this.width, this.height);
+
+      // Vẽ các giọt mưa rơi
+      for (let i = 0; i < this.drops.length; i++) {
+        const d = this.drops[i];
+        this.ctx.beginPath();
+        this.ctx.moveTo(d.x, d.y);
+        this.ctx.lineTo(d.x + d.slant * (d.length / 10), d.y + d.length);
+        this.ctx.strokeStyle = `rgba(186, 230, 253, ${d.opacity})`;
+        this.ctx.lineWidth = d.width;
+        this.ctx.lineCap = 'round';
+        this.ctx.stroke();
+
+        d.x += d.slant;
+        d.y += d.speed;
+
+        // Khi hạt mưa chạm tầng sườn dốc & chân đồi (y > 60% chiều cao): tạo splash
+        if (d.y > this.height * 0.58 && Math.random() < 0.16) {
+          if (this.splashes.length < 45) {
+            this.splashes.push(this.createSplash(d.x, Math.min(d.y, this.height - 5)));
+          }
+        }
+
+        // Tái tạo giọt mưa khi rơi hết khung hình
+        if (d.y > this.height || d.x > this.width + 60) {
+          this.drops[i] = this.createDrop(false);
+        }
+      }
+
+      // Vẽ các vòng tròn gợn sóng splash
+      for (let i = this.splashes.length - 1; i >= 0; i--) {
+        const s = this.splashes[i];
+        this.ctx.beginPath();
+        this.ctx.ellipse(s.x, s.y, s.radius * 1.8, s.radius * 0.7, 0, 0, Math.PI * 2);
+        this.ctx.strokeStyle = `rgba(125, 211, 252, ${s.opacity})`;
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        s.radius += s.speed;
+        s.opacity -= 0.038;
+
+        if (s.opacity <= 0 || s.radius >= s.maxRadius) {
+          this.splashes.splice(i, 1);
+        }
+      }
+    },
+
+    stop() {
+      if (this.animId) {
+        cancelAnimationFrame(this.animId);
+        this.animId = null;
+      }
+      if (this.ctx) {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+      }
+      this.drops = [];
+      this.splashes = [];
+    }
+  };
+
+
   weatherService.subscribe(() => {
     renderWeatherCard();
+    // Tự động đồng bộ hiệu ứng mưa trên bản đồ theo thời tiết thực tế nếu không ở chế độ giả lập
+    if (!isSimulatedWeatherActive && weatherService.currentData) {
+      const cur = weatherService.currentData;
+      const isRain = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
+      if (isRain) {
+        const p = cur.precip || 0;
+        const level = p >= 10 ? 'heavy' : (p >= 3 ? 'medium' : 'light');
+        mapRainEngine.setIntensity(level, cur.weatherText || 'Đang có mưa', `${p}mm`);
+      } else {
+        mapRainEngine.setIntensity('none', 'Nắng ráo', '0mm');
+      }
+    }
     // Đồng bộ lượng mưa dự báo vào biểu đồ nếu có
     if (weatherService.hourlyData && weatherService.hourlyData.length > 0 && moistureChart) {
       weatherService.hourlyData.slice(0, 3).forEach((h, idx) => {
@@ -1171,7 +1412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ------------------------------------------------------------
+    // ------------------------------------------------------------
   // 10. KỊCH BẢN KIỂM THỬ TRÊN THANH TOPBAR (HOVER DROPDOWN)
   // ------------------------------------------------------------
   document.querySelectorAll('[data-preset]').forEach(btn => {
@@ -1181,6 +1422,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       switch (preset) {
         case 'W0':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('none', 'Nắng ráo', '0.0mm');
           // 1. Gui du lieu thoi tiet nang rao (0mm)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 10, 5] },
@@ -1207,6 +1450,8 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W1':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('medium', 'Mưa dông lớn', '19.0mm');
           mqttClient.sendMode('AUTO');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [5.0, 10.0, 4.0], precipitation_probability: [80, 85, 75] },
@@ -1226,6 +1471,8 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W2':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('light', 'Mưa phùn nhẹ', '2.5mm');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [1.0, 1.0, 0.5], precipitation_probability: [75, 70, 65] },
             current: { temperature_2m: 22.0, relative_humidity_2m: 78.0 }
@@ -1244,6 +1491,8 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W3':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('heavy', 'Mưa cực lớn', '15.0mm/h');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [15.0, 12.0, 8.0], precipitation_probability: [95, 90, 85] },
             current: { temperature_2m: 18.0, relative_humidity_2m: 95.0 }
@@ -1262,6 +1511,8 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W4':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('medium', 'Mưa rào (Cứu cây)', '4-5mm');
           // 1. Gui du lieu du bao mua (4-5mm, xac suat 70-75%) - binh thuong se hoan tuoi (S3)
           mqttClient.sendSimWeather({
             hourly: { precipitation: [4.0, 5.0, 3.0], precipitation_probability: [70, 75, 60] },
@@ -1288,6 +1539,8 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'W5':
+          isSimulatedWeatherActive = true;
+          mapRainEngine.setIntensity('none', 'Nắng ráo (Dự báo sai)', '0.0mm');
           mqttClient.sendSimWeather({
             hourly: { precipitation: [0.0, 0.0, 0.0], precipitation_probability: [5, 0, 0] },
             current: { temperature_2m: 25.0, relative_humidity_2m: 60.0 }
@@ -1344,6 +1597,20 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
 
         case 'RESET':
+          isSimulatedWeatherActive = false;
+          if (weatherService.currentData) {
+            const cur = weatherService.currentData;
+            const isRain = (cur.weatherCode >= 51 && cur.weatherCode <= 99);
+            if (isRain) {
+              const p = cur.precip || 0;
+              const level = p >= 10 ? 'heavy' : (p >= 3 ? 'medium' : 'light');
+              mapRainEngine.setIntensity(level, cur.weatherText || 'Đang có mưa', `${p}mm`);
+            } else {
+              mapRainEngine.setIntensity('none', 'Nắng ráo', '0mm');
+            }
+          } else {
+            mapRainEngine.setIntensity('none', 'Nắng ráo', '0mm');
+          }
           // 1. Gửi lệnh RESET mã lỗi phần cứng tới ESP32 (D1 - D7)
           mqttClient.sendSimFault('RESET');
 
@@ -1652,6 +1919,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Khởi chạy ứng dụng
   initChart();
+  mapRainEngine.init();
   updateTopographicMap();
   updateSelectionUI();
   renderLogTable();

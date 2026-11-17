@@ -2401,3 +2401,96 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   HIỆU ỨNG MƯA & THỜI TIẾT TRỰC QUAN TRÊN BẢN ĐỒ VỆ TINH ĐỒI DỐC
+   ============================================================ */
+
+/* Huy hiệu thời tiết trực quan trên header bản đồ */
+.map-weather-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.map-weather-pill.raining {
+  background: rgba(224, 242, 254, 0.95);
+  border-color: #7dd3fc;
+  color: #0369a1;
+  box-shadow: 0 2px 12px rgba(2, 132, 199, 0.2);
+  animation: pulse-rain-pill 2s infinite ease-in-out;
+}
+
+.map-weather-pill.storm {
+  background: rgba(254, 226, 226, 0.95);
+  border-color: #fca5a5;
+  color: #b91c1c;
+  box-shadow: 0 2px 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-storm-pill 1.5s infinite ease-in-out;
+}
+
+.map-weather-pill-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Lớp khí quyển sương mờ / mây dông khi trời mưa */
+.map-rain-fog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 1s ease, background 1s ease;
+}
+
+.map-rain-fog.fog-light {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(224, 242, 254, 0.14) 0%, rgba(186, 230, 253, 0.08) 100%);
+}
+
+.map-rain-fog.fog-medium {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.28) 0%, rgba(30, 41, 59, 0.22) 100%);
+}
+
+.map-rain-fog.fog-heavy {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(2, 132, 199, 0.15) 60%, rgba(15, 23, 42, 0.5) 100%);
+}
+
+/* Lớp Canvas hạt mưa động */
+.map-rain-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 1;
+}
+
+/* Dòng chảy tràn nước mưa theo sườn dốc */
+.map-runoff-group {
+  transition: opacity 0.8s ease;
+}
+
+.valley-flood-pool {
+  transition: opacity 1s ease;
+  animation: pulse-flood-pool 3s infinite ease-in-out;
+}
