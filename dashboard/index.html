@@ -17,8 +17,8 @@
   <script src="js/mqtt.min.js"></script>
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=5.2">
-  <link rel="stylesheet" href="css/animations.css?v=5.2">
+  <link rel="stylesheet" href="css/style.css?v=5.6">
+  <link rel="stylesheet" href="css/animations.css?v=5.6">
 </head>
 
 <body>
@@ -228,6 +228,11 @@
                   <div class="map-subtitle" id="mapSubtitleText">Nông trường Cầu Đất - Đà Lạt • 1,480m - 1,630m</div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
+                  <!-- Huy hiệu thời tiết trực quan trên bản đồ -->
+                  <div class="map-weather-pill" id="mapWeatherPill" title="Thời tiết thời gian thực trên bản đồ">
+                    <span class="map-weather-pill-icon" id="mapWeatherPillIcon" style="display: none;"></span>
+                    <span class="map-weather-pill-text" id="mapWeatherPillText">Nắng ráo • 0mm</span>
+                  </div>
                   <button id="btnMapAllOff" class="btn-emergency-stop"
                     title="Ngắt khẩn cấp tất cả máy bơm ngay lập tức">
                     Tắt Khẩn Cấp Mọi Bơm
@@ -242,6 +247,18 @@
                 <img src="assets/cau_dat_topomap.jpg" alt="Bản đồ không ảnh vệ tinh Cầu Đất" class="map-bg-image"
                   id="mapBgImg">
 
+                <!-- Lớp sương mờ / khí quyển dông bão khi trời mưa -->
+                <div class="map-rain-fog" id="mapRainFog"></div>
+
+                <!-- Lớp hiệu ứng ánh sáng tự nhiên khi trời nắng ráo -->
+                <div class="map-sun-container" id="mapSunContainer">
+                  <!-- Ánh sáng ấm áp tự nhiên trải khắp sườn đồi -->
+                  <div class="map-sun-ambient-warmth"></div>
+
+                  <!-- Gợn sóng nhiệt bốc hơi bề mặt khi trời nắng nóng đồi dốc -->
+                  <div class="map-sun-heat-shimmer"></div>
+                </div>
+
                 <!-- Các nhãn tầng cao độ trắc địa theo sườn dốc tự nhiên -->
                 <div class="map-tier-badge" style="top: 14px; left: 16px;">
                   TẦNG 1: ĐỈNH ĐỒI
@@ -253,14 +270,34 @@
                   TẦNG 3: VÙNG TRŨNG
                 </div>
 
-                <!-- Lớp SVG đồ họa đường đồng mức trắc địa -->
+                <!-- Lớp SVG đồ họa đường đồng mức trắc địa & dòng chảy tràn -->
                 <svg class="map-svg-overlay" viewBox="0 0 1000 550" preserveAspectRatio="none">
+                  <defs>
+                    <radialGradient id="floodPoolGrad" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.5"/>
+                      <stop offset="65%" stop-color="#0369a1" stop-opacity="0.3"/>
+                      <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
+                    </radialGradient>
+                  </defs>
+                  <!-- Đường đồng mức trắc địa -->
                   <path d="M 10 230 C 180 200, 320 170, 520 80 C 600 45, 680 20, 760 10" stroke="rgba(255,255,255,0.25)"
                     stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
                   <path d="M 10 410 C 180 390, 360 360, 580 280 C 760 220, 890 160, 990 110"
                     stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
                   <path d="M 110 540 C 260 480, 460 430, 680 370 C 820 330, 910 300, 990 280"
                     stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="5 5" fill="none" />
+
+                  <!-- Dòng nước chảy tràn bề mặt đồi dốc khi có mưa (Runoff Streams) -->
+                  <g id="mapRunoffGroup" class="map-runoff-group" opacity="0">
+                    <!-- Dòng 1: Đỉnh đồi Tây Bắc dồn xuống sườn Tây và lòng máng -->
+                    <path d="M 240 150 C 220 250, 230 350, 320 450" class="slope-runoff-arrow" />
+                    <!-- Dòng 2: Đỉnh đồi chính dồn qua sườn trung tâm xuống thung lũng -->
+                    <path d="M 450 130 C 470 240, 510 340, 580 470" class="slope-runoff-arrow" />
+                    <!-- Dòng 3: Sườn Đông dồn về sông Đa Nhim chân dốc -->
+                    <path d="M 700 170 C 670 270, 730 360, 780 470" class="slope-runoff-arrow" />
+                    <!-- Vùng tụ thủy trũng Tầng 3 (hồ nước gợn sóng khi mưa lớn hoặc ngập úng) -->
+                    <ellipse cx="600" cy="460" rx="190" ry="42" class="valley-flood-pool" id="valleyFloodPool" fill="url(#floodPoolGrad)" opacity="0" />
+                  </g>
                 </svg>
 
                 <!-- VÒNG TRÒN TRẠNG THÁI MÔI TRƯỜNG CỦA CẢM BIẾN (HALO) -->
@@ -467,6 +504,9 @@
                     <span class="pump-pulse-timer" id="timer3D" style="display:none;">20s</span>
                   </div>
                 </div>
+
+                <!-- LỚP HIỆU ỨNG MƯA THỜI TIẾT ĐỘNG (CANVAS 2D) -->
+                <canvas class="map-rain-canvas" id="mapRainCanvas"></canvas>
               </div>
 
               <!-- CHÚ GIẢI BẢN ĐỒ (LEGEND) - 2 HÀNG SONG SONG -->
@@ -635,10 +675,10 @@
                 <div style="display: flex; gap: 6px;">
                   <button class="btn-export-csv btn-clear-logs" id="btnClearLogs"
                     title="Xóa toàn bộ lịch sử vận hành lưu trong trình duyệt">
-                    🗑️ Xóa Lịch Sử
+                    Xóa Lịch Sử
                   </button>
                   <button class="btn-export-csv" id="btnExportCsv" title="Tải toàn bộ nhật ký vận hành ra file CSV">
-                    📥 Xuất file CSV
+                    Xuất file CSV
                   </button>
                 </div>
               </div>
@@ -989,10 +1029,10 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
-  <script src="js/config.js?v=5.3"></script>
-  <script src="js/weather_service.js?v=5.3"></script>
-  <script src="js/mqtt_client.js?v=5.3"></script>
-  <script src="js/app.js?v=5.3"></script>
+  <script src="js/config.js?v=5.6"></script>
+  <script src="js/weather_service.js?v=5.6"></script>
+  <script src="js/mqtt_client.js?v=5.6"></script>
+  <script src="js/app.js?v=5.6"></script>
 </body>
 
 </html>
